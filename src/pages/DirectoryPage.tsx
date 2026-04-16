@@ -1,0 +1,165 @@
+import { useEffect, useState } from 'react';
+import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { UserProfile } from '../types';
+import { motion } from 'motion/react';
+import { Search, Filter, ShieldCheck } from 'lucide-react';
+import { cn } from '../lib/utils';
+import { Link } from 'react-router-dom';
+import LoadingAnimation from '../components/LoadingAnimation';
+
+const fields = ['Бүгд', 'IT', 'Design', 'Marketing', 'Law', 'Health', 'Finance', 'Education', 'Business'];
+
+export default function DirectoryPage() {
+  const [profiles, setProfiles] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedField, setSelectedField] = useState('Бүгд');
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      setLoading(true);
+      try {
+        let q = query(
+          collection(db, 'profiles'), 
+          where('is_active', '==', true), 
+          where('show_in_directory', '==', true),
+          limit(50)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile));
+        setProfiles(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfiles();
+  }, []);
+
+  const filteredProfiles = profiles.filter(p => {
+    const matchesSearch = (p.firstname + p.lastname + p.job_title + p.company).toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesField = selectedField === 'Бүгд' || p.field === selectedField;
+    return matchesSearch && matchesField;
+  });
+
+  return (
+    <div className="min-h-screen pt-32 pb-16 px-4 relative z-10">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-5xl md:text-6xl font-serif font-bold mb-6"
+          >
+            Мэргэжилтнүүдийн <span className="aurora-text">лавлах</span>
+          </motion.h1>
+          <p className="text-ivory/60 max-w-2xl mx-auto">Шилдэг мэргэжилтнүүдтэй холбогдож, танилцаарай.</p>
+        </div>
+
+        {/* Search & Filter */}
+        <div className="mb-16 space-y-8">
+          <div className="relative max-w-3xl mx-auto">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-ivory/30 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Нэр, мэргэжил, компани хайх..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-16 pr-6 py-6 glass-panel rounded-full focus:outline-none focus:ring-2 focus:ring-aurora-violet/50 transition-all text-lg"
+            />
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-3">
+            {fields.map(field => (
+              <button
+                key={field}
+                onClick={() => setSelectedField(field)}
+                className={cn(
+                  "px-6 py-2.5 rounded-full text-sm font-medium transition-all",
+                  selectedField === field 
+                    ? "btn-aurora text-white" 
+                    : "glass-panel text-ivory/60 hover:bg-glass-hover"
+                )}
+              >
+                {field}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Grid */}
+        {loading ? (
+          <div className="py-20 flex justify-center">
+            <LoadingAnimation />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProfiles.map(profile => (
+              <motion.div
+                key={profile.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -5 }}
+                className="glass-panel rounded-[32px] transition-all group"
+              >
+                <Link to={`/${profile.username}`} className="block p-8">
+                  <div className="flex items-start gap-5 mb-8">
+                    <div className="w-20 h-20 rounded-full overflow-hidden bg-glass border border-white/5 group-hover:border-aurora-violet transition-all">
+                      {profile.avatar_url ? (
+                        <img 
+                          src={profile.avatar_url} 
+                          alt="Avatar" 
+                          className="w-full h-full object-cover" 
+                          referrerPolicy="no-referrer"
+                          onError={(e: any) => {
+                            e.target.style.display = 'none';
+                            const fallback = e.target.nextSibling;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div className={cn(
+                        "w-full h-full items-center justify-center text-2xl font-bold text-aurora-violet",
+                        profile.avatar_url ? "hidden" : "flex"
+                      )}>
+                        {profile.firstname[0]}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-2xl font-serif font-bold group-hover:aurora-text transition-all uppercase">
+                          {profile.lastname_display === 'initial' 
+                            ? `${profile.lastname?.[0]}. ${profile.firstname}`
+                            : `${profile.lastname} ${profile.firstname}`
+                          }
+                        </h3>
+                        {profile.verified && <ShieldCheck className="w-5 h-5 text-aurora-cyan drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]" />}
+                      </div>
+                      <p className="text-aurora-violet font-medium text-sm">{profile.job_title}</p>
+                      <p className="text-ivory/40 text-xs">{profile.company}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                    <span className="text-[10px] uppercase tracking-widest text-ivory/30">ecard.mn/{profile.username}</span>
+                    <span className="text-aurora-cyan text-xs font-bold group-hover:translate-x-1 transition-transform">Харах →</span>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {!loading && filteredProfiles.length === 0 && (
+          <div className="text-center py-32 glass-panel rounded-[32px]">
+            <p className="text-ivory/40 text-lg">Хайлт илэрцгүй байна.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

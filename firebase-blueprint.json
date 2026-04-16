@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information for digital business card",
+      "type": "object",
+      "properties": {
+        "lastname": { "type": "string", "description": "Last name" },
+        "firstname": { "type": "string", "description": "First name" },
+        "username": { "type": "string", "description": "Unique username for the profile URL" },
+        "job_title": { "type": "string", "description": "Job title" },
+        "company": { "type": "string", "description": "Company name" },
+        "phone": { "type": "string", "description": "Phone number" },
+        "email": { "type": "string", "description": "Email address" },
+        "website": { "type": "string", "description": "Website URL" },
+        "bio": { "type": "string", "description": "Short biography" },
+        "field": { "type": "string", "description": "Professional field/industry" },
+        "card_color": { "type": "string", "description": "Background color of the card" },
+        "card_text_color": { "type": "string", "description": "Text color of the card" },
+        "avatar_url": { "type": "string", "description": "URL to profile avatar" },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "User role" },
+        "plan": { "type": "string", "enum": ["free", "pro", "business"], "description": "Subscription plan" },
+        "verified": { "type": "boolean", "description": "Whether the profile is verified" },
+        "is_active": { "type": "boolean", "description": "Whether the account is active" },
+        "show_in_directory": { "type": "boolean", "description": "Whether to show in public directory" },
+        "profile_public": { "type": "boolean", "description": "Whether the profile is publicly accessible" },
+        "linkedin": { "type": "string", "description": "LinkedIn profile URL" },
+        "facebook": { "type": "string", "description": "Facebook profile URL" },
+        "instagram": { "type": "string", "description": "Instagram profile URL" },
+        "twitter": { "type": "string", "description": "Twitter profile URL" },
+        "youtube": { "type": "string", "description": "YouTube channel URL" },
+        "view_count": { "type": "integer", "description": "Total profile views" },
+        "qr_scan_count": { "type": "integer", "description": "Total QR code scans" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["lastname", "firstname", "username"]
+    },
+    "ProfileView": {
+      "title": "ProfileView",
+      "description": "Log of profile views",
+      "type": "object",
+      "properties": {
+        "profile_id": { "type": "string", "description": "ID of the viewed profile" },
+        "viewer_ip": { "type": "string", "description": "IP address of the viewer" },
+        "viewed_at": { "type": "string", "format": "date-time" },
+        "source": { "type": "string", "enum": ["direct", "qr", "directory"], "description": "Source of the view" }
+      }
+    }
+  },
+  "firestore": {
+    "/profiles/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile documents"
+    },
+    "/profile_views/{viewId}": {
+      "schema": "ProfileView",
+      "description": "Profile view logs"
+    }
+  }
+}

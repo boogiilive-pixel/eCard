@@ -1,0 +1,150 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: profiles
+    // Document ID: userId (auth.uid)
+    // Fields:
+    //   - lastname: string (required)
+    //   - firstname: string (required)
+    //   - username: string (required, unique)
+    //   - job_title: string
+    //   - company: string
+    //   - phone: string
+    //   - email: string
+    //   - website: string
+    //   - bio: string
+    //   - field: string
+    //   - card_color: string
+    //   - card_text_color: string
+    //   - avatar_url: string
+    //   - role: string ('user', 'admin')
+    //   - plan: string ('free', 'pro', 'business')
+    //   - verified: bool
+    //   - is_active: bool
+    //   - show_in_directory: bool
+    //   - profile_public: bool
+    //   - linkedin: string
+    //   - facebook: string
+    //   - instagram: string
+    //   - twitter: string
+    //   - youtube: string
+    //   - view_count: int
+    //   - qr_scan_count: int
+    //   - created_at: timestamp
+    //   - updated_at: timestamp
+    //
+    // Collection: profile_views
+    // Document ID: auto-generated
+    // Fields:
+    //   - profile_id: string
+    //   - viewer_ip: string
+    //   - viewed_at: timestamp
+    //   - source: string
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (request.auth.token.email == "boogiilive@gmail.com" && request.auth.token.email_verified == true) ||
+        (exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isValidUserProfile(data) {
+      return data.lastname is string && data.lastname.size() > 0 && data.lastname.size() < 100 &&
+             data.firstname is string && data.firstname.size() > 0 && data.firstname.size() < 100 &&
+             data.username is string && data.username.size() > 0 && data.username.size() < 50 &&
+             (!('bio' in data) || (data.bio is string && data.bio.size() <= 1000)) &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 20)) &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 100)) &&
+             (!('website' in data) || (data.website is string && data.website.size() <= 200)) &&
+             (!('job_title' in data) || (data.job_title is string && data.job_title.size() <= 100)) &&
+             (!('company' in data) || (data.company is string && data.company.size() <= 100));
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /profiles/{userId} {
+      // Public can read active and public profiles
+      allow read: if resource.data.is_active == true && resource.data.profile_public == true;
+      
+      // Owner can read their own profile even if inactive/private
+      allow read: if isOwner(userId);
+      
+      // Admin can read all
+      allow read: if isAdmin();
+
+      // Create: user can create their own profile
+      allow create: if isOwner(userId) && 
+                      isValidUserProfile(request.resource.data) &&
+                      request.resource.data.role == 'user' &&
+                      request.resource.data.plan == 'free' &&
+                      request.resource.data.verified == false &&
+                      request.resource.data.is_active == true;
+
+      // Update: owner can update their own profile, but cannot change role, plan, verified status
+      // Also allow anyone to increment view_count
+      allow update: if (
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['view_count']) &&
+                        request.resource.data.view_count == resource.data.view_count + 1
+                      ) || (
+                        isOwner(userId) && 
+                        isValidUserProfile(request.resource.data) &&
+                        request.resource.data.role == resource.data.role &&
+                        request.resource.data.plan == resource.data.plan &&
+                        request.resource.data.verified == resource.data.verified &&
+                        request.resource.data.is_active == resource.data.is_active
+                      ) || isAdmin();
+      
+      // Delete: only admin
+      allow delete: if isAdmin();
+    }
+
+    match /profile_views/{viewId} {
+      // Anyone can log a view
+      allow create: if true; 
+      
+      // Only owner of the profile or admin can read views
+      allow read: if isAuthenticated() && (isOwner(resource.data.profile_id) || isAdmin());
+      
+      // No updates or deletes
+      allow update, delete: if isAdmin();
+    }
+
+    match /saved_cards/{saveId} {
+      // Anyone can save a card if they are authenticated
+      allow create: if isAuthenticated() && request.resource.data.user_id == request.auth.uid;
+      
+      // Only the owner can read their saved cards
+      allow read: if isAuthenticated() && (resource.data.user_id == request.auth.uid || isAdmin());
+      
+      // Owner can delete their saved cards
+      allow delete: if isAuthenticated() && (resource.data.user_id == request.auth.uid || isAdmin());
+    }
+    
+    match /verified_requests/{requestId} {
+      allow create: if isAuthenticated() && request.resource.data.profile_id == request.auth.uid;
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.profile_id || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+  }
+}
