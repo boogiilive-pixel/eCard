@@ -62,11 +62,11 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen flex relative z-10 lg:pl-72">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 glass-panel !bg-void/90 backdrop-blur-2xl z-50 flex items-center justify-between px-6">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 glass-panel !bg-white/90 backdrop-blur-2xl z-50 flex items-center justify-between px-6 border-b border-slate-100">
         <Link to="/" className="text-xl font-serif font-bold aurora-text">eCard.mn</Link>
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 rounded-lg bg-glass text-aurora-cyan"
+          className="p-2 rounded-lg bg-slate-50 text-aurora-blue"
         >
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -74,7 +74,7 @@ export default function DashboardPage() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 w-72 flex flex-col glass-panel !bg-void/95 backdrop-blur-2xl !border-y-0 !border-l-0 !rounded-none transform transition-transform duration-300 lg:translate-x-0 overflow-y-auto",
+        "fixed inset-y-0 left-0 z-40 w-72 flex flex-col glass-panel !bg-white/95 backdrop-blur-2xl !border-y-0 !border-l-0 !rounded-none transform transition-transform duration-300 lg:translate-x-0 overflow-y-auto shadow-xl",
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="p-8 hidden lg:block">
@@ -92,11 +92,11 @@ export default function DashboardPage() {
               className={cn(
                 "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group",
                 location.pathname === item.path 
-                  ? "btn-aurora text-white" 
-                  : "text-ivory/60 hover:text-aurora-violet hover:bg-glass-hover"
+                  ? "btn-aurora text-white shadow-md shadow-aurora-blue/20" 
+                  : "text-slate-600 hover:text-aurora-blue hover:bg-slate-50"
               )}
             >
-              <span className={cn("w-5 h-5 transition-colors", location.pathname === item.path ? "text-white" : "text-ivory/30 group-hover:text-aurora-violet")}>
+              <span className={cn("w-5 h-5 transition-colors", location.pathname === item.path ? "text-white" : "text-slate-300 group-hover:text-aurora-blue")}>
                 {item.icon}
               </span>
               {item.label}
@@ -110,17 +110,17 @@ export default function DashboardPage() {
               to={`/${profile.username}`} 
               target="_blank"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium text-aurora-cyan hover:bg-glass-hover transition-all group"
+              className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium text-aurora-blue hover:bg-slate-50 transition-all group"
             >
-              <ExternalLink className="w-5 h-5 text-aurora-cyan/50 group-hover:text-aurora-cyan" />
+              <ExternalLink className="w-5 h-5 text-aurora-blue/50 group-hover:text-aurora-blue" />
               Миний eCard
             </Link>
           )}
           <button 
             onClick={handleLogout}
-            className="flex items-center gap-4 px-4 py-3 w-full rounded-xl text-sm font-medium text-ivory/40 hover:text-danger hover:bg-danger/5 transition-all group"
+            className="flex items-center gap-4 px-4 py-3 w-full rounded-xl text-sm font-medium text-slate-400 hover:text-danger hover:bg-danger/5 transition-all group"
           >
-            <LogOut className="w-5 h-5 text-ivory/20 group-hover:text-danger" /> Гарах
+            <LogOut className="w-5 h-5 text-slate-200 group-hover:text-danger" /> Гарах
           </button>
         </div>
       </aside>

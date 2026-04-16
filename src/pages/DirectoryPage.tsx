@@ -57,19 +57,19 @@ export default function DirectoryPage() {
           >
             Мэргэжилтнүүдийн <span className="aurora-text">лавлах</span>
           </motion.h1>
-          <p className="text-ivory/60 max-w-2xl mx-auto">Шилдэг мэргэжилтнүүдтэй холбогдож, танилцаарай.</p>
+          <p className="text-slate-500 max-w-2xl mx-auto">Шилдэг мэргэжилтнүүдтэй холбогдож, танилцаарай.</p>
         </div>
 
         {/* Search & Filter */}
         <div className="mb-16 space-y-8">
           <div className="relative max-w-3xl mx-auto">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-ivory/30 w-5 h-5" />
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
               placeholder="Нэр, мэргэжил, компани хайх..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-16 pr-6 py-6 glass-panel rounded-full focus:outline-none focus:ring-2 focus:ring-aurora-violet/50 transition-all text-lg"
+              className="w-full pl-16 pr-6 py-6 glass-panel rounded-full focus:outline-none focus:ring-2 focus:ring-aurora-blue/20 transition-all text-lg shadow-sm"
             />
           </div>
 
@@ -82,7 +82,7 @@ export default function DirectoryPage() {
                   "px-6 py-2.5 rounded-full text-sm font-medium transition-all",
                   selectedField === field 
                     ? "btn-aurora text-white" 
-                    : "glass-panel text-ivory/60 hover:bg-glass-hover"
+                    : "glass-panel text-slate-500 hover:text-aurora-blue"
                 )}
               >
                 {field}
@@ -108,7 +108,7 @@ export default function DirectoryPage() {
               >
                 <Link to={`/${profile.username}`} className="block p-8">
                   <div className="flex items-start gap-5 mb-8">
-                    <div className="w-20 h-20 rounded-full overflow-hidden bg-glass border border-white/5 group-hover:border-aurora-violet transition-all">
+                    <div className="w-20 h-20 rounded-full overflow-hidden bg-white border border-slate-100 group-hover:border-aurora-blue transition-all shadow-sm">
                       {profile.avatar_url ? (
                         <img 
                           src={profile.avatar_url} 
@@ -123,7 +123,7 @@ export default function DirectoryPage() {
                         />
                       ) : null}
                       <div className={cn(
-                        "w-full h-full items-center justify-center text-2xl font-bold text-aurora-violet",
+                        "w-full h-full items-center justify-center text-2xl font-bold text-aurora-blue bg-slate-50",
                         profile.avatar_url ? "hidden" : "flex"
                       )}>
                         {profile.firstname[0]}
@@ -131,21 +131,21 @@ export default function DirectoryPage() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-2xl font-serif font-bold group-hover:aurora-text transition-all uppercase">
+                        <h3 className="text-2xl font-serif font-bold group-hover:aurora-text transition-all uppercase text-slate-900">
                           {profile.lastname_display === 'initial' 
                             ? `${profile.lastname?.[0]}. ${profile.firstname}`
                             : `${profile.lastname} ${profile.firstname}`
                           }
                         </h3>
-                        {profile.verified && <ShieldCheck className="w-5 h-5 text-aurora-cyan drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]" />}
+                        {profile.verified && <ShieldCheck className="w-5 h-5 text-aurora-blue" />}
                       </div>
-                      <p className="text-aurora-violet font-medium text-sm">{profile.job_title}</p>
-                      <p className="text-ivory/40 text-xs">{profile.company}</p>
+                      <p className="text-aurora-blue font-medium text-sm">{profile.job_title}</p>
+                      <p className="text-slate-400 text-xs">{profile.company}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between pt-6 border-t border-white/5">
-                    <span className="text-[10px] uppercase tracking-widest text-ivory/30">ecard.mn/{profile.username}</span>
+                  <div className="flex items-center justify-between pt-6 border-t border-slate-50">
+                    <span className="text-[10px] uppercase tracking-widest text-slate-400">ecard.mn/{profile.username}</span>
                     <span className="text-aurora-cyan text-xs font-bold group-hover:translate-x-1 transition-transform">Харах →</span>
                   </div>
                 </Link>

@@ -39,7 +39,7 @@ export default function LandingPage() {
               animate="animate"
               className="text-left"
             >
-              <motion.p variants={fadeUp} className="text-aurora-violet font-bold tracking-[0.2em] text-[11px] uppercase mb-6 drop-shadow-[0_0_10px_rgba(124,58,237,0.5)]">
+              <motion.p variants={fadeUp} className="text-aurora-violet font-bold tracking-[0.2em] text-[11px] uppercase mb-6">
                 МОНГОЛЫН АНХНЫ ДИЖИТАЛ ВИЗИТ КАРТ ПЛАТФОРМ
               </motion.p>
               
@@ -71,28 +71,28 @@ export default function LandingPage() {
               className="hidden lg:block relative card-3d"
             >
               {/* Bloom glow behind card */}
-              <div className="absolute inset-0 bg-aurora-violet/20 blur-[100px] rounded-full animate-pulse" />
+              <div className="absolute inset-0 bg-aurora-blue/10 blur-[100px] rounded-full animate-pulse" />
               
-              <div className="relative w-[380px] h-[540px] mx-auto glass-panel rounded-[32px] p-10 flex flex-col h-full animate-[float_4s_infinite_ease-in-out]">
-                <div className="w-24 h-24 rounded-full bg-glass border border-aurora-violet/30 mb-8 flex items-center justify-center text-4xl font-bold text-aurora-violet shadow-[0_0_30px_rgba(124,58,237,0.3)]">
+              <div className="relative w-[380px] h-[540px] mx-auto glass-panel !bg-white/80 rounded-[32px] p-10 flex flex-col h-full animate-[float_4s_infinite_ease-in-out] shadow-2xl">
+                <div className="w-24 h-24 rounded-full bg-white border border-aurora-blue/20 mb-8 flex items-center justify-center text-4xl font-bold text-aurora-blue shadow-lg">
                   Б
                 </div>
-                <h3 className="text-3xl font-serif font-bold mb-2">Бат-Эрдэнэ</h3>
+                <h3 className="text-3xl font-serif font-bold mb-2 text-slate-900">Бат-Эрдэнэ</h3>
                 <p className="text-aurora-cyan font-medium mb-10">Ахлах дизайнер @ eCard</p>
                 
                 <div className="space-y-5 mb-auto">
-                  <div className="flex items-center gap-4 text-ivory/60">
-                    <div className="w-10 h-10 rounded-xl bg-glass flex items-center justify-center border border-white/5"><Globe className="w-5 h-5" /></div>
-                    <span className="text-sm">ecard.mn/bat</span>
+                  <div className="flex items-center gap-4 text-slate-500">
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-200"><Globe className="w-5 h-5 text-aurora-blue" /></div>
+                    <span className="text-sm font-medium">ecard.mn/bat</span>
                   </div>
                 </div>
 
-                <div className="mt-auto pt-10 border-t border-white/10 flex justify-between items-end">
-                  <div className="w-24 h-24 bg-white p-3 rounded-2xl shadow-xl">
-                    <QrCode className="w-full h-full text-void" />
+                <div className="mt-auto pt-10 border-t border-slate-100 flex justify-between items-end">
+                  <div className="w-24 h-24 bg-white p-3 rounded-2xl shadow-md border border-slate-100">
+                    <QrCode className="w-full h-full text-slate-900" />
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] uppercase tracking-widest text-aurora-violet mb-1">Powered by</p>
+                    <p className="text-[10px] uppercase tracking-widest text-aurora-blue mb-1">Powered by</p>
                     <p className="font-serif font-bold aurora-text">eCard.mn</p>
                   </div>
                 </div>
