@@ -16,16 +16,17 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminPage from './pages/AdminPage';
 import { motion, AnimatePresence } from 'motion/react';
+import { Logo } from './components/Logo';
 
 function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) {
   const { user, profile, loading, isAdmin } = useFirebase();
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-void">
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="relative">
-        <div className="w-20 h-20 rounded-full border-2 border-aurora-violet/20 animate-ping" />
+        <div className="w-24 h-24 rounded-full border-2 border-aurora-blue/20 animate-ping" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-aurora-violet font-serif font-bold animate-pulse">e</span>
+          <Logo size="md" className="animate-pulse" />
         </div>
       </div>
     </div>

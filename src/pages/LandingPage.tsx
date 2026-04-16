@@ -1,7 +1,8 @@
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, QrCode, Zap, Shield, Users, Globe } from 'lucide-react';
+import { Zap, Shield, Users, Globe, ArrowRight, QrCode } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Logo } from '../components/Logo';
 
 const fadeUp = {
   initial: { opacity: 0, y: 30 },
@@ -93,7 +94,7 @@ export default function LandingPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] uppercase tracking-widest text-aurora-blue mb-1">Powered by</p>
-                    <p className="font-serif font-bold aurora-text">eCard.mn</p>
+                    <Logo size="sm" className="ml-auto" />
                   </div>
                 </div>
               </div>
@@ -206,16 +207,18 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-20 relative z-10 border-t border-white/5 bg-void/50 backdrop-blur-xl">
+      <footer className="py-20 relative z-10 border-t border-slate-100 bg-white/50 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-12">
-          <Link to="/" className="text-3xl font-serif font-bold aurora-text">eCard.mn</Link>
-          <div className="flex gap-10 text-sm text-ivory/40">
-            <Link to="/directory" className="hover:text-aurora-cyan transition-colors">Лавлах</Link>
-            <Link to="/register" className="hover:text-aurora-cyan transition-colors">Бүртгүүлэх</Link>
-            <Link to="/login" className="hover:text-aurora-cyan transition-colors">Нэвтрэх</Link>
-            <a href="#" className="hover:text-aurora-cyan transition-colors">Холбоо барих</a>
+          <Link to="/">
+            <Logo size="lg" />
+          </Link>
+          <div className="flex gap-10 text-sm text-slate-400 font-bold">
+            <Link to="/directory" className="hover:text-aurora-blue transition-colors">Лавлах</Link>
+            <Link to="/register" className="hover:text-aurora-blue transition-colors">Бүртгүүлэх</Link>
+            <Link to="/login" className="hover:text-aurora-blue transition-colors">Нэвтрэх</Link>
+            <a href="#" className="hover:text-aurora-blue transition-colors">Холбоо барих</a>
           </div>
-          <p className="text-sm text-ivory/20">© 2025 eCard.mn. Cornerstone AI-ийн бүтээл.</p>
+          <p className="text-sm text-slate-300">© 2025 eCard.mn. Cornerstone AI-ийн бүтээл.</p>
         </div>
       </footer>
     </div>

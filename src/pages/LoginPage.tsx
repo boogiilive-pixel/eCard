@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import { LogIn, Mail, Lock, Chrome } from 'lucide-react';
 import LoadingAnimation from '../components/LoadingAnimation';
 import { AuroraBackground } from '../components/AuroraBackground';
+import { Logo } from '../components/Logo';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -44,13 +45,13 @@ export default function LoginPage() {
       {/* Left side - Brand Visual */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden items-center justify-center">
         <div className="relative z-10 text-center p-12">
-          <motion.h2 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-7xl font-serif font-bold aurora-text mb-6"
+            className="flex justify-center mb-6"
           >
-            eCard.mn
-          </motion.h2>
+            <Logo size="xl" />
+          </motion.div>
           <p className="text-slate-500 text-xl max-w-md mx-auto leading-relaxed">
             Таны мэргэжлийн дижитал танилцуулга эндээс эхэлнэ.
           </p>
@@ -64,7 +65,9 @@ export default function LoginPage() {
           animate={{ opacity: 1, x: 0 }}
           className="w-full max-w-md glass-panel !bg-white/80 p-10 rounded-[32px] shadow-2xl"
         >
-          <Link to="/" className="inline-block mb-12 text-2xl font-serif font-bold aurora-text lg:hidden">eCard.mn</Link>
+          <Link to="/" className="inline-block mb-12 lg:hidden">
+            <Logo size="md" />
+          </Link>
           
           <h1 className="text-4xl font-serif font-bold mb-2 text-slate-900">Тавтай морил</h1>
           <p className="text-slate-500 mb-8">Нэвтрэх мэдээллээ оруулна уу.</p>

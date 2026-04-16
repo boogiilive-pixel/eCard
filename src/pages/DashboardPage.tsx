@@ -15,6 +15,7 @@ import { GoogleGenAI } from "@google/genai";
 import { cn } from '../lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import LoadingAnimation from '../components/LoadingAnimation';
+import { Logo } from '../components/Logo';
 
 export default function DashboardPage() {
   const { profile, user, loading } = useFirebase();
@@ -63,7 +64,9 @@ export default function DashboardPage() {
     <div className="min-h-screen flex relative z-10 lg:pl-72">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 glass-panel !bg-white/90 backdrop-blur-2xl z-50 flex items-center justify-between px-6 border-b border-slate-100">
-        <Link to="/" className="text-xl font-serif font-bold aurora-text">eCard.mn</Link>
+        <Link to="/">
+          <Logo size="sm" />
+        </Link>
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 rounded-lg bg-slate-50 text-aurora-blue"
@@ -78,7 +81,9 @@ export default function DashboardPage() {
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="p-8 hidden lg:block">
-          <Link to="/" className="text-2xl font-serif font-bold aurora-text">eCard.mn</Link>
+          <Link to="/">
+            <Logo size="md" />
+          </Link>
         </div>
         
         <div className="h-16 lg:hidden" /> {/* Spacer for mobile header */}

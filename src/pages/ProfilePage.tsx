@@ -13,6 +13,7 @@ import { cn } from '../lib/utils';
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import LoadingAnimation from '../components/LoadingAnimation';
+import { Logo } from '../components/Logo';
 
 export default function ProfilePage() {
   const { username } = useParams();
@@ -375,7 +376,7 @@ export default function ProfilePage() {
               <div className="w-10 h-10 rounded-full bg-aurora-violet/20 flex items-center justify-center text-aurora-violet font-serif font-bold">e</div>
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-aurora-violet">ecard.mn/{profile.username}</p>
-                <p className="font-serif font-bold aurora-text">eCard.mn</p>
+                <Logo size="sm" />
               </div>
             </div>
             <button 
@@ -388,7 +389,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="text-center">
-          <Link to="/" className="text-ivory/20 hover:text-aurora-violet transition-colors text-xs tracking-widest uppercase">Өөрийн картыг үүсгэх үү? eCard.mn</Link>
+          <Link to="/" className="text-slate-300 hover:text-aurora-blue transition-colors text-xs tracking-widest uppercase font-bold">Өөрийн картыг үүсгэх үү? eCard.mn</Link>
         </div>
       </motion.div>
     </div>
