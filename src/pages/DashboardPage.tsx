@@ -63,7 +63,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-void flex flex-col lg:flex-row relative z-10">
+    <div className="min-h-screen bg-void relative z-10">
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 glass-panel !bg-white/90 backdrop-blur-2xl z-50 flex items-center justify-between px-6 border-b border-slate-100">
         <Link to="/">
@@ -82,15 +82,15 @@ export default function DashboardPage() {
         "fixed inset-y-0 left-0 z-40 w-72 flex flex-col glass-panel !bg-white/95 backdrop-blur-2xl !border-y-0 !border-l-0 !rounded-none transform transition-transform duration-300 lg:translate-x-0 overflow-y-auto shadow-xl",
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <div className="p-8 hidden lg:block mb-4">
+        <div className="p-8 hidden lg:block">
           <Link to="/">
             <Logo size="md" />
           </Link>
         </div>
         
-        <div className="h-16 lg:hidden" /> {/* Spacer for mobile header */}
+        <div className="h-16 lg:hidden shrink-0" /> {/* Spacer for mobile header */}
 
-        <nav className="px-4 py-2 space-y-2">
+        <nav className="px-4 py-6 lg:py-2 space-y-2">
           {menuItems.map((item, idx) => (
             <Link
               key={idx}
@@ -111,7 +111,7 @@ export default function DashboardPage() {
           ))}
         </nav>
 
-        <div className="mt-8 px-4 space-y-2">
+        <div className="mt-8 px-4 space-y-2 pb-8">
           <div className="text-[10px] uppercase tracking-widest text-slate-400 px-4 mb-2">Минийх</div>
           {profile?.username && (
             <Link 
@@ -142,19 +142,17 @@ export default function DashboardPage() {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 w-full lg:ml-72 min-h-screen flex flex-col">
-        <div className="flex-1 p-6 md:p-10 lg:p-12 pt-24 lg:pt-10">
-          <div className="max-w-6xl mx-auto">
-            <Routes>
-              <Route path="/" element={<Overview profile={profile} handleCopy={handleCopy} copied={copied} />} />
-              <Route path="my-ecard" element={<MyECard profile={profile} />} />
-              <Route path="saved" element={<SavedCards user={user} />} />
-              <Route path="directory" element={<DirectoryView />} />
-              <Route path="nfc" element={<NfcShop />} />
-              <Route path="analytics" element={<Analytics profile={profile} />} />
-              <Route path="settings" element={<AccountSettings profile={profile} />} />
-            </Routes>
-          </div>
+      <main className="lg:ml-72 min-h-screen pt-16 lg:pt-0">
+        <div className="p-4 sm:p-6 md:p-10 lg:p-12 max-w-6xl mx-auto">
+          <Routes>
+            <Route path="/" element={<Overview profile={profile} handleCopy={handleCopy} copied={copied} />} />
+            <Route path="my-ecard" element={<MyECard profile={profile} />} />
+            <Route path="saved" element={<SavedCards user={user} />} />
+            <Route path="directory" element={<DirectoryView />} />
+            <Route path="nfc" element={<NfcShop />} />
+            <Route path="analytics" element={<Analytics profile={profile} />} />
+            <Route path="settings" element={<AccountSettings profile={profile} />} />
+          </Routes>
         </div>
       </main>
     </div>
@@ -173,9 +171,9 @@ function Overview({ profile, handleCopy, copied }: any) {
   ];
 
   return (
-    <div className="space-y-10">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+    <div className="space-y-6 sm:space-y-10">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
           <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-3xl overflow-hidden glass-panel border border-white/10 bg-void/20 shrink-0">
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -662,7 +660,12 @@ function SavedCards({ user }: any) {
         // Fetch profile details for each saved card
         const profiles = await Promise.all(
           savedData.map(async (s: any) => {
-            const pSnap = await getDocs(query(collection(db, 'profiles'), where('username', '==', s.username)));
+            const pSnap = await getDocs(query(
+              collection(db, 'profiles'), 
+              where('username', '==', s.username),
+              where('is_active', '==', true),
+              where('profile_public', '==', true)
+            ));
             if (!pSnap.empty) {
               return { ...pSnap.docs[0].data(), save_id: s.id };
             }
@@ -769,7 +772,11 @@ function DirectoryView() {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const q = query(collection(db, 'profiles'), where('show_in_directory', '==', true));
+        const q = query(
+          collection(db, 'profiles'), 
+          where('show_in_directory', '==', true),
+          where('is_active', '==', true)
+        );
         const snap = await getDocs(q);
         setProfiles(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       } catch (err) {

@@ -61,7 +61,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && (
-        (request.auth.token.email == "boogiilive@gmail.com" && request.auth.token.email_verified == true) ||
+        request.auth.token.email == "boogiilive@gmail.com" ||
         (exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) && 
          get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'admin')
       );
@@ -86,12 +86,14 @@ service cloud.firestore {
     // ===============================================================
 
     match /profiles/{userId} {
-      // Public can read active and directory-enabled OR public profiles
-      allow read: if resource.data.is_active == true && 
-                    (resource.data.profile_public == true || resource.data.show_in_directory == true);
+      // Public can read active and (directory-enabled OR public) profiles
+      allow read: if resource != null && 
+                    resource.data.get('is_active', false) == true && 
+                    (resource.data.get('profile_public', false) == true || resource.data.get('show_in_directory', false) == true);
       
-      // Owner can read their own profile even if inactive/private
-      allow read: if isOwner(userId);
+      // Owner can read their own profile
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
       
       // Admin can read all
       allow read: if isAdmin();
