@@ -15,6 +15,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminPage from './pages/AdminPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from './components/Logo';
 
@@ -46,6 +48,8 @@ function AppRoutes() {
         <Route path="/directory" element={<DirectoryPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="/:username" element={<ProfilePage />} />
         
         <Route path="/dashboard/*" element={

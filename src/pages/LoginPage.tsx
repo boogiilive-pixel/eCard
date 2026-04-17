@@ -141,6 +141,10 @@ export default function LoginPage() {
           <p className="mt-10 text-center text-slate-500">
             Шинэ хэрэглэгч үү? <Link to="/register" className="text-aurora-blue font-bold hover:underline">Бүртгүүлэх</Link>
           </p>
+
+          <p className="mt-8 text-center text-[10px] text-slate-400 leading-relaxed px-4">
+            Нэвтэрснээр та манай <Link to="/terms" className="underline hover:text-aurora-blue transition-colors">Үйлчилгээний нөхцөл</Link> болон <Link to="/privacy" className="underline hover:text-aurora-blue transition-colors">Нууцлалын бодлого</Link>-ыг зөвшөөрч буйд тооцогдоно.
+          </p>
         </motion.div>
       </div>
     </div>

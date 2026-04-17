@@ -224,6 +224,10 @@ export default function RegisterPage() {
           <p className="mt-8 text-center text-slate-500">
             Бүртгэлтэй юу? <Link to="/login" className="text-aurora-blue font-bold hover:underline">Нэвтрэх</Link>
           </p>
+
+          <p className="mt-6 text-center text-[10px] text-slate-400 leading-relaxed px-4">
+            Бүртгүүлснээр та манай <Link to="/terms" className="underline hover:text-aurora-blue transition-colors">Үйлчилгээний нөхцөл</Link> болон <Link to="/privacy" className="underline hover:text-aurora-blue transition-colors">Нууцлалын бодлого</Link>-ыг зөвшөөрч буйд тооцогдоно.
+          </p>
         </motion.div>
       </div>
     </div>
