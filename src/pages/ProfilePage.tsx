@@ -138,21 +138,34 @@ export default function ProfilePage() {
   const handleDownload = async () => {
     if (!cardRef.current) return;
     try {
+      // Ensure images are loaded and QR code is ready
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: profile?.card_color || '#0f1729',
-        scale: 2, // 2 is usually enough and more stable
+        scale: 2,
         useCORS: true,
-        logging: true, // Let's log to see errors in console
-        scrollX: 0,
-        scrollY: -window.scrollY, // Fix for scrolled pages
+        allowTaint: false,
+        logging: false,
+        windowWidth: cardRef.current.scrollWidth,
+        windowHeight: cardRef.current.scrollHeight,
+        x: 0,
+        y: 0,
       });
+      
       const link = document.createElement('a');
       link.download = `${profile?.username}-ecard.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
     } catch (err) {
       console.error('Download error:', err);
-      alert('Зураг татахад алдаа гарлаа.');
+      // Fallback for some browsers or restricted environments
+      try {
+        const url = window.location.href;
+        alert('Шууд татахад алдаа гарлаа. Та хуудасны дэлгэцийг (Screenshot) авч эсвэл QR кодыг уншуулж ашиглана уу.');
+      } catch (e) {
+        alert('Алдаа гарлаа.');
+      }
     }
   };
 
@@ -244,6 +257,7 @@ export default function ProfilePage() {
                     src={profile.avatar_url} 
                     alt={profile.firstname} 
                     className="w-full h-full object-cover"
+                    crossOrigin="anonymous"
                     referrerPolicy="no-referrer"
                     onError={(e: any) => {
                       console.error('Profile image load error');
