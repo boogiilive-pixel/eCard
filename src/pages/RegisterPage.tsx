@@ -78,8 +78,15 @@ export default function RegisterPage() {
         await createProfile(result.user.uid, result.user.email!, names[1] || names[0], names[0]);
       }
       navigate('/dashboard');
-    } catch (err) {
-      setError('Google-ээр нэвтрэхэд алдаа гарлаа.');
+    } catch (err: any) {
+      console.error('Google Register Error:', err);
+      if (err.code === 'auth/unauthorized-domain') {
+        setError('Энэ домэйн Firebase-д бүртгэлгүй байна. Firebase Console дээр домэйнээ нэмнэ үү.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Browser-ийн popup хаагдсан байна. Зөвшөөрөөд дахин оролдоно уу.');
+      } else {
+        setError(`Google-ээр бүртгүүлэхэд алдаа гарлаа: ${err.message}`);
+      }
     }
   };
 

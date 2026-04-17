@@ -34,8 +34,15 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, googleProvider);
       navigate('/dashboard');
-    } catch (err) {
-      setError('Google-ээр нэвтрэхэд алдаа гарлаа.');
+    } catch (err: any) {
+      console.error('Google Login Error:', err);
+      if (err.code === 'auth/unauthorized-domain') {
+        setError('Энэ домэйн Firebase-д бүртгэлгүй байна. Firebase Console дээр домэйнээ нэмнэ үү.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Browser-ийн popup хаагдсан байна. Зөвшөөрөөд дахин оролдоно уу.');
+      } else {
+        setError(`Google-ээр нэвтрэхэд алдаа гарлаа: ${err.message}`);
+      }
     }
   };
 
