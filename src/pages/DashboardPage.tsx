@@ -63,7 +63,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-void relative z-10">
+    <div className="flex flex-col min-h-screen bg-void relative z-10">
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 glass-panel !bg-white/90 backdrop-blur-2xl z-50 flex items-center justify-between px-6 border-b border-slate-100">
         <Link to="/">
@@ -77,84 +77,86 @@ export default function DashboardPage() {
         </button>
       </header>
 
-      {/* Sidebar */}
-      <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 w-72 flex flex-col glass-panel !bg-white/95 backdrop-blur-2xl !border-y-0 !border-l-0 !rounded-none transform transition-transform duration-300 lg:translate-x-0 overflow-y-auto shadow-xl",
-        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <div className="p-8 hidden lg:block">
-          <Link to="/">
-            <Logo size="md" />
-          </Link>
-        </div>
-        
-        <div className="h-16 lg:hidden shrink-0" /> {/* Spacer for mobile header */}
-
-        <nav className="px-4 py-6 lg:py-2 space-y-2">
-          {menuItems.map((item, idx) => (
-            <Link
-              key={idx}
-              to={item.path!}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={cn(
-                "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group",
-                location.pathname === item.path 
-                  ? "btn-aurora text-white shadow-md shadow-aurora-blue/20" 
-                  : "text-slate-600 hover:text-aurora-blue hover:bg-slate-50"
-              )}
-            >
-              <span className={cn("w-5 h-5 transition-colors", location.pathname === item.path ? "text-white" : "text-slate-300 group-hover:text-aurora-blue")}>
-                {item.icon}
-              </span>
-              {item.label}
+      <div className="flex flex-1 relative pt-16 lg:pt-0">
+        {/* Sidebar */}
+        <aside className={cn(
+          "fixed inset-y-0 left-0 z-40 w-72 flex flex-col glass-panel !bg-white/95 backdrop-blur-2xl !border-y-0 !border-l-0 !rounded-none transform transition-transform duration-300 lg:translate-x-0 overflow-y-auto shadow-xl",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
+          <div className="p-8 hidden lg:block">
+            <Link to="/">
+              <Logo size="md" />
             </Link>
-          ))}
-        </nav>
+          </div>
+          
+          <div className="h-16 lg:hidden shrink-0" /> {/* Spacer for mobile header */}
 
-        <div className="mt-8 px-4 space-y-2 pb-8">
-          <div className="text-[10px] uppercase tracking-widest text-slate-400 px-4 mb-2">Минийх</div>
-          {profile?.username && (
-            <Link 
-              to={`/${profile.username}`} 
-              target="_blank"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium text-aurora-blue hover:bg-slate-50 transition-all group"
+          <nav className="px-4 py-6 lg:py-2 space-y-2">
+            {menuItems.map((item, idx) => (
+              <Link
+                key={idx}
+                to={item.path!}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={cn(
+                  "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group",
+                  location.pathname === item.path 
+                    ? "btn-aurora text-white shadow-md shadow-aurora-blue/20" 
+                    : "text-slate-600 hover:text-aurora-blue hover:bg-slate-50"
+                )}
+              >
+                <span className={cn("w-5 h-5 transition-colors", location.pathname === item.path ? "text-white" : "text-slate-300 group-hover:text-aurora-blue")}>
+                  {item.icon}
+                </span>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="mt-8 px-4 space-y-2 pb-8">
+            <div className="text-[10px] uppercase tracking-widest text-slate-400 px-4 mb-2">Минийх</div>
+            {profile?.username && (
+              <Link 
+                to={`/${profile.username}`} 
+                target="_blank"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium text-aurora-blue hover:bg-slate-50 transition-all group"
+              >
+                <ExternalLink className="w-5 h-5 text-aurora-blue/50 group-hover:text-aurora-blue" />
+                Миний eCard
+              </Link>
+            )}
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-4 px-4 py-3 w-full rounded-xl text-sm font-medium text-slate-400 hover:text-danger hover:bg-danger/5 transition-all group"
             >
-              <ExternalLink className="w-5 h-5 text-aurora-blue/50 group-hover:text-aurora-blue" />
-              Миний eCard
-            </Link>
-          )}
-          <button 
-            onClick={handleLogout}
-            className="flex items-center gap-4 px-4 py-3 w-full rounded-xl text-sm font-medium text-slate-400 hover:text-danger hover:bg-danger/5 transition-all group"
-          >
-            <LogOut className="w-5 h-5 text-slate-200 group-hover:text-danger" /> Гарах
-          </button>
-        </div>
-      </aside>
+              <LogOut className="w-5 h-5 text-slate-200 group-hover:text-danger" /> Гарах
+            </button>
+          </div>
+        </aside>
 
-      {/* Mobile Overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-void/60 z-30 backdrop-blur-sm"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
+        {/* Mobile Overlay */}
+        {isMobileMenuOpen && (
+          <div 
+            className="lg:hidden fixed inset-0 bg-void/60 z-30 backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
 
-      {/* Main Content */}
-      <main className="lg:ml-72 min-h-screen pt-16 lg:pt-0">
-        <div className="p-4 sm:p-6 md:p-10 lg:p-12 max-w-6xl mx-auto">
-          <Routes>
-            <Route path="/" element={<Overview profile={profile} handleCopy={handleCopy} copied={copied} />} />
-            <Route path="my-ecard" element={<MyECard profile={profile} />} />
-            <Route path="saved" element={<SavedCards user={user} />} />
-            <Route path="directory" element={<DirectoryView />} />
-            <Route path="nfc" element={<NfcShop />} />
-            <Route path="analytics" element={<Analytics profile={profile} />} />
-            <Route path="settings" element={<AccountSettings profile={profile} />} />
-          </Routes>
-        </div>
-      </main>
+        {/* Main Content */}
+        <main className="flex-1 lg:ml-72 min-h-full">
+          <div className="p-4 sm:p-6 lg:p-10 max-w-6xl mx-auto">
+            <Routes>
+              <Route path="/" element={<Overview profile={profile} handleCopy={handleCopy} copied={copied} />} />
+              <Route path="my-ecard" element={<MyECard profile={profile} />} />
+              <Route path="saved" element={<SavedCards user={user} />} />
+              <Route path="directory" element={<DirectoryView />} />
+              <Route path="nfc" element={<NfcShop />} />
+              <Route path="analytics" element={<Analytics profile={profile} />} />
+              <Route path="settings" element={<AccountSettings profile={profile} />} />
+            </Routes>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

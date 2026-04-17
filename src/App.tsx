@@ -42,29 +42,27 @@ function ProtectedRoute({ children, adminOnly = false }: { children: React.React
 function AppRoutes() {
   const location = useLocation();
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location}>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/directory" element={<DirectoryPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/:username" element={<ProfilePage />} />
-        
-        <Route path="/dashboard/*" element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/admin/*" element={
-          <ProtectedRoute adminOnly>
-            <AdminPage />
-          </ProtectedRoute>
-        } />
-      </Routes>
-    </AnimatePresence>
+    <Routes location={location}>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/directory" element={<DirectoryPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/:username" element={<ProfilePage />} />
+      
+      <Route path="/dashboard/*" element={
+        <ProtectedRoute>
+          <DashboardPage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/admin/*" element={
+        <ProtectedRoute adminOnly>
+          <AdminPage />
+        </ProtectedRoute>
+      } />
+    </Routes>
   );
 }
 
@@ -73,11 +71,11 @@ function Layout() {
   const isDashboard = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
   
   return (
-    <>
+    <div className="relative isolate min-h-screen overflow-x-hidden">
       <AuroraBackground />
       {!isDashboard && <Navbar />}
       <AppRoutes />
-    </>
+    </div>
   );
 }
 
