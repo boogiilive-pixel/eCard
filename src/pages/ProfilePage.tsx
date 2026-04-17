@@ -10,7 +10,7 @@ import {
   Twitter, Youtube, ShieldCheck, Building2, Check, Heart, MapPin, UserPlus 
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import LoadingAnimation from '../components/LoadingAnimation';
 import { Logo } from '../components/Logo';
@@ -140,10 +140,11 @@ export default function ProfilePage() {
     try {
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: profile?.card_color || '#0f1729',
-        scale: 3, // Higher quality
+        scale: 2, // 2 is usually enough and more stable
         useCORS: true,
-        allowTaint: true,
-        logging: false
+        logging: true, // Let's log to see errors in console
+        scrollX: 0,
+        scrollY: -window.scrollY, // Fix for scrolled pages
       });
       const link = document.createElement('a');
       link.download = `${profile?.username}-ecard.png`;
@@ -224,7 +225,7 @@ export default function ProfilePage() {
         {/* Card View */}
         <div 
           ref={cardRef}
-          className="relative w-full aspect-[1.6/1] rounded-[32px] p-8 shadow-2xl overflow-hidden group transition-all duration-500 hover:scale-[1.02]"
+          className="relative w-full min-h-[280px] h-auto rounded-[32px] p-10 shadow-2xl overflow-hidden group transition-all duration-500 hover:scale-[1.01] flex flex-col justify-between"
           style={{ 
             background: profile.card_color?.startsWith('linear') ? profile.card_color : undefined,
             backgroundColor: !profile.card_color?.startsWith('linear') ? (profile.card_color || '#0d1530') : undefined 
@@ -235,9 +236,9 @@ export default function ProfilePage() {
           
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
           
-          <div className="relative h-full flex flex-col justify-between">
-            <div className="flex justify-between items-start">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden glass-panel border border-white/10 shadow-xl bg-void/20">
+          <div className="relative z-10">
+            <div className="flex justify-between items-start gap-6">
+              <div className="w-24 h-24 rounded-2xl overflow-hidden glass-panel border border-white/10 shadow-xl bg-void/20 shrink-0">
                 {profile.avatar_url ? (
                   <img 
                     src={profile.avatar_url} 
@@ -253,68 +254,64 @@ export default function ProfilePage() {
                   />
                 ) : null}
                 <div className={cn(
-                  "w-full h-full items-center justify-center text-3xl font-bold text-aurora-violet",
+                  "w-full h-full items-center justify-center text-4xl font-bold text-aurora-violet uppercase",
                   profile.avatar_url ? "hidden" : "flex"
                 )}>
                   {profile.firstname?.[0] || profile.username?.[0]?.toUpperCase()}
                 </div>
               </div>
-              <div className="text-right">
-                <div className="flex items-center justify-end gap-2 mb-1">
-                  <h2 className="text-2xl font-serif font-bold tracking-tight uppercase" style={{ color: profile.card_text_color }}>
+              <div className="text-right flex-1 min-w-0">
+                <div className="flex items-center justify-end gap-2 mb-1 flex-wrap">
+                  <h2 className="text-2xl md:text-3xl font-serif font-bold tracking-tight uppercase break-words" style={{ color: profile.card_text_color }}>
                     {profile.lastname_display === 'initial' 
                       ? `${profile.lastname?.[0]}. ${profile.firstname}`
                       : `${profile.lastname} ${profile.firstname}`
                     }
                   </h2>
-                  {profile.verified && <ShieldCheck className="w-4 h-4 text-aurora-cyan" />}
+                  {profile.verified && <ShieldCheck className="w-5 h-5 text-aurora-cyan shrink-0" />}
                 </div>
-                <p className="text-sm font-medium" style={{ color: profile.card_text_color, opacity: 0.8 }}>{profile.job_title}</p>
+                <p className="text-base font-medium" style={{ color: profile.card_text_color, opacity: 0.9 }}>{profile.job_title}</p>
                 {profile.company && (
-                  <p className="text-xs mt-1 flex items-center justify-end gap-1" style={{ color: profile.card_text_color, opacity: 0.6 }}>
-                    <Building2 className="w-3 h-3" /> {profile.company}
+                  <p className="text-sm mt-1.5 flex items-center justify-end gap-1.5" style={{ color: profile.card_text_color, opacity: 0.7 }}>
+                    <Building2 className="w-3.5 h-3.5" /> {profile.company}
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="flex justify-between items-end">
-              <div className="space-y-1.5">
+            <div className="flex justify-between items-end gap-6 mt-10">
+              <div className="space-y-2 flex-1">
                 {profile.phone && (
-                  <a href={`tel:${profile.phone}`} className="flex items-center gap-2 text-[10px] hover:opacity-100 transition-opacity" style={{ color: profile.card_text_color, opacity: 0.8 }}>
-                    <Phone className="w-3 h-3 text-aurora-cyan" /> {profile.phone}
+                  <a href={`tel:${profile.phone}`} className="flex items-center gap-2.5 text-xs hover:opacity-100 transition-opacity" style={{ color: profile.card_text_color, opacity: 0.9 }}>
+                    <Phone className="w-4 h-4 text-aurora-cyan shrink-0" /> {profile.phone}
                   </a>
                 )}
                 {profile.email && (
-                  <a href={`mailto:${profile.email}`} className="flex items-center gap-2 text-[10px] hover:opacity-100 transition-opacity" style={{ color: profile.card_text_color, opacity: 0.8 }}>
-                    <Mail className="w-3 h-3 text-aurora-cyan" /> {profile.email}
+                  <a href={`mailto:${profile.email}`} className="flex items-center gap-2.5 text-xs hover:opacity-100 transition-opacity" style={{ color: profile.card_text_color, opacity: 0.9 }}>
+                    <Mail className="w-4 h-4 text-aurora-cyan shrink-0" /> <span className="truncate">{profile.email}</span>
                   </a>
                 )}
                 {profile.facebook && (
-                  <a href={profile.facebook} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[10px] hover:opacity-100 transition-opacity" style={{ color: profile.card_text_color, opacity: 0.8 }}>
-                    <Facebook className="w-3 h-3 text-aurora-cyan" /> Facebook
+                  <a href={profile.facebook.startsWith('http') ? profile.facebook : `https://facebook.com/${profile.facebook}`} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 text-xs hover:opacity-100 transition-opacity" style={{ color: profile.card_text_color, opacity: 0.9 }}>
+                    <Facebook className="w-4 h-4 text-aurora-cyan shrink-0" /> Facebook
                   </a>
                 )}
                 {profile.address && (
-                  <div className="flex items-center gap-2 text-[10px]" style={{ color: profile.card_text_color, opacity: 0.8 }}>
-                    <MapPin className="w-3 h-3 text-aurora-cyan" /> {profile.address}
-                    {profile.maps_url && (
-                      <a href={profile.maps_url} target="_blank" rel="noreferrer" className="text-aurora-cyan hover:underline ml-1">
-                        (Газрын зураг)
-                      </a>
-                    )}
+                  <div className="flex items-center gap-2.5 text-xs leading-tight" style={{ color: profile.card_text_color, opacity: 0.9 }}>
+                    <MapPin className="w-4 h-4 text-aurora-cyan shrink-0" /> 
+                    <span>
+                      {profile.address}
+                      {profile.maps_url && (
+                        <a href={profile.maps_url} target="_blank" rel="noreferrer" className="text-aurora-cyan hover:underline ml-1.5 inline-flex items-center gap-0.5">
+                          (Газрын зураг)
+                        </a>
+                      )}
+                    </span>
                   </div>
                 )}
-                {/* Personal Social Links in Card */}
-                <div className="flex gap-2 pt-1">
-                  {profile.linkedin && <a href={profile.linkedin} target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: profile.card_text_color, opacity: 0.4 }}><Linkedin className="w-3 h-3" /></a>}
-                  {profile.instagram && <a href={profile.instagram} target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: profile.card_text_color, opacity: 0.4 }}><Instagram className="w-3 h-3" /></a>}
-                  {profile.twitter && <a href={profile.twitter} target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: profile.card_text_color, opacity: 0.4 }}><Twitter className="w-3 h-3" /></a>}
-                  {profile.youtube && <a href={profile.youtube} target="_blank" rel="noreferrer" className="hover:text-white transition-colors" style={{ color: profile.card_text_color, opacity: 0.4 }}><Youtube className="w-3 h-3" /></a>}
-                </div>
               </div>
-              <div className="w-16 h-16 bg-white rounded-xl p-1.5 shadow-lg">
-                <QRCodeSVG value={window.location.href} size={150} className="w-full h-full" />
+              <div className="shrink-0 p-2.5 bg-white rounded-2xl shadow-xl flex items-center justify-center mb-1">
+                <QRCodeCanvas value={window.location.href} size={90} level="M" />
               </div>
             </div>
           </div>
