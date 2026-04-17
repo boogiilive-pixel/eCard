@@ -71,7 +71,7 @@ function Layout() {
   const isDashboard = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
   
   return (
-    <div className="relative isolate min-h-screen overflow-x-hidden">
+    <div className="relative min-h-screen overflow-x-hidden">
       <AuroraBackground />
       {!isDashboard && <Navbar />}
       <AppRoutes />

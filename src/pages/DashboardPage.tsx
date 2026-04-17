@@ -32,15 +32,18 @@ export default function DashboardPage() {
     }
   }, [user, loading, navigate]);
 
-  if (loading) {
+  if (loading || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-void">
-        <LoadingAnimation />
+        <div className="flex flex-col items-center gap-4">
+          <LoadingAnimation />
+          {!profile && !loading && (
+            <p className="text-sm text-slate-500 animate-pulse">Мэдээлэл ачаалж байна...</p>
+          )}
+        </div>
       </div>
     );
   }
-
-  if (!profile) return null;
 
   const handleLogout = () => {
     auth.signOut();
@@ -63,24 +66,22 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-void relative z-10">
+    <div className="min-h-screen bg-void relative flex flex-col">
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 glass-panel !bg-white/90 backdrop-blur-2xl z-50 flex items-center justify-between px-6 border-b border-slate-100">
-        <Link to="/">
-          <Logo size="sm" />
-        </Link>
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 glass-panel !bg-white/95 backdrop-blur-2xl z-[100] flex items-center justify-between px-6 border-b border-slate-200/10 shadow-sm">
+        <Logo size="sm" />
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 rounded-lg bg-slate-50 text-aurora-blue"
+          className="p-2 rounded-xl bg-slate-100 text-aurora-blue active:scale-95 transition-transform"
         >
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </header>
 
-      <div className="flex flex-1 relative pt-16 lg:pt-0">
-        {/* Sidebar */}
+      <div className="flex flex-1 relative min-h-0">
+        {/* Sidebar as an Overlay on Mobile */}
         <aside className={cn(
-          "fixed inset-y-0 left-0 z-40 w-72 flex flex-col glass-panel !bg-white/95 backdrop-blur-2xl !border-y-0 !border-l-0 !rounded-none transform transition-transform duration-300 lg:translate-x-0 overflow-y-auto shadow-xl",
+          "fixed inset-y-0 left-0 z-[110] w-full sm:w-80 flex flex-col glass-panel !bg-white backdrop-blur-3xl !border-0 lg:!border-r lg:!border-y-0 lg:!border-l-0 !rounded-none transform transition-transform duration-300 lg:static lg:translate-x-0 overflow-y-auto shadow-2xl lg:shadow-none",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}>
           <div className="p-8 hidden lg:block">
@@ -91,20 +92,20 @@ export default function DashboardPage() {
           
           <div className="h-16 lg:hidden shrink-0" /> {/* Spacer for mobile header */}
 
-          <nav className="px-4 py-6 lg:py-2 space-y-2">
+          <nav className="flex-1 px-4 py-6 lg:py-2 space-y-1">
             {menuItems.map((item, idx) => (
               <Link
                 key={idx}
                 to={item.path!}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
-                  "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all group",
+                  "flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-medium transition-all group",
                   location.pathname === item.path 
-                    ? "btn-aurora text-white shadow-md shadow-aurora-blue/20" 
+                    ? "btn-aurora text-white shadow-lg shadow-aurora-blue/20" 
                     : "text-slate-600 hover:text-aurora-blue hover:bg-slate-50"
                 )}
               >
-                <span className={cn("w-5 h-5 transition-colors", location.pathname === item.path ? "text-white" : "text-slate-300 group-hover:text-aurora-blue")}>
+                <span className={cn("w-5 h-5 transition-colors", location.pathname === item.path ? "text-white" : "text-slate-400 group-hover:text-aurora-blue")}>
                   {item.icon}
                 </span>
                 {item.label}
@@ -112,39 +113,40 @@ export default function DashboardPage() {
             ))}
           </nav>
 
-          <div className="mt-8 px-4 space-y-2 pb-8">
-            <div className="text-[10px] uppercase tracking-widest text-slate-400 px-4 mb-2">Минийх</div>
-            {profile?.username && (
-              <Link 
-                to={`/${profile.username}`} 
-                target="_blank"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium text-aurora-blue hover:bg-slate-50 transition-all group"
+          <nav className="p-4 border-t border-slate-100 mb-6 lg:mb-0">
+            <div className="text-[10px] uppercase tracking-widest text-slate-400 px-4 mb-2 font-bold opacity-70">Минийх</div>
+            <div className="space-y-1">
+              {profile?.username && (
+                <Link 
+                  to={`/${profile.username}`} 
+                  target="_blank"
+                  className="flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-medium text-aurora-blue hover:bg-slate-100 transition-all group"
+                >
+                  <ExternalLink className="w-5 h-5 opacity-50 group-hover:opacity-100" />
+                  Миний eCard
+                </Link>
+              )}
+              <button 
+                onClick={handleLogout}
+                className="flex items-center gap-4 px-4 py-3 w-full rounded-2xl text-sm font-medium text-slate-500 hover:text-danger hover:bg-danger/5 transition-all group"
               >
-                <ExternalLink className="w-5 h-5 text-aurora-blue/50 group-hover:text-aurora-blue" />
-                Миний eCard
-              </Link>
-            )}
-            <button 
-              onClick={handleLogout}
-              className="flex items-center gap-4 px-4 py-3 w-full rounded-xl text-sm font-medium text-slate-400 hover:text-danger hover:bg-danger/5 transition-all group"
-            >
-              <LogOut className="w-5 h-5 text-slate-200 group-hover:text-danger" /> Гарах
-            </button>
-          </div>
+                <LogOut className="w-5 h-5 text-slate-300 group-hover:text-danger" /> Гарах
+              </button>
+            </div>
+          </nav>
         </aside>
 
         {/* Mobile Overlay */}
         {isMobileMenuOpen && (
           <div 
-            className="lg:hidden fixed inset-0 bg-void/60 z-30 backdrop-blur-sm"
+            className="lg:hidden fixed inset-0 bg-slate-900/40 z-[105] backdrop-blur-sm transition-opacity"
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}
 
-        {/* Main Content */}
-        <main className="flex-1 lg:ml-72 min-h-full">
-          <div className="p-4 sm:p-6 lg:p-10 max-w-6xl mx-auto">
+        {/* Main Content Area */}
+        <main className="flex-1 w-full pt-16 lg:pt-0 overflow-y-auto relative">
+          <div className="p-4 sm:p-8 lg:p-12 max-w-6xl mx-auto w-full">
             <Routes>
               <Route path="/" element={<Overview profile={profile} handleCopy={handleCopy} copied={copied} />} />
               <Route path="my-ecard" element={<MyECard profile={profile} />} />
@@ -173,9 +175,9 @@ function Overview({ profile, handleCopy, copied }: any) {
   ];
 
   return (
-    <div className="space-y-6 sm:space-y-10">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+    <div className="space-y-6 sm:space-y-10 w-full">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8 items-start">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 items-start w-full">
           <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-3xl overflow-hidden glass-panel border border-white/10 bg-void/20 shrink-0">
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -185,11 +187,11 @@ function Overview({ profile, handleCopy, copied }: any) {
               </div>
             )}
           </div>
-          <div className="min-w-0">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-3 tracking-tight break-words">Сайн байна уу, {profile?.firstname}! 👋</h1>
-            <div className="flex items-center gap-2 sm:gap-3 glass-panel rounded-2xl px-5 py-3 w-fit max-w-full shadow-sm hover:border-aurora-blue/30 transition-all group">
-              <span className="text-xs sm:text-sm text-ivory/50 font-medium font-mono">ecard.mn/{profile?.username}</span>
-              <button onClick={handleCopy} className="text-aurora-blue group-hover:text-aurora-violet transition-colors shrink-0">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-serif font-bold mb-3 tracking-tight break-words">Сайн байна уу, {profile?.firstname}! 👋</h1>
+            <div className="flex items-center gap-2 sm:gap-3 glass-panel rounded-2xl px-4 py-2.5 w-fit max-w-full shadow-sm hover:border-aurora-blue/30 transition-all group">
+              <span className="text-[10px] sm:text-sm text-ivory/50 font-medium font-mono truncate max-w-[150px] sm:max-w-none">ecard.mn/{profile?.username}</span>
+              <button onClick={handleCopy} className="text-aurora-blue group-hover:text-aurora-violet transition-colors shrink-0 p-1">
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
@@ -392,35 +394,35 @@ function MyECard({ profile }: any) {
   ];
 
   return (
-    <div className="space-y-12 pb-20">
-      <div className="flex items-center justify-between sticky top-0 z-30 bg-void/80 backdrop-blur-xl py-6 border-b border-white/5">
-        <h1 className="text-4xl font-serif font-bold">eCard үүсгэх</h1>
+    <div className="space-y-8 pb-20">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between sticky top-16 lg:top-0 z-30 bg-void/90 backdrop-blur-xl py-4 sm:py-6 border-b border-slate-200/60 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold mb-2 sm:mb-0">eCard үүсгэх</h1>
         <div className="flex items-center gap-4">
           {showSuccess && (
             <motion.span 
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="text-sm text-aurora-cyan font-bold hidden sm:block"
+              className="text-xs text-aurora-cyan font-bold"
             >
-              Амжилттай хадгалагдлаа!
+              Хадгалагдлаа!
             </motion.span>
           )}
           <button 
             onClick={handleSave} 
             disabled={loading} 
-            className="btn-aurora px-6 py-2.5 rounded-xl font-bold disabled:opacity-50 transition-all shimmer-sweep flex items-center gap-2 text-sm"
+            className="flex-1 sm:flex-none btn-aurora px-5 py-2 rounded-xl font-bold disabled:opacity-50 transition-all shimmer-sweep flex items-center justify-center gap-2 text-xs h-10 min-w-[120px]"
           >
-            <Save className="w-4 h-4" /> {loading ? 'Хадгалж байна...' : 'Хадгалах'}
+            <Save className="w-4 h-4" /> {loading ? 'Хадгалж байна' : 'Хадгалах'}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12">
         {/* Left Column: Basic Info */}
-        <div className="lg:col-span-2 space-y-12">
+        <div className="lg:col-span-2 space-y-6 lg:space-y-12">
           {/* Profile Section */}
-          <section className="glass-panel p-10 rounded-[32px] space-y-8">
-            <div className="flex flex-col md:flex-row items-center gap-10">
+          <section className="glass-panel p-6 sm:p-10 rounded-[32px] space-y-8">
+            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
               <div className="flex flex-col items-center gap-4">
                 <div className="relative w-32 h-32 group">
                   <div className="w-full h-full rounded-2xl border-2 border-aurora-violet/30 overflow-hidden bg-glass flex items-center justify-center">
@@ -509,9 +511,9 @@ function MyECard({ profile }: any) {
           </section>
           
           {/* Contact Section */}
-          <section className="glass-panel p-10 rounded-[32px] space-y-8">
+          <section className="glass-panel p-6 sm:p-10 rounded-[32px] space-y-8">
             <h3 className="text-lg font-serif font-bold text-aurora-violet">Холбоо барих мэдээлэл</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest text-ivory/40">Утас</label>
                 <input name="phone" value={formData.phone || ''} onChange={handleChange} placeholder="+976 ..." className="w-full bg-glass border border-white/5 rounded-xl py-3 px-4 outline-none focus:border-aurora-violet/50 text-sm" />
@@ -532,9 +534,9 @@ function MyECard({ profile }: any) {
           </section>
 
           {/* Social Section */}
-          <section className="glass-panel p-10 rounded-[32px] space-y-8">
+          <section className="glass-panel p-6 sm:p-10 rounded-[32px] space-y-8">
             <h3 className="text-lg font-serif font-bold text-aurora-violet">Сошиал холбоосууд</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {['linkedin', 'facebook', 'instagram', 'twitter', 'youtube'].map((key) => (
                 <div key={key} className="space-y-2">
                   <label className="text-[10px] uppercase tracking-widest text-ivory/40 capitalize">{key}</label>
