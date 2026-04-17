@@ -1,7 +1,7 @@
-import { motion } from 'motion/react';
+import { motion, useScroll, useTransform } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Zap, Shield, Users, Globe, ArrowRight, QrCode } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Logo } from '../components/Logo';
 import { NetworkNodes } from '../components/NetworkNodes';
 
@@ -16,6 +16,16 @@ const staggerChildren = {
 
 export default function LandingPage() {
   const [stats, setStats] = useState({ users: 0, time: 0, price: 0 });
+  const footerRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: footerRef,
+    offset: ["start end", "end start"]
+  });
+
+  const textScale = useTransform(scrollYProgress, [0, 0.3], [0.8, 1]);
+  const textY = useTransform(scrollYProgress, [0, 0.3], [50, 0]);
+  const textBlur = useTransform(scrollYProgress, [0, 0.25, 0.3], ["blur(20px)", "blur(10px)", "blur(0px)"]);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.2, 0.3], [0, 0.5, 1]);
 
   useEffect(() => {
     // Simple count up animation simulation
@@ -209,7 +219,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-20 relative z-10 border-t border-slate-100 bg-white/50 backdrop-blur-xl overflow-hidden">
+      <footer ref={footerRef} className="py-20 relative z-10 border-t border-slate-100 bg-white/50 backdrop-blur-xl overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-12 mb-20">
             <Link to="/">
@@ -225,10 +235,12 @@ export default function LandingPage() {
           
           <div className="relative flex justify-center py-20 pointer-events-none group/footer">
             <motion.h2 
-              initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
-              whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-              transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
-              viewport={{ once: true }}
+              style={{ 
+                scale: textScale,
+                y: textY,
+                filter: textBlur,
+                opacity: textOpacity
+              }}
               className="text-[20vw] font-serif font-black leading-none select-none tracking-tighter relative cursor-default pointer-events-auto"
             >
               {/* Background Outline Layer */}
