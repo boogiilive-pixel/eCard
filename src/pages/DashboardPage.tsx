@@ -63,9 +63,9 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen flex relative z-10 lg:pl-72">
+    <div className="min-h-screen bg-void flex flex-col lg:flex-row relative z-10">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 glass-panel !bg-white/90 backdrop-blur-2xl z-50 flex items-center justify-between px-6 border-b border-slate-100">
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 glass-panel !bg-white/90 backdrop-blur-2xl z-50 flex items-center justify-between px-6 border-b border-slate-100">
         <Link to="/">
           <Logo size="sm" />
         </Link>
@@ -75,14 +75,14 @@ export default function DashboardPage() {
         >
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
-      </div>
+      </header>
 
       {/* Sidebar */}
       <aside className={cn(
         "fixed inset-y-0 left-0 z-40 w-72 flex flex-col glass-panel !bg-white/95 backdrop-blur-2xl !border-y-0 !border-l-0 !rounded-none transform transition-transform duration-300 lg:translate-x-0 overflow-y-auto shadow-xl",
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <div className="p-8 hidden lg:block">
+        <div className="p-8 hidden lg:block mb-4">
           <Link to="/">
             <Logo size="md" />
           </Link>
@@ -90,7 +90,7 @@ export default function DashboardPage() {
         
         <div className="h-16 lg:hidden" /> {/* Spacer for mobile header */}
 
-        <nav className="px-4 py-6 space-y-2">
+        <nav className="px-4 py-2 space-y-2">
           {menuItems.map((item, idx) => (
             <Link
               key={idx}
@@ -111,7 +111,8 @@ export default function DashboardPage() {
           ))}
         </nav>
 
-        <div className="flex-1 px-4 space-y-2">
+        <div className="mt-8 px-4 space-y-2">
+          <div className="text-[10px] uppercase tracking-widest text-slate-400 px-4 mb-2">Минийх</div>
           {profile?.username && (
             <Link 
               to={`/${profile.username}`} 
@@ -141,17 +142,19 @@ export default function DashboardPage() {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-8 lg:p-12 pt-20 lg:pt-12">
-        <div className="max-w-5xl">
-          <Routes>
-            <Route path="/" element={<Overview profile={profile} handleCopy={handleCopy} copied={copied} />} />
-            <Route path="my-ecard" element={<MyECard profile={profile} />} />
-            <Route path="saved" element={<SavedCards user={user} />} />
-            <Route path="directory" element={<DirectoryView />} />
-            <Route path="nfc" element={<NfcShop />} />
-            <Route path="analytics" element={<Analytics profile={profile} />} />
-            <Route path="settings" element={<AccountSettings profile={profile} />} />
-          </Routes>
+      <main className="flex-1 w-full lg:ml-72 min-h-screen flex flex-col">
+        <div className="flex-1 p-6 md:p-10 lg:p-12 pt-24 lg:pt-10">
+          <div className="max-w-6xl mx-auto">
+            <Routes>
+              <Route path="/" element={<Overview profile={profile} handleCopy={handleCopy} copied={copied} />} />
+              <Route path="my-ecard" element={<MyECard profile={profile} />} />
+              <Route path="saved" element={<SavedCards user={user} />} />
+              <Route path="directory" element={<DirectoryView />} />
+              <Route path="nfc" element={<NfcShop />} />
+              <Route path="analytics" element={<Analytics profile={profile} />} />
+              <Route path="settings" element={<AccountSettings profile={profile} />} />
+            </Routes>
+          </div>
         </div>
       </main>
     </div>
@@ -170,10 +173,10 @@ function Overview({ profile, handleCopy, copied }: any) {
   ];
 
   return (
-    <div className="space-y-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-6">
-          <div className="w-20 h-20 rounded-2xl overflow-hidden glass-panel border border-white/10 bg-void/20">
+    <div className="space-y-10">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+          <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-3xl overflow-hidden glass-panel border border-white/10 bg-void/20 shrink-0">
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             ) : (
@@ -182,34 +185,34 @@ function Overview({ profile, handleCopy, copied }: any) {
               </div>
             )}
           </div>
-          <div>
-            <h1 className="text-4xl font-serif font-bold mb-2">Сайн байна уу, {profile?.firstname}! 👋</h1>
-            <div className="flex items-center gap-3 glass-panel rounded-full px-6 py-3">
-              <span className="text-sm text-ivory/60">ecard.mn/{profile?.username}</span>
-              <button onClick={handleCopy} className="text-aurora-cyan hover:text-aurora-violet transition-colors">
+          <div className="min-w-0">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-3 tracking-tight break-words">Сайн байна уу, {profile?.firstname}! 👋</h1>
+            <div className="flex items-center gap-2 sm:gap-3 glass-panel rounded-2xl px-5 py-3 w-fit max-w-full shadow-sm hover:border-aurora-blue/30 transition-all group">
+              <span className="text-xs sm:text-sm text-ivory/50 font-medium font-mono">ecard.mn/{profile?.username}</span>
+              <button onClick={handleCopy} className="text-aurora-blue group-hover:text-aurora-violet transition-colors shrink-0">
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
           </div>
         </div>
-        <div className="flex gap-4">
-          <div className="bg-aurora-violet/10 border border-aurora-violet/20 px-8 py-4 rounded-2xl text-center">
-            <p className="text-[10px] uppercase tracking-widest text-aurora-violet mb-1">Төлөвлөгөө</p>
-            <p className="font-bold text-aurora-violet uppercase tracking-widest">{profile?.plan}</p>
+        <div className="shrink-0">
+          <div className="glass-panel px-10 py-5 rounded-[24px] text-center border-aurora-violet/10 bg-white/40">
+            <p className="text-[10px] uppercase tracking-widest text-ivory/40 mb-1 font-bold">Төлөвлөгөө</p>
+            <p className="font-bold text-aurora-violet text-xl tracking-wider">{profile?.plan || 'FREE'}</p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         {[
           { label: 'Нийт үзэлт', value: profile?.view_count || 0 },
           { label: 'QR скан', value: profile?.qr_scan_count || 0 },
           { label: 'Сошиал даралт', value: 12 },
           { label: 'Verified', value: profile?.verified ? 'Тийм' : 'Үгүй' },
         ].map((stat, i) => (
-          <div key={i} className="glass-panel p-8 rounded-[32px]">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-ivory/40 mb-4">{stat.label}</p>
-            <p className="text-4xl font-serif font-bold aurora-text">{stat.value}</p>
+          <div key={i} className="glass-panel p-6 sm:p-8 rounded-[32px]">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-ivory/40 mb-3 sm:mb-4">{stat.label}</p>
+            <p className="text-3xl sm:text-4xl font-serif font-bold aurora-text">{stat.value}</p>
           </div>
         ))}
       </div>
