@@ -364,6 +364,31 @@ export default function ProfilePage() {
 
         {/* Detailed Info */}
         <div className="glass-panel rounded-[32px] p-10 space-y-10">
+          {(profile.category || (profile.skills && profile.skills.length > 0)) && (
+            <div className="space-y-6">
+              {profile.category && (
+                <div>
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] text-aurora-violet mb-3">Мэргэжлийн ангилал</h3>
+                  <span className="inline-block px-4 py-1.5 bg-aurora-violet/10 text-aurora-violet text-xs font-bold rounded-lg border border-aurora-violet/20">
+                    {profile.category}
+                  </span>
+                </div>
+              )}
+              {profile.skills && profile.skills.length > 0 && (
+                <div>
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] text-aurora-violet mb-3">Ур чадвар / Үйлчилгээ</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.skills.map((skill, i) => (
+                      <span key={i} className="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {profile.bio && (
             <div>
               <h3 className="text-[10px] uppercase tracking-[0.2em] text-aurora-violet mb-4">Танилцуулга</h3>

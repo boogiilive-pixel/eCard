@@ -76,7 +76,9 @@ service cloud.firestore {
              (!('email' in data) || (data.email is string && data.email.size() <= 100)) &&
              (!('website' in data) || (data.website is string && data.website.size() <= 200)) &&
              (!('job_title' in data) || (data.job_title is string && data.job_title.size() <= 100)) &&
-             (!('company' in data) || (data.company is string && data.company.size() <= 100));
+             (!('company' in data) || (data.company is string && data.company.size() <= 100)) &&
+             (!('category' in data) || (data.category is string && data.category.size() <= 100)) &&
+             (!('skills' in data) || (data.skills is list && data.skills.size() <= 5));
     }
 
     // ===============================================================
@@ -84,8 +86,9 @@ service cloud.firestore {
     // ===============================================================
 
     match /profiles/{userId} {
-      // Public can read active and public profiles
-      allow read: if resource.data.is_active == true && resource.data.profile_public == true;
+      // Public can read active and directory-enabled OR public profiles
+      allow read: if resource.data.is_active == true && 
+                    (resource.data.profile_public == true || resource.data.show_in_directory == true);
       
       // Owner can read their own profile even if inactive/private
       allow read: if isOwner(userId);

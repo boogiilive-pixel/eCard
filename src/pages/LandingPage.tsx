@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Zap, Shield, Users, Globe, ArrowRight, QrCode } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Logo } from '../components/Logo';
+import { NetworkNodes } from '../components/NetworkNodes';
 
 const fadeUp = {
   initial: { opacity: 0, y: 30 },
@@ -29,7 +30,8 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen selection:bg-aurora-violet selection:text-white">
+    <div className="min-h-screen selection:bg-aurora-violet selection:text-white relative">
+      <NetworkNodes />
       {/* Hero Section */}
       <section className="relative pt-48 pb-32 overflow-hidden min-h-screen flex items-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -50,8 +52,8 @@ export default function LandingPage() {
                 нэг хуудсанд
               </motion.h1>
               
-              <motion.p variants={fadeUp} className="text-lg text-ivory/60 mb-12 max-w-lg leading-relaxed">
-                30 секундэд профайлаа үүсгэж, ecard.mn/танынэр хаягаар дэлхийн хаана ч хуваалцаарай. Үнэгүй. Үргэлж.
+              <motion.p variants={fadeUp} className="text-lg text-ivory/60 mb-12 max-w-lg leading-relaxed italic font-serif">
+                "Your network is Your net worth"
               </motion.p>
               
               <motion.div variants={fadeUp} className="flex flex-wrap gap-6">
@@ -207,18 +209,67 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-20 relative z-10 border-t border-slate-100 bg-white/50 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-12">
-          <Link to="/">
-            <Logo size="lg" />
-          </Link>
-          <div className="flex gap-10 text-sm text-slate-400 font-bold">
-            <Link to="/directory" className="hover:text-aurora-blue transition-colors">Лавлах</Link>
-            <Link to="/register" className="hover:text-aurora-blue transition-colors">Бүртгүүлэх</Link>
-            <Link to="/login" className="hover:text-aurora-blue transition-colors">Нэвтрэх</Link>
-            <a href="#" className="hover:text-aurora-blue transition-colors">Холбоо барих</a>
+      <footer className="py-20 relative z-10 border-t border-slate-100 bg-white/50 backdrop-blur-xl overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-12 mb-20">
+            <Link to="/">
+              <Logo size="lg" />
+            </Link>
+            <div className="flex gap-10 text-sm text-slate-400 font-bold uppercase tracking-widest">
+              <Link to="/directory" className="hover:text-aurora-blue transition-colors">Лавлах</Link>
+              <Link to="/register" className="hover:text-aurora-blue transition-colors">Бүртгүүлэх</Link>
+              <Link to="/login" className="hover:text-aurora-blue transition-colors">Нэвтрэх</Link>
+              <a href="#" className="hover:text-aurora-blue transition-colors">Холбоо барих</a>
+            </div>
           </div>
-          <p className="text-sm text-slate-300">© 2025 eCard.mn. Cornerstone AI-ийн бүтээл.</p>
+          
+          <div className="relative flex justify-center py-20 pointer-events-none group/footer">
+            <motion.h2 
+              initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
+              whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+              transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
+              viewport={{ once: true }}
+              className="text-[20vw] font-serif font-black leading-none select-none tracking-tighter relative cursor-default pointer-events-auto"
+            >
+              {/* Background Outline Layer */}
+              <span className="absolute inset-0 text-transparent stroke-white/10" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.1)' }}>
+                eCARD
+              </span>
+              
+              {/* Main Gradient Layer */}
+              <span className="relative bg-clip-text text-transparent bg-gradient-to-b from-white via-white/40 to-transparent opacity-80 group-hover/footer:opacity-100 transition-all duration-700 group-hover/footer:tracking-normal tracking-tighter">
+                eCARD
+              </span>
+
+              {/* Glowing Interactive Layer */}
+              <motion.span 
+                className="absolute inset-0 flex items-center justify-center text-transparent bg-clip-text bg-gradient-to-r from-aurora-blue via-aurora-violet to-aurora-cyan opacity-0 group-hover/footer:opacity-100 transition-all duration-1000 blur-[2px] group-hover/footer:blur-[0px]"
+                animate={{ 
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                }}
+                transition={{ 
+                  duration: 5, 
+                  repeat: Infinity, 
+                  ease: "linear" 
+                }}
+                style={{ backgroundSize: '200% auto' }}
+              >
+                eCARD
+              </motion.span>
+
+              {/* Ultimate Glow Aura on Hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-aurora-blue/20 via-aurora-violet/20 to-aurora-cyan/20 blur-[120px] rounded-full opacity-0 group-hover/footer:opacity-100 transition-all duration-1000 scale-150 -z-10" />
+            </motion.h2>
+          </div>
+
+          <div className="flex flex-col md:flex-row justify-between items-center mt-20 pt-10 border-t border-slate-100/50">
+            <p className="text-sm text-slate-400">
+              © 2026 eCard.mn. <a href="https://cornerstoneai.dev/" target="_blank" rel="noopener noreferrer" className="hover:text-aurora-blue transition-colors underline underline-offset-4 decoration-aurora-blue/30">Cornerstone AI</a>-ийн бүтээл.
+            </p>
+            <p className="text-[11px] uppercase tracking-[0.4em] text-aurora-violet font-bold mt-4 md:mt-0 italic opacity-80">
+              "Your network is Your net worth"
+            </p>
+          </div>
         </div>
       </footer>
     </div>

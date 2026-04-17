@@ -13,6 +13,8 @@ export interface UserProfile {
   website?: string;
   bio?: string;
   field?: string;
+  category?: string;
+  skills?: string[];
   card_color: string;
   card_text_color: string;
   avatar_url?: string;

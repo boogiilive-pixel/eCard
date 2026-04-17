@@ -16,6 +16,8 @@ import { cn } from '../lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import LoadingAnimation from '../components/LoadingAnimation';
 import { Logo } from '../components/Logo';
+import { CategorySelector, SkillsInput } from '../components/ProfileFields';
+import { SKILLS_SUGGESTIONS } from '../constants';
 
 export default function DashboardPage() {
   const { profile, user, loading } = useFirebase();
@@ -475,6 +477,19 @@ function MyECard({ profile }: any) {
                     <label className="text-[10px] uppercase tracking-widest text-ivory/40">Компани</label>
                     <input name="company" value={formData.company || ''} onChange={handleChange} className="w-full bg-glass border border-white/5 rounded-xl py-3 px-4 outline-none focus:border-aurora-violet/50" />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <CategorySelector 
+                    value={formData.category || ''} 
+                    onChange={(val) => setFormData((prev: any) => ({ ...prev, category: val }))}
+                    required
+                  />
+                  <SkillsInput 
+                    skills={formData.skills || []}
+                    onChange={(val) => setFormData((prev: any) => ({ ...prev, skills: val }))}
+                    suggestions={SKILLS_SUGGESTIONS}
+                  />
                 </div>
               </div>
             </div>

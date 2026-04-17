@@ -7,6 +7,7 @@ import { LogIn, Mail, Lock, Chrome } from 'lucide-react';
 import LoadingAnimation from '../components/LoadingAnimation';
 import { AuroraBackground } from '../components/AuroraBackground';
 import { Logo } from '../components/Logo';
+import { NetworkNodes } from '../components/NetworkNodes';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -40,6 +41,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-stretch bg-void relative overflow-hidden">
+      <NetworkNodes />
       <AuroraBackground />
 
       {/* Left side - Brand Visual */}
@@ -52,8 +54,8 @@ export default function LoginPage() {
           >
             <Logo size="xl" />
           </motion.div>
-          <p className="text-slate-500 text-xl max-w-md mx-auto leading-relaxed">
-            Таны мэргэжлийн дижитал танилцуулга эндээс эхэлнэ.
+          <p className="text-slate-500 text-xl max-w-md mx-auto leading-relaxed italic font-serif">
+            "Your network is Your net worth"
           </p>
         </div>
       </div>

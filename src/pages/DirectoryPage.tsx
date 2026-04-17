@@ -7,8 +7,9 @@ import { Search, Filter, ShieldCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Link } from 'react-router-dom';
 import LoadingAnimation from '../components/LoadingAnimation';
+import { CATEGORIES } from '../constants';
 
-const fields = ['Бүгд', 'IT', 'Design', 'Marketing', 'Law', 'Health', 'Finance', 'Education', 'Business'];
+const fields = ['Бүгд', ...CATEGORIES];
 
 export default function DirectoryPage() {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
@@ -41,8 +42,18 @@ export default function DirectoryPage() {
   }, []);
 
   const filteredProfiles = profiles.filter(p => {
-    const matchesSearch = (p.firstname + p.lastname + p.job_title + p.company).toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesField = selectedField === 'Бүгд' || p.field === selectedField;
+    const searchLower = searchTerm.toLowerCase();
+    const skillsString = (p.skills || []).join(' ').toLowerCase();
+    const matchesSearch = (
+      p.firstname + 
+      p.lastname + 
+      (p.job_title || '') + 
+      (p.company || '') + 
+      (p.category || '') + 
+      skillsString
+    ).toLowerCase().includes(searchLower);
+    
+    const matchesField = selectedField === 'Бүгд' || p.category === selectedField || p.field === selectedField;
     return matchesSearch && matchesField;
   });
 
@@ -140,7 +151,24 @@ export default function DirectoryPage() {
                         {profile.verified && <ShieldCheck className="w-5 h-5 text-aurora-blue" />}
                       </div>
                       <p className="text-aurora-blue font-medium text-sm">{profile.job_title}</p>
-                      <p className="text-slate-400 text-xs">{profile.company}</p>
+                      <p className="text-slate-400 text-[10px] mb-2">{profile.company}</p>
+                      
+                      {profile.category && (
+                        <span className="inline-block px-2 py-0.5 bg-slate-50 text-slate-400 text-[9px] font-bold rounded border border-slate-100 mb-2">
+                          {profile.category}
+                        </span>
+                      )}
+                      
+                      {profile.skills && profile.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {profile.skills.slice(0, 3).map((skill, i) => (
+                            <span key={i} className="text-[8px] text-aurora-blue/60 bg-aurora-blue/5 px-1.5 py-0.5 rounded">
+                              {skill}
+                            </span>
+                          ))}
+                          {profile.skills.length > 3 && <span className="text-[8px] text-slate-300">+{profile.skills.length - 3}</span>}
+                        </div>
+                      )}
                     </div>
                   </div>
                   

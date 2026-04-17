@@ -8,6 +8,9 @@ import { UserPlus, Mail, Lock, Chrome, User } from 'lucide-react';
 import LoadingAnimation from '../components/LoadingAnimation';
 import { AuroraBackground } from '../components/AuroraBackground';
 import { Logo } from '../components/Logo';
+import { CategorySelector, SkillsInput } from '../components/ProfileFields';
+import { NetworkNodes } from '../components/NetworkNodes';
+import { SKILLS_SUGGESTIONS } from '../constants';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -15,7 +18,8 @@ export default function RegisterPage() {
     firstname: '',
     email: '',
     password: '',
-    field: 'IT'
+    category: '',
+    skills: [] as string[]
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,7 +36,8 @@ export default function RegisterPage() {
       firstname,
       username,
       email,
-      field: formData.field,
+      category: formData.category,
+      skills: formData.skills,
       card_color: '#0f1729',
       card_text_color: '#c9a84c',
       role: 'user',
@@ -80,6 +85,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-stretch bg-void relative overflow-hidden">
+      <NetworkNodes />
       <AuroraBackground />
 
       {/* Left side - Brand Visual */}
@@ -92,8 +98,8 @@ export default function RegisterPage() {
           >
             <Logo size="xl" />
           </motion.div>
-          <p className="text-slate-500 text-xl max-w-md mx-auto leading-relaxed">
-            Өөрийн мэргэжлийн дижитал картыг 30 секундэд үүсгээрэй.
+          <p className="text-slate-500 text-xl max-w-md mx-auto leading-relaxed italic font-serif">
+            "Your network is Your net worth"
           </p>
         </div>
       </div>
@@ -142,23 +148,17 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Мэргэжлийн чиглэл</label>
-              <select 
-                name="field"
-                value={formData.field}
-                onChange={handleChange}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-aurora-blue focus:ring-4 focus:ring-aurora-blue/5 outline-none transition-all appearance-none text-slate-700"
-              >
-                <option value="IT">IT / Технологи</option>
-                <option value="Design">Дизайн</option>
-                <option value="Marketing">Маркетинг</option>
-                <option value="Finance">Санхүү</option>
-                <option value="Business">Бизнес</option>
-                <option value="Education">Боловсрол</option>
-                <option value="Health">Эрүүл мэнд</option>
-                <option value="Law">Хууль</option>
-              </select>
+            <div className="space-y-4">
+              <CategorySelector 
+                value={formData.category}
+                onChange={(val) => setFormData(prev => ({ ...prev, category: val }))}
+                required
+              />
+              <SkillsInput 
+                skills={formData.skills}
+                onChange={(val) => setFormData(prev => ({ ...prev, skills: val }))}
+                suggestions={SKILLS_SUGGESTIONS}
+              />
             </div>
 
             <div className="space-y-2">
