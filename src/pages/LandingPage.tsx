@@ -274,14 +274,20 @@ export default function LandingPage() {
             </motion.h2>
           </div>
 
-          <div className="flex flex-col md:flex-row justify-between items-center mt-20 pt-10 border-t border-slate-100/50 gap-6">
-            <div className="flex flex-col md:flex-row items-center gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-center mt-20 pt-10 border-t border-slate-100/50 gap-8">
+            <div className="flex flex-col md:flex-row items-center gap-10">
               <p className="text-sm text-slate-400">
                 © 2026 eCard.mn. <a href="https://cornerstoneai.dev/" target="_blank" rel="noopener noreferrer" className="hover:text-aurora-blue transition-colors underline underline-offset-4 decoration-aurora-blue/30">Cornerstone AI</a>-ийн бүтээл.
               </p>
-              <div className="flex gap-6">
-                <Link to="/privacy" className="text-xs text-slate-400 hover:text-aurora-blue transition-colors">Нууцлалын бодлого</Link>
-                <Link to="/terms" className="text-xs text-slate-400 hover:text-aurora-blue transition-colors">Үйлчилгээний нөхцөл</Link>
+              <div className="flex flex-wrap gap-8">
+                <Link to="/privacy" className="text-xs font-bold text-slate-500 hover:text-aurora-blue transition-colors flex flex-col items-start gap-1">
+                  <span>Нууцлалын бодлого</span>
+                  <span className="text-[9px] uppercase tracking-wider opacity-60">Privacy Policy</span>
+                </Link>
+                <Link to="/terms" className="text-xs font-bold text-slate-500 hover:text-aurora-blue transition-colors flex flex-col items-start gap-1">
+                  <span>Үйлчилгээний нөхцөл</span>
+                  <span className="text-[9px] uppercase tracking-wider opacity-60">Terms of Service</span>
+                </Link>
               </div>
             </div>
             <p className="text-[11px] uppercase tracking-[0.4em] text-aurora-violet font-bold mt-4 md:mt-0 italic opacity-80">
