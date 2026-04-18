@@ -260,80 +260,54 @@ function Overview({ profile, handleCopy, copied }: any) {
 function MyECard({ profile }: any) {
   const [formData, setFormData] = useState({ ...profile });
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(profile.avatar_url || null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
-    setFormData({ ...profile });
-    setPreviewUrl(profile.avatar_url || null);
-    setSelectedFile(null);
-  }, [profile]);
+    // Only reset if we aren't currently loading or uploading
+    if (!loading) {
+      setFormData({ ...profile });
+      setPreviewUrl(profile.avatar_url || null);
+    }
+  }, [profile, loading]);
 
   const handleChange = (e: any) => {
     setFormData((prev: any) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleAIImprove = async () => {
-    if (!formData.bio) return;
-    setLoading(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [{ 
-          role: 'user', 
-          parts: [{ 
-            text: `Та мэргэжлийн дижитал нэрийн хуудасны танилцуулга бичигч байна. Дараах танилцуулгыг илүү мэргэжлийн, товч бөгөөд утга төгөлдөр болгож засаж өгнө үү. Зөвхөн зассан текстийг буцаана уу: "${formData.bio}"` 
-          }] 
-        }],
-      });
-      
-      const improvedText = response.text;
-      if (improvedText) {
-        setFormData((prev: any) => ({ ...prev, bio: improvedText.trim() }));
-      }
-    } catch (err) {
-      console.error("AI Improvement Error:", err);
-      alert('AI ашиглахад алдаа гарлаа.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSave = async () => {
     if (loading) return;
-    setLoading(true);
-    setUploading(false);
     
-    // Safety exit
-    const globalTimeout = setTimeout(() => {
+    setLoading(true);
+    setUploadProgress(0);
+    
+    // Global safety exit to prevent infinite UI hanging
+    const safetyTimer = setTimeout(() => {
       setLoading(false);
-      setUploading(false);
     }, 60000);
 
     try {
       let finalAvatarUrl = formData.avatar_url;
 
-      // Handle direct image upload if a file was selected
+      // 1. Handle Image Upload if a new file exists
       if (selectedFile) {
-        setUploading(true);
-        // Use a clean, unique name to force browser refresh
-        const storageRef = ref(storage, `avatars/${profile.id}/current.jpg`);
+        // Use a unique name to ensure browser NEVER caches the old version
+        const uniqueFileName = `avatar_${Date.now()}.jpg`;
+        const storageRef = ref(storage, `avatars/${profile.id}/${uniqueFileName}`);
+        
+        // Upload the file
         await uploadBytes(storageRef, selectedFile);
         finalAvatarUrl = await getDownloadURL(storageRef);
         
-        // Revoke the local preview URL to save memory
+        // Clean up preview
         if (previewUrl?.startsWith('blob:')) {
           URL.revokeObjectURL(previewUrl);
         }
-        
-        setPreviewUrl(finalAvatarUrl);
-        setSelectedFile(null);
       }
 
-      // Save everything to Firestore
+      // 2. Save Data to Firestore
       const profileRef = doc(db, 'profiles', profile.id);
       await setDoc(profileRef, {
         ...formData,
@@ -341,17 +315,22 @@ function MyECard({ profile }: any) {
         updated_at: new Date().toISOString()
       }, { merge: true });
 
-      setFormData(prev => ({ ...prev, avatar_url: finalAvatarUrl }));
+      // 3. UI Feedback
+      setPreviewUrl(finalAvatarUrl);
+      setSelectedFile(null);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
       
+      // OPTIONAL: Small delay to let the user feel the success
+      await new Promise(r => setTimeout(r, 500));
+
     } catch (err: any) {
-      console.error("Critical Save Error:", err);
-      alert(`Мэдээлэл хадгалахад алдаа гарлаа: ${err.message || 'Сүлжээний алдаа'}`);
+      console.error("Critical Upload Error:", err);
+      alert(`Алдаа гарлаа: ${err.message || 'Сүлжээ эсвэл серверт алдаа гарлаа'}`);
     } finally {
-      clearTimeout(globalTimeout);
+      clearTimeout(safetyTimer);
       setLoading(false);
-      setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -359,16 +338,14 @@ function MyECard({ profile }: any) {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    if (file.size > 20 * 1024 * 1024) return alert('Зураг хэтэрхий том байна (Макс 20MB).');
-    if (!file.type.startsWith('image/')) return alert('Зөвхөн зураг оруулна уу.');
+    if (file.size > 15 * 1024 * 1024) return alert('Зураг хэтэрхий том байна (Макс 15MB).');
+    if (!file.type.startsWith('image/')) return alert('Зөвхөн зураг (jpg, png) оруулна уу.');
 
-    // Revoke old blob if it exists
     if (previewUrl?.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
     }
 
-    const objUrl = URL.createObjectURL(file);
-    setPreviewUrl(objUrl);
+    setPreviewUrl(URL.createObjectURL(file));
     setSelectedFile(file);
   };
 
@@ -409,17 +386,26 @@ function MyECard({ profile }: any) {
           <h2 className="text-xl font-bold text-slate-900">Дижитал нэрийн хуудас</h2>
           <p className="text-xs text-slate-500 uppercase tracking-widest font-medium">Мэдээллээ засаж шинэчлэх</p>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          {showSuccess && (
+            <motion.span 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-[10px] text-aurora-blue font-black uppercase tracking-widest bg-aurora-blue/10 px-3 py-1.5 rounded-lg hidden md:block"
+            >
+              Амжилттай хадгалагдлаа
+            </motion.span>
+          )}
           <button 
             onClick={handleSave} 
             disabled={loading} 
-            className="flex-1 sm:flex-none py-3 px-8 rounded-xl bg-slate-900 text-white font-bold text-sm tracking-widest uppercase hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200"
+            className="flex-1 sm:flex-none py-3 px-10 rounded-xl bg-slate-900 text-white font-bold text-sm tracking-widest uppercase hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200"
           >
             {loading ? (
-              <>
+              <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                {uploading ? 'Зураг...' : 'Бидэж байна...'}
-              </>
+                <span>Бэлдэж байна...</span>
+              </div>
             ) : (
               <><Save className="w-4 h-4" /> Шинэчлэх</>
             )}
@@ -445,10 +431,10 @@ function MyECard({ profile }: any) {
                     ) : (
                       <div className="text-5xl font-bold text-slate-300">{formData.firstname?.[0]}</div>
                     )}
-                    {uploading && (
+                    {loading && selectedFile && (
                       <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex flex-col items-center justify-center rounded-3xl gap-2">
-                        <div className="w-8 h-8 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">Илгээж байна</span>
+                        <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Илгээж байна...</span>
                       </div>
                     )}
                   </div>
@@ -649,34 +635,6 @@ function MyECard({ profile }: any) {
         </div>
       </div>
 
-      {/* Sticky Bottom Save Bar */}
-      <div className="fixed bottom-0 left-0 lg:left-72 right-0 z-[100] bg-white/80 backdrop-blur-md border-t border-slate-200 px-6 py-4 flex items-center justify-between gap-4">
-        <div className="hidden sm:block">
-          {showSuccess && (
-            <motion.span 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-aurora-cyan font-bold"
-            >
-              Мэдээлэл амжилттай хадгалагдлаа!
-            </motion.span>
-          )}
-        </div>
-        <button 
-          onClick={handleSave} 
-          disabled={loading} 
-          className="flex-1 sm:flex-none btn-aurora px-12 py-3.5 rounded-xl font-bold disabled:opacity-50 transition-all shimmer-sweep flex items-center justify-center gap-2 shadow-xl shadow-aurora-blue/20"
-        >
-          {loading ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              {uploading ? 'Зураг ачаалж байна...' : 'Хадгалж байна...'}
-            </div>
-          ) : (
-            <><Save className="w-4 h-4" /> Хадгалах</>
-          )}
-        </button>
-      </div>
     </div>
   );
 }
