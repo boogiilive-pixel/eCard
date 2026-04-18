@@ -262,76 +262,14 @@ function MyECard({ profile }: any) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [zoom, setZoom] = useState(1);
   const [previewUrl, setPreviewUrl] = useState<string | null>(profile.avatar_url || null);
-  const [isNewImage, setIsNewImage] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [lastSelectedFile, setLastSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     setFormData({ ...profile });
     setPreviewUrl(profile.avatar_url || null);
-    setIsNewImage(false);
-    setLastSelectedFile(null);
+    setSelectedFile(null);
   }, [profile]);
-
-  const getCroppedImage = async (imageSrc: string, zoomLevel: number): Promise<Blob | null> => {
-    return new Promise((resolve) => {
-      if (!imageSrc) return resolve(null);
-      
-      const img = new Image();
-      const timeout = setTimeout(() => {
-        console.error("Image processing timed out");
-        resolve(null);
-      }, 15000);
-
-      // Handle CORS for remote images
-      if (!imageSrc.startsWith('data:') && !imageSrc.startsWith('blob:')) {
-        img.crossOrigin = "anonymous";
-      }
-
-      img.onload = () => {
-        try {
-          clearTimeout(timeout);
-          const canvas = document.createElement('canvas');
-          const size = 600; // Optimal size for digital cards
-          canvas.width = size;
-          canvas.height = size;
-          const ctx = canvas.getContext('2d');
-          
-          if (!ctx) {
-            console.error("Canvas context null");
-            return resolve(null);
-          }
-
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-
-          const minDim = Math.min(img.width, img.height);
-          const cropDim = minDim / zoomLevel;
-          
-          const sx = (img.width - cropDim) / 2;
-          const sy = (img.height - cropDim) / 2;
-          
-          ctx.drawImage(img, sx, sy, cropDim, cropDim, 0, 0, size, size);
-          
-          canvas.toBlob((blob) => {
-            if (!blob) console.error("Blob creation failed");
-            resolve(blob);
-          }, 'image/jpeg', 0.9);
-        } catch (e) {
-          console.error("Canvas processing error:", e);
-          resolve(null);
-        }
-      };
-      img.onerror = (e) => {
-        clearTimeout(timeout);
-        console.error("Image load error:", e);
-        resolve(null);
-      };
-      img.src = imageSrc;
-    });
-  };
 
   const handleChange = (e: any) => {
     setFormData((prev: any) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -356,67 +294,46 @@ function MyECard({ profile }: any) {
       if (improvedText) {
         setFormData((prev: any) => ({ ...prev, bio: improvedText.trim() }));
       }
-      setLoading(false);
     } catch (err) {
-      setLoading(false);
       console.error("AI Improvement Error:", err);
       alert('AI ашиглахад алдаа гарлаа.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSave = async () => {
     if (loading) return;
-    
     setLoading(true);
     setUploading(false);
     
+    // Safety exit
     const globalTimeout = setTimeout(() => {
       setLoading(false);
       setUploading(false);
     }, 60000);
 
     try {
-      if (!profile?.id) throw new Error("Хэрэглэгч олдсонгүй");
-
       let finalAvatarUrl = formData.avatar_url;
 
-      // Image Logic
-      if (isNewImage || (previewUrl && zoom !== 1)) {
+      // Handle direct image upload if a file was selected
+      if (selectedFile) {
         setUploading(true);
-        let blob: Blob | null = null;
-
-        // Try crop if zoomed
-        if (zoom !== 1 && previewUrl) {
-          blob = await getCroppedImage(previewUrl, zoom);
+        // Use a clean, unique name to force browser refresh
+        const storageRef = ref(storage, `avatars/${profile.id}/current.jpg`);
+        await uploadBytes(storageRef, selectedFile);
+        finalAvatarUrl = await getDownloadURL(storageRef);
+        
+        // Revoke the local preview URL to save memory
+        if (previewUrl?.startsWith('blob:')) {
+          URL.revokeObjectURL(previewUrl);
         }
-
-        // Use raw file if no crop or crop failed
-        if (!blob && lastSelectedFile) {
-          blob = lastSelectedFile;
-        }
-
-        if (blob) {
-          // Use a unique file name to prevent caching issues
-          const fileName = `avatar_${Date.now()}.jpg`;
-          const storageRef = ref(storage, `avatars/${profile.id}/${fileName}`);
-          
-          await uploadBytes(storageRef, blob);
-          finalAvatarUrl = await getDownloadURL(storageRef);
-          
-          // Cleanup
-          if (previewUrl?.startsWith('blob:')) {
-            URL.revokeObjectURL(previewUrl);
-          }
-          
-          setPreviewUrl(finalAvatarUrl);
-          setZoom(1);
-          setIsNewImage(false);
-          setLastSelectedFile(null);
-        }
-        setUploading(false);
+        
+        setPreviewUrl(finalAvatarUrl);
+        setSelectedFile(null);
       }
 
-      // Save to Firestore
+      // Save everything to Firestore
       const profileRef = doc(db, 'profiles', profile.id);
       await setDoc(profileRef, {
         ...formData,
@@ -430,12 +347,11 @@ function MyECard({ profile }: any) {
       
     } catch (err: any) {
       console.error("Critical Save Error:", err);
-      alert(`Хадгалахад алдаа гарлаа: ${err.message || 'Сүлжээний алдаа'}`);
+      alert(`Мэдээлэл хадгалахад алдаа гарлаа: ${err.message || 'Сүлжээний алдаа'}`);
     } finally {
       clearTimeout(globalTimeout);
       setLoading(false);
       setUploading(false);
-      setIsNewImage(false);
     }
   };
 
@@ -443,19 +359,17 @@ function MyECard({ profile }: any) {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Size check
     if (file.size > 20 * 1024 * 1024) return alert('Зураг хэтэрхий том байна (Макс 20MB).');
     if (!file.type.startsWith('image/')) return alert('Зөвхөн зураг оруулна уу.');
 
-    setIsProcessing(true);
-    
-    // USE ObjectURL for maximum speed and memory safety
+    // Revoke old blob if it exists
+    if (previewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
     const objUrl = URL.createObjectURL(file);
     setPreviewUrl(objUrl);
-    setLastSelectedFile(file);
-    setZoom(1);
-    setIsNewImage(true);
-    setIsProcessing(false);
+    setSelectedFile(file);
   };
 
   const presets = [
@@ -498,13 +412,13 @@ function MyECard({ profile }: any) {
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <button 
             onClick={handleSave} 
-            disabled={loading || isProcessing} 
+            disabled={loading} 
             className="flex-1 sm:flex-none py-3 px-8 rounded-xl bg-slate-900 text-white font-bold text-sm tracking-widest uppercase hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200"
           >
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                {uploading ? 'Зураг...' : 'Хадгалж байна...'}
+                {uploading ? 'Зураг...' : 'Бидэж байна...'}
               </>
             ) : (
               <><Save className="w-4 h-4" /> Шинэчлэх</>
@@ -518,60 +432,35 @@ function MyECard({ profile }: any) {
         <div className="lg:col-span-2 space-y-6 lg:space-y-12">
           {/* Profile Section */}
           <section className="glass-panel !bg-white/90 p-6 sm:p-10 rounded-[32px] space-y-8 shadow-sm border-slate-200/60">
-            <div className="flex flex-col md:flex-row items-start gap-6 md:gap-10">
-              <div className="flex flex-col items-center gap-4 mt-2">
-                <div className="relative w-32 h-32 group">
-                  <div className="w-full h-full rounded-2xl border-2 border-aurora-violet/30 overflow-hidden bg-glass flex items-center justify-center">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-10">
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative w-40 h-40 group">
+                  <div className="w-full h-full rounded-3xl border-2 border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center shadow-inner">
                     {previewUrl ? (
                       <img 
                         src={previewUrl} 
-                        className={cn("w-full h-full object-cover transition-transform duration-200", isProcessing && "opacity-50")} 
-                        style={{ transform: `scale(${zoom})` }}
+                        className="w-full h-full object-cover"
                         referrerPolicy="no-referrer" 
                       />
                     ) : (
-                      <div className="text-4xl font-bold text-aurora-violet">{formData.firstname?.[0]}</div>
+                      <div className="text-5xl font-bold text-slate-300">{formData.firstname?.[0]}</div>
                     )}
-                    {(uploading || isProcessing) && (
-                      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl gap-2">
-                        <div className="w-8 h-8 border-2 border-aurora-blue border-t-transparent rounded-full animate-spin" />
-                        <span className="text-[10px] font-bold text-aurora-blue uppercase tracking-tighter">
-                          {isProcessing ? 'Бэлдэж байна' : 'Ачаалж байна'}
-                        </span>
+                    {uploading && (
+                      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex flex-col items-center justify-center rounded-3xl gap-2">
+                        <div className="w-8 h-8 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">Илгээж байна</span>
                       </div>
                     )}
                   </div>
-                  <label className="absolute inset-0 cursor-pointer opacity-0 hover:opacity-100 bg-void/40 flex items-center justify-center transition-opacity rounded-2xl">
-                    <Camera className="w-8 h-8 text-white" />
+                  <label className="absolute inset-0 cursor-pointer opacity-0 group-hover:opacity-100 bg-black/40 flex flex-col items-center justify-center transition-all rounded-3xl backdrop-blur-sm">
+                    <Camera className="w-8 h-8 text-white mb-2" />
+                    <span className="text-[10px] text-white font-bold uppercase tracking-widest">Зураг солих</span>
                     <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
                   </label>
                 </div>
-                {previewUrl && (
-                  <div className="w-full max-w-[120px] space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-[10px] text-ivory/40 uppercase tracking-widest">
-                        <ZoomOut className="w-3 h-3" />
-                        <span>Zoom</span>
-                        <ZoomIn className="w-3 h-3" />
-                      </div>
-                      <input 
-                        type="range" 
-                        min="1" 
-                        max="3" 
-                        step="0.01" 
-                        value={zoom} 
-                        onChange={(e) => setZoom(parseFloat(e.target.value))}
-                        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-aurora-violet"
-                      />
-                    </div>
-                    
-                    <button 
-                      onClick={handleSave}
-                      disabled={loading || isProcessing}
-                      className="w-full py-2.5 rounded-xl bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50"
-                    >
-                      {loading ? '...' : 'Хадгалах'}
-                    </button>
+                {selectedFile && (
+                  <div className="text-[10px] text-aurora-blue font-bold uppercase tracking-widest animate-pulse">
+                    Шинэ зураг сонгогдлоо
                   </div>
                 )}
               </div>
