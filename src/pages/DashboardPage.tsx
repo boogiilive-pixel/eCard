@@ -9,7 +9,7 @@ import {
   Menu, X
 } from 'lucide-react';
 import { auth, db, storage } from '../lib/firebase';
-import { collection, doc, updateDoc, getDocs, query, where, deleteDoc } from 'firebase/firestore';
+import { collection, doc, updateDoc, getDocs, query, where, deleteDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { GoogleGenAI } from "@google/genai";
 import { cn } from '../lib/utils';
@@ -17,7 +17,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import LoadingAnimation from '../components/LoadingAnimation';
 import { Logo } from '../components/Logo';
 import { CategorySelector, SkillsInput } from '../components/ProfileFields';
-import { SKILLS_SUGGESTIONS } from '../constants';
+import { SKILLS_SUGGESTIONS, CATEGORIES } from '../constants';
 
 export default function DashboardPage() {
   const { profile, user, loading } = useFirebase();
@@ -309,17 +309,25 @@ function MyECard({ profile }: any) {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: `Та мэргэжлийн дижитал нэрийн хуудасны танилцуулга бичигч байна. Дараах танилцуулгыг илүү мэргэжлийн, товч бөгөөд утга төгөлдөр болгож засаж өгнө үү. Зөвхөн зассан текстийг буцаана уу: "${formData.bio}"`,
+        contents: [{ 
+          role: 'user', 
+          parts: [{ 
+            text: `Та мэргэжлийн дижитал нэрийн хуудасны танилцуулга бичигч байна. Дараах танилцуулгыг илүү мэргэжлийн, товч бөгөөд утга төгөлдөр болгож засаж өгнө үү. Зөвхөн зассан текстийг буцаана уу: "${formData.bio}"` 
+          }] 
+        }],
       });
       
-      if (response.text) {
-        setFormData((prev: any) => ({ ...prev, bio: response.text.trim() }));
+      const improvedText = response.text;
+      if (improvedText) {
+        setFormData((prev: any) => ({ ...prev, bio: improvedText.trim() }));
+      } else {
+        console.warn("AI returned empty response");
       }
       setLoading(false);
     } catch (err) {
       setLoading(false);
-      console.error(err);
-      alert('AI ашиглахад алдаа гарлаа.');
+      console.error("AI Improvement Error:", err);
+      alert('AI ашиглахад алдаа гарлаа. Таны API key тохируулагдсан эсэхийг шалгана уу.');
     }
   };
 
@@ -344,22 +352,23 @@ function MyECard({ profile }: any) {
         setUploading(false);
       }
 
-      await updateDoc(doc(db, 'profiles', profile.id), {
+      // Use setDoc with merge: true for more robustness
+      await setDoc(doc(db, 'profiles', profile.id), {
         ...formData,
         avatar_url: finalAvatarUrl,
         updated_at: new Date().toISOString()
-      });
+      }, { merge: true });
       
-      setFormData(prev => ({ ...prev, avatar_url: finalAvatarUrl }));
+      setFormData((prev: any) => ({ ...prev, avatar_url: finalAvatarUrl }));
       setIsNewImage(false);
       setLoading(false);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
-    } catch (err) {
+    } catch (err: any) {
       setLoading(false);
       setUploading(false);
-      console.error(err);
-      alert('Алдаа гарлаа.');
+      console.error("Save Error:", err);
+      alert('Мэдээлэл хадгалахад алдаа гарлаа: ' + (err.message || 'Тодорхойгүй алдаа'));
     }
   };
 
@@ -659,7 +668,7 @@ function MyECard({ profile }: any) {
           {loading ? (
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Хадгалж байна...
+              {uploading ? 'Зураг ачаалж байна...' : 'Хадгалж байна...'}
             </div>
           ) : (
             <><Save className="w-4 h-4" /> Хадгалах</>
@@ -738,11 +747,11 @@ function SavedCards({ user }: any) {
             <div key={card.save_id} className="bg-white border border-slate-100 p-6 rounded-2xl group transition-all hover:border-slate-300">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-900 font-bold">
-                  {card.firstname[0]}
+                  {(card.firstname || 'U')[0]}
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900">{card.firstname} {card.lastname}</h4>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-widest">{card.job_title}</p>
+                  <h4 className="font-bold text-slate-900">{card.firstname || 'Тодорхойгүй'} {card.lastname || ''}</h4>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest">{card.job_title || 'Мэргэжилгүй'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -794,6 +803,7 @@ function DirectoryView() {
 
   useEffect(() => {
     const fetchProfiles = async () => {
+      setLoading(true);
       try {
         const q = query(
           collection(db, 'profiles'), 
@@ -801,9 +811,11 @@ function DirectoryView() {
           where('is_active', '==', true)
         );
         const snap = await getDocs(q);
-        setProfiles(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      } catch (err) {
-        console.error(err);
+        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log(`Fetched ${data.length} profiles for directory`);
+        setProfiles(data);
+      } catch (err: any) {
+        console.error("Directory Fetch Error:", err);
       } finally {
         setLoading(false);
       }
@@ -812,8 +824,18 @@ function DirectoryView() {
   }, []);
 
   const filtered = profiles.filter(p => {
-    const matchesSearch = (p.firstname + p.lastname + p.company + (p.business_name || '')).toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesField = selectedField === 'Бүгд' || p.field === selectedField || p.business_industry === selectedField;
+    const matchesSearch = (
+      (p.firstname || '') + 
+      (p.lastname || '') + 
+      (p.company || '') + 
+      (p.job_title || '')
+    ).toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Check both 'field' (legacy) and 'category' (current)
+    const matchesField = selectedField === 'Бүгд' || 
+                         p.category === selectedField || 
+                         p.field === selectedField;
+                         
     return matchesSearch && matchesField;
   });
 
