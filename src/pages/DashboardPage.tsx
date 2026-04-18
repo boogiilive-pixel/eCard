@@ -276,13 +276,13 @@ function MyECard({ profile }: any) {
   const getCroppedImage = async (imageSrc: string, zoomLevel: number): Promise<Blob | null> => {
     return new Promise((resolve) => {
       const img = new Image();
-      // Set a timeout to prevent hanging forever
-      const timeout = setTimeout(() => {
-        console.warn("Image Load Timeout");
-        resolve(null);
-      }, 10000);
+      const timeout = setTimeout(() => resolve(null), 10000);
 
-      img.crossOrigin = "anonymous";
+      // Only set crossOrigin if not a base64 data URL
+      if (!imageSrc.startsWith('data:')) {
+        img.crossOrigin = "anonymous";
+      }
+
       img.onload = () => {
         clearTimeout(timeout);
         const canvas = document.createElement('canvas');
@@ -309,7 +309,6 @@ function MyECard({ profile }: any) {
       };
       img.onerror = () => {
         clearTimeout(timeout);
-        console.error("Image Load Error:", imageSrc.substring(0, 50));
         resolve(null);
       };
       img.src = imageSrc;
@@ -389,55 +388,25 @@ function MyECard({ profile }: any) {
     }
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) return alert('Зөвхөн зураг оруулна уу.');
 
     setIsProcessing(true);
     
-    // Use ObjectURL for much better memory management and speed
-    const objectUrl = URL.createObjectURL(file);
-    const rawImg = new Image();
-    
-    rawImg.onload = () => {
-      const canvas = document.createElement('canvas');
-      const maxDim = 1000;
-      let width = rawImg.width;
-      let height = rawImg.height;
-
-      if (width > height) {
-        if (width > maxDim) {
-          height *= maxDim / width;
-          width = maxDim;
-        }
-      } else {
-        if (height > maxDim) {
-          width *= maxDim / height;
-          height = maxDim;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx?.drawImage(rawImg, 0, 0, width, height);
-      
-      const resizedBase64 = canvas.toDataURL('image/jpeg', 0.85);
-      setOriginalImage(resizedBase64);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setOriginalImage(event.target?.result as string);
       setZoom(1);
       setIsNewImage(true);
       setIsProcessing(false);
-      URL.revokeObjectURL(objectUrl); // Clean up memory
     };
-
-    rawImg.onerror = () => {
+    reader.onerror = () => {
       setIsProcessing(false);
-      URL.revokeObjectURL(objectUrl);
-      alert('Зураг уншихад алдаа гарлаа. Өөр зураг сонгоод үзнэ үү.');
+      alert('Зураг уншихад алдаа гарлаа.');
     };
-
-    rawImg.src = objectUrl;
+    reader.readAsDataURL(file);
   };
 
   const presets = [
