@@ -272,18 +272,22 @@ function MyECard({ profile }: any) {
     setIsNewImage(false);
   }, [profile]);
 
-  const getCroppedImage = async (imageSrc: string, zoomLevel: number): Promise<string | null> => {
+  const getCroppedImage = async (imageSrc: string, zoomLevel: number): Promise<Blob | null> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.src = imageSrc;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const size = 600; 
+        const size = 500; // Efficient size for profile cards
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
         if (!ctx) return resolve(null);
+
+        // Quality optimization: use image smoothing
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
         const minDim = Math.min(img.width, img.height);
         const cropDim = minDim / zoomLevel;
@@ -292,7 +296,10 @@ function MyECard({ profile }: any) {
         const sy = (img.height - cropDim) / 2;
         
         ctx.drawImage(img, sx, sy, cropDim, cropDim, 0, 0, size, size);
-        resolve(canvas.toDataURL('image/jpeg', 0.9));
+        
+        canvas.toBlob((blob) => {
+          resolve(blob);
+        }, 'image/jpeg', 0.85); // 0.85 quality is perfect balance
       };
       img.onerror = () => resolve(null);
     });
@@ -338,12 +345,11 @@ function MyECard({ profile }: any) {
 
       if ((isNewImage || zoom !== 1) && originalImage) {
         setUploading(true);
-        const croppedBase64 = await getCroppedImage(originalImage, zoom);
-        if (croppedBase64) {
+        const imageBlob = await getCroppedImage(originalImage, zoom);
+        if (imageBlob) {
           const storageRef = ref(storage, `avatars/${profile.id}`);
-          const response = await fetch(croppedBase64);
-          const blob = await response.blob();
-          await uploadBytes(storageRef, blob);
+          // Direct upload of blob is much faster
+          await uploadBytes(storageRef, imageBlob);
           finalAvatarUrl = await getDownloadURL(storageRef);
           
           setOriginalImage(finalAvatarUrl);
@@ -377,11 +383,38 @@ function MyECard({ profile }: any) {
     if (!file) return;
     if (!file.type.startsWith('image/')) return alert('Зөвхөн зураг оруулна уу.');
 
+    // Pre-resize image on client side before processing
     const reader = new FileReader();
     reader.onload = (event) => {
-      setOriginalImage(event.target?.result as string);
-      setZoom(1);
-      setIsNewImage(true);
+      const rawImg = new Image();
+      rawImg.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 1200; // Downscale large photos immediately
+        let width = rawImg.width;
+        let height = rawImg.height;
+
+        if (width > height) {
+          if (width > maxDim) {
+            height *= maxDim / width;
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width *= maxDim / height;
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(rawImg, 0, 0, width, height);
+        
+        setOriginalImage(canvas.toDataURL('image/jpeg', 0.8));
+        setZoom(1);
+        setIsNewImage(true);
+      };
+      rawImg.src = event.target?.result as string;
     };
     reader.readAsDataURL(file);
   };
