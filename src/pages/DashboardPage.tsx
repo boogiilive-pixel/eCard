@@ -32,14 +32,29 @@ export default function DashboardPage() {
     }
   }, [user, loading, navigate]);
 
-  if (loading || !profile) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-void">
         <div className="flex flex-col items-center gap-4">
           <LoadingAnimation />
-          {!profile && !loading && (
-            <p className="text-sm text-slate-500 animate-pulse">Мэдээлэл ачаалж байна...</p>
-          )}
+          <p className="text-sm text-slate-500 animate-pulse">Мэдээлэл ачаалж байна...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle missing profile - redirect to register or show setup
+  if (!profile && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-void p-6 text-center">
+        <div className="max-w-md glass-panel p-10 rounded-[32px] space-y-6">
+          <Logo size="md" className="mx-auto" />
+          <h2 className="text-2xl font-serif font-bold text-slate-900">Профайл бүртгэгдээгүй байна</h2>
+          <p className="text-slate-500 text-sm">Таны бүртгэл үүссэн боловч нэрийн хуудсын мэдээлэл алга байна. Шинэ төсөл рүү шилжсэнтэй холбоотой байж магадгүй.</p>
+          <div className="flex flex-col gap-3 pt-4">
+            <Link to="/register" className="btn-aurora py-4 rounded-xl font-bold">Одоо үүсгэх</Link>
+            <button onClick={() => auth.signOut()} className="text-slate-400 text-xs hover:text-slate-900 transition-colors uppercase tracking-widest font-bold">Гарах</button>
+          </div>
         </div>
       </div>
     );
