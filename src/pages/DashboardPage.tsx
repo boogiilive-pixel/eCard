@@ -281,9 +281,9 @@ function MyECard({ profile }: any) {
       
       const img = new Image();
       const timeout = setTimeout(() => {
-        console.warn("Image Crop Timeout");
+        console.error("Image processing timed out");
         resolve(null);
-      }, 10000);
+      }, 15000);
 
       // Handle CORS for remote images
       if (!imageSrc.startsWith('data:') && !imageSrc.startsWith('blob:')) {
@@ -294,11 +294,15 @@ function MyECard({ profile }: any) {
         try {
           clearTimeout(timeout);
           const canvas = document.createElement('canvas');
-          const size = 500;
+          const size = 600; // Optimal size for digital cards
           canvas.width = size;
           canvas.height = size;
           const ctx = canvas.getContext('2d');
-          if (!ctx) return resolve(null);
+          
+          if (!ctx) {
+            console.error("Canvas context null");
+            return resolve(null);
+          }
 
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
@@ -312,15 +316,17 @@ function MyECard({ profile }: any) {
           ctx.drawImage(img, sx, sy, cropDim, cropDim, 0, 0, size, size);
           
           canvas.toBlob((blob) => {
+            if (!blob) console.error("Blob creation failed");
             resolve(blob);
-          }, 'image/jpeg', 0.85);
+          }, 'image/jpeg', 0.9);
         } catch (e) {
-          console.error("Canvas Processing Error:", e);
+          console.error("Canvas processing error:", e);
           resolve(null);
         }
       };
-      img.onerror = () => {
+      img.onerror = (e) => {
         clearTimeout(timeout);
+        console.error("Image load error:", e);
         resolve(null);
       };
       img.src = imageSrc;
@@ -349,80 +355,87 @@ function MyECard({ profile }: any) {
       const improvedText = response.text;
       if (improvedText) {
         setFormData((prev: any) => ({ ...prev, bio: improvedText.trim() }));
-      } else {
-        console.warn("AI returned empty response");
       }
       setLoading(false);
     } catch (err) {
       setLoading(false);
       console.error("AI Improvement Error:", err);
-      alert('AI ашиглахад алдаа гарлаа. Таны API key тохируулагдсан эсэхийг шалгана уу.');
+      alert('AI ашиглахад алдаа гарлаа.');
     }
   };
 
   const handleSave = async () => {
     if (loading) return;
-    setLoading(true);
     
-    // Safety timeout to avoid getting stuck
-    const saveTimeout = setTimeout(() => {
+    setLoading(true);
+    setUploading(false);
+    
+    const globalTimeout = setTimeout(() => {
       setLoading(false);
       setUploading(false);
-    }, 45000);
+    }, 60000);
 
     try {
+      if (!profile?.id) throw new Error("Хэрэглэгч олдсонгүй");
+
       let finalAvatarUrl = formData.avatar_url;
 
-      // Handle image upload if it's new or zoomed
+      // Image Logic
       if (isNewImage || (previewUrl && zoom !== 1)) {
         setUploading(true);
-        let uploadBlob: Blob | null = null;
+        let blob: Blob | null = null;
 
-        // Strategy: If zoom is 1 and it's a new file, upload the FILE directly (most robust)
-        if (zoom === 1 && lastSelectedFile) {
-          uploadBlob = lastSelectedFile;
-        } else if (previewUrl) {
-          // Attempt cropping
-          uploadBlob = await getCroppedImage(previewUrl, zoom);
-          // If cropping fails and it's a new image, fallback to raw file
-          if (!uploadBlob && lastSelectedFile) {
-            uploadBlob = lastSelectedFile;
-          }
+        // Try crop if zoomed
+        if (zoom !== 1 && previewUrl) {
+          blob = await getCroppedImage(previewUrl, zoom);
         }
 
-        if (uploadBlob) {
-          // Use a timestamp to prevent browser cache issues
-          const storageRef = ref(storage, `avatars/${profile.id}`);
-          await uploadBytes(storageRef, uploadBlob);
+        // Use raw file if no crop or crop failed
+        if (!blob && lastSelectedFile) {
+          blob = lastSelectedFile;
+        }
+
+        if (blob) {
+          // Use a unique file name to prevent caching issues
+          const fileName = `avatar_${Date.now()}.jpg`;
+          const storageRef = ref(storage, `avatars/${profile.id}/${fileName}`);
+          
+          await uploadBytes(storageRef, blob);
           finalAvatarUrl = await getDownloadURL(storageRef);
+          
+          // Cleanup
+          if (previewUrl?.startsWith('blob:')) {
+            URL.revokeObjectURL(previewUrl);
+          }
           
           setPreviewUrl(finalAvatarUrl);
           setZoom(1);
           setIsNewImage(false);
+          setLastSelectedFile(null);
         }
         setUploading(false);
       }
 
-      // Update Firestore
-      const profileDoc = doc(db, 'profiles', profile.id);
-      await setDoc(profileDoc, {
+      // Save to Firestore
+      const profileRef = doc(db, 'profiles', profile.id);
+      await setDoc(profileRef, {
         ...formData,
         avatar_url: finalAvatarUrl,
         updated_at: new Date().toISOString()
       }, { merge: true });
-      
-      clearTimeout(saveTimeout);
-      setFormData((prev: any) => ({ ...prev, avatar_url: finalAvatarUrl }));
-      setIsNewImage(false);
-      setLoading(false);
+
+      setFormData(prev => ({ ...prev, avatar_url: finalAvatarUrl }));
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
+      
     } catch (err: any) {
-      clearTimeout(saveTimeout);
+      console.error("Critical Save Error:", err);
+      alert(`Хадгалахад алдаа гарлаа: ${err.message || 'Сүлжээний алдаа'}`);
+    } finally {
+      clearTimeout(globalTimeout);
       setLoading(false);
       setUploading(false);
-      console.error("Save Error Details:", err);
-      alert('Мэдээлэл хадгалахад алдаа гарлаа. Та дахин оролдоно уу.');
+      setIsNewImage(false);
     }
   };
 
