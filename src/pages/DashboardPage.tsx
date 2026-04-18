@@ -508,21 +508,31 @@ function MyECard({ profile }: any) {
                   </label>
                 </div>
                 {originalImage && (
-                  <div className="w-full max-w-[120px] space-y-2">
-                    <div className="flex items-center justify-between text-[10px] text-ivory/40 uppercase tracking-widest">
-                      <ZoomOut className="w-3 h-3" />
-                      <span>Zoom</span>
-                      <ZoomIn className="w-3 h-3" />
+                  <div className="w-full max-w-[120px] space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[10px] text-ivory/40 uppercase tracking-widest">
+                        <ZoomOut className="w-3 h-3" />
+                        <span>Zoom</span>
+                        <ZoomIn className="w-3 h-3" />
+                      </div>
+                      <input 
+                        type="range" 
+                        min="1" 
+                        max="3" 
+                        step="0.01" 
+                        value={zoom} 
+                        onChange={(e) => setZoom(parseFloat(e.target.value))}
+                        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-aurora-violet"
+                      />
                     </div>
-                    <input 
-                      type="range" 
-                      min="1" 
-                      max="3" 
-                      step="0.01" 
-                      value={zoom} 
-                      onChange={(e) => setZoom(parseFloat(e.target.value))}
-                      className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-aurora-violet"
-                    />
+                    
+                    <button 
+                      onClick={handleSave}
+                      disabled={loading || isProcessing}
+                      className="w-full py-2.5 rounded-xl bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50"
+                    >
+                      {loading ? '...' : 'Хадгалах'}
+                    </button>
                   </div>
                 )}
               </div>
