@@ -266,12 +266,31 @@ function MyECard({ profile }: any) {
   const [originalImage, setOriginalImage] = useState<string | null>(profile.avatar_url || null);
   const [isNewImage, setIsNewImage] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [pendingBlob, setPendingBlob] = useState<Blob | null>(null);
 
   useEffect(() => {
     setFormData({ ...profile });
     setOriginalImage(profile.avatar_url || null);
     setIsNewImage(false);
+    setPendingBlob(null);
   }, [profile]);
+
+  // Effect to pre-generate the blob when zoom or image changes
+  useEffect(() => {
+    const updateBlob = async () => {
+      if (originalImage && (isNewImage || zoom !== 1)) {
+        setIsProcessing(true);
+        const blob = await getCroppedImage(originalImage, zoom);
+        setPendingBlob(blob);
+        setIsProcessing(false);
+      } else {
+        setPendingBlob(null);
+      }
+    };
+    
+    const timer = setTimeout(updateBlob, 150); // Debounce processing
+    return () => clearTimeout(timer);
+  }, [originalImage, zoom, isNewImage]);
 
   const getCroppedImage = async (imageSrc: string, zoomLevel: number): Promise<Blob | null> => {
     return new Promise((resolve) => {
@@ -340,22 +359,22 @@ function MyECard({ profile }: any) {
   };
 
   const handleSave = async () => {
+    if (isProcessing) return; // Wait for image to finish processing
     setLoading(true);
     try {
       let finalAvatarUrl = formData.avatar_url;
 
-      if ((isNewImage || zoom !== 1) && originalImage) {
+      if (pendingBlob) {
         setUploading(true);
-        const imageBlob = await getCroppedImage(originalImage, zoom);
-        if (imageBlob) {
-          const storageRef = ref(storage, `avatars/${profile.id}`);
-          // Direct upload of blob is much faster
-          await uploadBytes(storageRef, imageBlob);
-          finalAvatarUrl = await getDownloadURL(storageRef);
-          
-          setOriginalImage(finalAvatarUrl);
-          setZoom(1);
-        }
+        const storageRef = ref(storage, `avatars/${profile.id}`);
+        // Direct upload of pre-generated blob is very fast
+        await uploadBytes(storageRef, pendingBlob);
+        finalAvatarUrl = await getDownloadURL(storageRef);
+        
+        setOriginalImage(finalAvatarUrl);
+        setZoom(1);
+        setPendingBlob(null);
+        setIsNewImage(false);
         setUploading(false);
       }
 
@@ -710,13 +729,18 @@ function MyECard({ profile }: any) {
         </div>
         <button 
           onClick={handleSave} 
-          disabled={loading} 
+          disabled={loading || isProcessing} 
           className="flex-1 sm:flex-none btn-aurora px-12 py-3.5 rounded-xl font-bold disabled:opacity-50 transition-all shimmer-sweep flex items-center justify-center gap-2 shadow-xl shadow-aurora-blue/20"
         >
           {loading ? (
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               {uploading ? 'Зураг ачаалж байна...' : 'Хадгалж байна...'}
+            </div>
+          ) : isProcessing ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin" />
+              Зураг бэлдэж байна...
             </div>
           ) : (
             <><Save className="w-4 h-4" /> Хадгалах</>
