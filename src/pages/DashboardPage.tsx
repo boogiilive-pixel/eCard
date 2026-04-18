@@ -664,18 +664,13 @@ function MyECard({ profile }: any) {
         </div>
         <button 
           onClick={handleSave} 
-          disabled={loading || isProcessing} 
+          disabled={loading} 
           className="flex-1 sm:flex-none btn-aurora px-12 py-3.5 rounded-xl font-bold disabled:opacity-50 transition-all shimmer-sweep flex items-center justify-center gap-2 shadow-xl shadow-aurora-blue/20"
         >
           {loading ? (
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               {uploading ? 'Зураг ачаалж байна...' : 'Хадгалж байна...'}
-            </div>
-          ) : isProcessing ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin" />
-              Зураг бэлдэж байна...
             </div>
           ) : (
             <><Save className="w-4 h-4" /> Хадгалах</>
