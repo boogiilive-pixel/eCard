@@ -277,6 +277,33 @@ function MyECard({ profile }: any) {
     setFormData((prev: any) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleAIImprove = async () => {
+    if (!formData.bio) return;
+    setLoading(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const response = await ai.models.generateContent({
+        model: "gemini-1.5-flash",
+        contents: [{ 
+          role: 'user', 
+          parts: [{ 
+            text: `Та мэргэжлийн дижитал нэрийн хуудасны танилцуулга бичигч байна. Дараах танилцуулгыг илүү мэргэжлийн, товч бөгөөд утга төгөлдөр болгож засаж өгнө үү. Зөвхөн зассан текстийг буцаана уу: "${formData.bio}"` 
+          }] 
+        }],
+      });
+      
+      const improvedText = response.response.text();
+      if (improvedText) {
+        setFormData((prev: any) => ({ ...prev, bio: improvedText.trim() }));
+      }
+    } catch (err) {
+      console.error("AI Improvement Error:", err);
+      alert('AI ашиглахад алдаа гарлаа.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSave = async () => {
     if (loading) return;
     
