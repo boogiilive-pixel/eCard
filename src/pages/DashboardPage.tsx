@@ -155,7 +155,7 @@ export default function DashboardPage() {
         )}
 
         {/* Main Content Area */}
-        <main className="flex-1 w-full min-h-screen bg-slate-50/30 relative overflow-x-hidden">
+        <main className="flex-1 w-full min-h-screen bg-slate-100/40 relative overflow-x-hidden">
           <div className="p-5 sm:p-10 lg:p-14 max-w-5xl mx-auto w-full">
             {profile ? (
               <div className="animate-in fade-in duration-500">
@@ -407,34 +407,12 @@ function MyECard({ profile }: any) {
   ];
 
   return (
-    <div className="space-y-8 pb-20">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between sticky top-16 lg:top-0 z-30 bg-void/90 backdrop-blur-xl py-4 sm:py-6 border-b border-slate-200/60 -mx-4 px-4 sm:mx-0 sm:px-0">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold mb-2 sm:mb-0">eCard үүсгэх</h1>
-        <div className="flex items-center gap-4">
-          {showSuccess && (
-            <motion.span 
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="text-xs text-aurora-cyan font-bold"
-            >
-              Хадгалагдлаа!
-            </motion.span>
-          )}
-          <button 
-            onClick={handleSave} 
-            disabled={loading} 
-            className="flex-1 sm:flex-none btn-aurora px-5 py-2 rounded-xl font-bold disabled:opacity-50 transition-all shimmer-sweep flex items-center justify-center gap-2 text-xs h-10 min-w-[120px]"
-          >
-            <Save className="w-4 h-4" /> {loading ? 'Хадгалж байна' : 'Хадгалах'}
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12">
+    <div className="space-y-8 pb-32">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12 pt-8">
         {/* Left Column: Basic Info */}
         <div className="lg:col-span-2 space-y-6 lg:space-y-12">
           {/* Profile Section */}
-          <section className="glass-panel p-6 sm:p-10 rounded-[32px] space-y-8">
+          <section className="glass-panel !bg-white/90 p-6 sm:p-10 rounded-[32px] space-y-8 shadow-sm border-slate-200/60">
             <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
               <div className="flex flex-col items-center gap-4">
                 <div className="relative w-32 h-32 group">
@@ -524,7 +502,7 @@ function MyECard({ profile }: any) {
           </section>
           
           {/* Contact Section */}
-          <section className="bg-white border border-slate-100 p-6 sm:p-8 rounded-2xl space-y-8">
+          <section className="bg-white/90 border border-slate-200/60 p-6 sm:p-8 rounded-[32px] space-y-8 shadow-sm">
             <h3 className="text-lg font-bold text-slate-900">Холбоо барих мэдээлэл</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
@@ -547,7 +525,7 @@ function MyECard({ profile }: any) {
           </section>
 
           {/* Social Section */}
-          <section className="bg-white border border-slate-100 p-6 sm:p-8 rounded-2xl space-y-8">
+          <section className="bg-white/90 border border-slate-200/60 p-6 sm:p-8 rounded-[32px] space-y-8 shadow-sm">
             <h3 className="text-lg font-bold text-slate-900">Сошиал холбоосууд</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {['linkedin', 'facebook', 'instagram', 'twitter', 'youtube'].map((key) => (
@@ -569,7 +547,7 @@ function MyECard({ profile }: any) {
         {/* Right Column: Design & Preview */}
         <div className="space-y-12">
           {/* Design Section */}
-          <section className="bg-white border border-slate-100 p-8 rounded-2xl space-y-8">
+          <section className="bg-white/90 border border-slate-200/60 p-8 rounded-[32px] space-y-8 shadow-sm">
             <h3 className="text-lg font-bold text-slate-900">Загвар & Өнгө</h3>
             
             <div className="space-y-4">
@@ -658,6 +636,35 @@ function MyECard({ profile }: any) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Sticky Bottom Save Bar */}
+      <div className="fixed bottom-0 left-0 lg:left-72 right-0 z-[100] bg-white/80 backdrop-blur-md border-t border-slate-200 px-6 py-4 flex items-center justify-between gap-4">
+        <div className="hidden sm:block">
+          {showSuccess && (
+            <motion.span 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-xs text-aurora-cyan font-bold"
+            >
+              Мэдээлэл амжилттай хадгалагдлаа!
+            </motion.span>
+          )}
+        </div>
+        <button 
+          onClick={handleSave} 
+          disabled={loading} 
+          className="flex-1 sm:flex-none btn-aurora px-12 py-3.5 rounded-xl font-bold disabled:opacity-50 transition-all shimmer-sweep flex items-center justify-center gap-2 shadow-xl shadow-aurora-blue/20"
+        >
+          {loading ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Хадгалж байна...
+            </div>
+          ) : (
+            <><Save className="w-4 h-4" /> Хадгалах</>
+          )}
+        </button>
       </div>
     </div>
   );
