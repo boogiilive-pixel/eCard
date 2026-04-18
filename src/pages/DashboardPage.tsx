@@ -363,12 +363,12 @@ function MyECard({ profile }: any) {
     if (loading) return;
     setLoading(true);
     
-    // Safety timeout to prevent stuck loading state
+    // Extended timeout for slow connections
     const timeout = setTimeout(() => {
       setLoading(false);
       setUploading(false);
-      alert('Хадгалах үйлдэл удаж байна. Та дахин оролдоно уу.');
-    }, 45000);
+      alert('Хадгалах үйлдэл хэтэрхий удаж байна. Та интернэтээ шалгаад дахин оролдоно уу.');
+    }, 60000);
 
     try {
       let finalAvatarUrl = formData.avatar_url;
@@ -377,15 +377,23 @@ function MyECard({ profile }: any) {
         setUploading(true);
         let uploadBlob: Blob | null = null;
 
-        // Optimization: If it's a new image and no zoom, upload the file directly
-        if (isNewImage && zoom === 1 && lastSelectedFile) {
+        // Try to crop first
+        if (originalImage) {
+          try {
+            uploadBlob = await getCroppedImage(originalImage, zoom);
+          } catch (cropErr) {
+            console.error("Crop error, falling back to raw file:", cropErr);
+          }
+        }
+
+        // Fallback to original file if crop fails or is not needed
+        if (!uploadBlob && isNewImage && lastSelectedFile) {
           uploadBlob = lastSelectedFile;
-        } else if (originalImage) {
-          uploadBlob = await getCroppedImage(originalImage, zoom);
         }
 
         if (uploadBlob) {
-          const storageRef = ref(storage, `avatars/${profile.id}_${Date.now()}.jpg`);
+          const storageRef = ref(storage, `avatars/${profile.id}`);
+          console.log("Uploading to:", storageRef.fullPath);
           await uploadBytes(storageRef, uploadBlob);
           finalAvatarUrl = await getDownloadURL(storageRef);
           
@@ -396,7 +404,8 @@ function MyECard({ profile }: any) {
         setUploading(false);
       }
 
-      await setDoc(doc(db, 'profiles', profile.id), {
+      const profileDoc = doc(db, 'profiles', profile.id);
+      await setDoc(profileDoc, {
         ...formData,
         avatar_url: finalAvatarUrl,
         updated_at: new Date().toISOString()
@@ -407,13 +416,13 @@ function MyECard({ profile }: any) {
       setIsNewImage(false);
       setLoading(false);
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      setTimeout(() => setShowSuccess(false), 5000);
     } catch (err: any) {
       clearTimeout(timeout);
       setLoading(false);
       setUploading(false);
-      console.error("Save Error:", err);
-      alert('Мэдээлэл хадгалахад алдаа гарлаа. Та интернэт холболтоо шалгаад дахин оролдоно уу.');
+      console.error("Critical Save Error:", err);
+      alert(`Хадгалахад алдаа гарлаа: ${err.message || 'Сүлжээний алдаа'}. Та дахин оролдоно уу.`);
     }
   };
 
@@ -474,7 +483,31 @@ function MyECard({ profile }: any) {
 
   return (
     <div className="space-y-8 pb-32">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12 pt-8">
+      {/* Top Header Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-0 z-[110] bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 shadow-sm shadow-slate-100/50">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">Дижитал нэрийн хуудас</h2>
+          <p className="text-xs text-slate-500 uppercase tracking-widest font-medium">Мэдээллээ засаж шинэчлэх</p>
+        </div>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button 
+            onClick={handleSave} 
+            disabled={loading || isProcessing} 
+            className="flex-1 sm:flex-none py-3 px-8 rounded-xl bg-slate-900 text-white font-bold text-sm tracking-widest uppercase hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                {uploading ? 'Зураг...' : 'Хадгалж байна...'}
+              </>
+            ) : (
+              <><Save className="w-4 h-4" /> Шинэчлэх</>
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12 pt-4">
         {/* Left Column: Basic Info */}
         <div className="lg:col-span-2 space-y-6 lg:space-y-12">
           {/* Profile Section */}
