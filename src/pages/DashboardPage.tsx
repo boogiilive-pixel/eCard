@@ -265,6 +265,7 @@ function MyECard({ profile }: any) {
   const [zoom, setZoom] = useState(1);
   const [originalImage, setOriginalImage] = useState<string | null>(profile.avatar_url || null);
   const [isNewImage, setIsNewImage] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     setFormData({ ...profile });
@@ -383,13 +384,14 @@ function MyECard({ profile }: any) {
     if (!file) return;
     if (!file.type.startsWith('image/')) return alert('Зөвхөн зураг оруулна уу.');
 
+    setIsProcessing(true);
     // Pre-resize image on client side before processing
     const reader = new FileReader();
     reader.onload = (event) => {
       const rawImg = new Image();
       rawImg.onload = () => {
         const canvas = document.createElement('canvas');
-        const maxDim = 1200; // Downscale large photos immediately
+        const maxDim = 800; // Efficient size for preview
         let width = rawImg.width;
         let height = rawImg.height;
 
@@ -413,9 +415,15 @@ function MyECard({ profile }: any) {
         setOriginalImage(canvas.toDataURL('image/jpeg', 0.8));
         setZoom(1);
         setIsNewImage(true);
+        setIsProcessing(false);
+      };
+      rawImg.onerror = () => {
+        setIsProcessing(false);
+        alert('Зураг уншихад алдаа гарлаа.');
       };
       rawImg.src = event.target?.result as string;
     };
+    reader.onerror = () => setIsProcessing(false);
     reader.readAsDataURL(file);
   };
 
@@ -455,21 +463,28 @@ function MyECard({ profile }: any) {
         <div className="lg:col-span-2 space-y-6 lg:space-y-12">
           {/* Profile Section */}
           <section className="glass-panel !bg-white/90 p-6 sm:p-10 rounded-[32px] space-y-8 shadow-sm border-slate-200/60">
-            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
-              <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col md:flex-row items-start gap-6 md:gap-10">
+              <div className="flex flex-col items-center gap-4 mt-2">
                 <div className="relative w-32 h-32 group">
                   <div className="w-full h-full rounded-2xl border-2 border-aurora-violet/30 overflow-hidden bg-glass flex items-center justify-center">
                     {originalImage ? (
                       <img 
                         src={originalImage} 
-                        className="w-full h-full object-cover transition-transform duration-200" 
+                        className={cn("w-full h-full object-cover transition-transform duration-200", isProcessing && "opacity-50")} 
                         style={{ transform: `scale(${zoom})` }}
                         referrerPolicy="no-referrer" 
                       />
                     ) : (
                       <div className="text-4xl font-bold text-aurora-violet">{formData.firstname?.[0]}</div>
                     )}
-                    {uploading && <div className="absolute inset-0 bg-void/60 flex items-center justify-center rounded-2xl"><div className="w-8 h-8 border-2 border-aurora-cyan border-t-transparent rounded-full animate-spin" /></div>}
+                    {(uploading || isProcessing) && (
+                      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl gap-2">
+                        <div className="w-8 h-8 border-2 border-aurora-blue border-t-transparent rounded-full animate-spin" />
+                        <span className="text-[10px] font-bold text-aurora-blue uppercase tracking-tighter">
+                          {isProcessing ? 'Бэлдэж байна' : 'Ачаалж байна'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <label className="absolute inset-0 cursor-pointer opacity-0 hover:opacity-100 bg-void/40 flex items-center justify-center transition-opacity rounded-2xl">
                     <Camera className="w-8 h-8 text-white" />
