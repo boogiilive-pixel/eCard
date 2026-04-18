@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { auth, db, storage } from '../lib/firebase';
 import { collection, doc, updateDoc, getDocs, query, where, deleteDoc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { GoogleGenAI } from "@google/genai";
 import { cn } from '../lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -266,9 +266,9 @@ function MyECard({ profile }: any) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
-    // Only reset if we aren't currently loading or uploading
     if (!loading) {
-      setFormData({ ...profile });
+      const { id, ...rest } = profile;
+      setFormData({ ...rest });
       setPreviewUrl(profile.avatar_url || null);
     }
   }, [profile, loading]);
@@ -282,23 +282,16 @@ function MyECard({ profile }: any) {
     setLoading(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-1.5-flash",
-        contents: [{ 
-          role: 'user', 
-          parts: [{ 
-            text: `Та мэргэжлийн дижитал нэрийн хуудасны танилцуулга бичигч байна. Дараах танилцуулгыг илүү мэргэжлийн, товч бөгөөд утга төгөлдөр болгож засаж өгнө үү. Зөвхөн зассан текстийг буцаана уу: "${formData.bio}"` 
-          }] 
-        }],
-      });
+      const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(`Та мэргэжлийн дижитал нэрийн хуудасны танилцуулга бичигч байна. Дараах танилцуулгыг илүү мэргэжлийн, товч бөгөөд утга төгөлдөр болгож засаж өгнө үү. Зөвхөн зассан текстийг буцаана уу: "${formData.bio}"`);
+      const response = await result.response;
+      const improvedText = response.text();
       
-      const improvedText = response.response.text();
       if (improvedText) {
         setFormData((prev: any) => ({ ...prev, bio: improvedText.trim() }));
       }
     } catch (err) {
       console.error("AI Improvement Error:", err);
-      alert('AI ашиглахад алдаа гарлаа.');
     } finally {
       setLoading(false);
     }
@@ -310,50 +303,62 @@ function MyECard({ profile }: any) {
     setLoading(true);
     setUploadProgress(0);
     
-    // Global safety exit to prevent infinite UI hanging
+    // Safety exit - if something hangs for 45s, clear it
     const safetyTimer = setTimeout(() => {
       setLoading(false);
-    }, 60000);
+      alert('Хүсэлт илгээх хугацаа дууслаа. Дахин оролдоно уу.');
+    }, 45000);
 
     try {
       let finalAvatarUrl = formData.avatar_url;
 
-      // 1. Handle Image Upload if a new file exists
+      // 1. Image Upload with Progress Tracking
       if (selectedFile) {
-        // Use a unique name to ensure browser NEVER caches the old version
-        const uniqueFileName = `avatar_${Date.now()}.jpg`;
+        const uniqueFileName = `av_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
         const storageRef = ref(storage, `avatars/${profile.id}/${uniqueFileName}`);
+        const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+        const uploadPromise = new Promise<string>((resolve, reject) => {
+          uploadTask.on('state_changed', 
+            (snapshot) => {
+              const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+              setUploadProgress(progress);
+            }, 
+            (error) => reject(error), 
+            async () => {
+              const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              resolve(downloadUrl);
+            }
+          );
+        });
+
+        finalAvatarUrl = await uploadPromise;
         
-        // Upload the file
-        await uploadBytes(storageRef, selectedFile);
-        finalAvatarUrl = await getDownloadURL(storageRef);
-        
-        // Clean up preview
+        // Cleanup old preview
         if (previewUrl?.startsWith('blob:')) {
           URL.revokeObjectURL(previewUrl);
         }
       }
 
-      // 2. Save Data to Firestore
+      // 2. Save Updated Profile to Firestore
       const profileRef = doc(db, 'profiles', profile.id);
-      await setDoc(profileRef, {
-        ...formData,
+      // Remove id from the data being saved to avoid redundancy
+      const { id, ...dataToSave } = formData;
+      
+      await updateDoc(profileRef, {
+        ...dataToSave,
         avatar_url: finalAvatarUrl,
         updated_at: new Date().toISOString()
-      }, { merge: true });
+      });
 
-      // 3. UI Feedback
       setPreviewUrl(finalAvatarUrl);
       setSelectedFile(null);
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      setTimeout(() => setShowSuccess(false), 4000);
       
-      // OPTIONAL: Small delay to let the user feel the success
-      await new Promise(r => setTimeout(r, 500));
-
     } catch (err: any) {
-      console.error("Critical Upload Error:", err);
-      alert(`Алдаа гарлаа: ${err.message || 'Сүлжээ эсвэл серверт алдаа гарлаа'}`);
+      console.error("Profile Save Failure:", err);
+      alert(`Алдаа гарлаа: ${err.message || 'Интернет холболтоо шалгана уу'}`);
     } finally {
       clearTimeout(safetyTimer);
       setLoading(false);
@@ -365,8 +370,16 @@ function MyECard({ profile }: any) {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    if (file.size > 15 * 1024 * 1024) return alert('Зураг хэтэрхий том байна (Макс 15MB).');
-    if (!file.type.startsWith('image/')) return alert('Зөвхөн зураг (jpg, png) оруулна уу.');
+    // Limit to 10MB to avoid upload hangs on slow connections
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Зураг хэтэрхий том байна. 10MB-аас бага зураг сонгоно уу.');
+      return;
+    }
+    
+    if (!file.type.startsWith('image/')) {
+      alert('Зөвхөн зураг сонгоно уу.');
+      return;
+    }
 
     if (previewUrl?.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
@@ -460,8 +473,16 @@ function MyECard({ profile }: any) {
                     )}
                     {loading && selectedFile && (
                       <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex flex-col items-center justify-center rounded-3xl gap-2">
-                        <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Илгээж байна...</span>
+                        <div className="relative w-12 h-12">
+                          <svg className="w-full h-full" viewBox="0 0 36 36">
+                            <circle cx="18" cy="18" r="16" fill="none" className="stroke-slate-200" strokeWidth="3" />
+                            <circle cx="18" cy="18" r="16" fill="none" className="stroke-slate-900 transition-all duration-300" strokeWidth="3" strokeDasharray="100" strokeDashoffset={100 - uploadProgress} strokeLinecap="round" />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-[10px] font-black">{uploadProgress}%</span>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-black text-slate-900 uppercase tracking-[0.2em]">Илгээж байна...</span>
                       </div>
                     )}
                   </div>
