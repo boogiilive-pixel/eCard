@@ -349,7 +349,15 @@ function MyECard({ profile }: any) {
   };
 
   const handleSave = async () => {
+    if (loading) return;
     setLoading(true);
+    
+    // Safety timeout to prevent stuck loading state
+    const timeout = setTimeout(() => {
+      setLoading(false);
+      setUploading(false);
+    }, 30000);
+
     try {
       let finalAvatarUrl = formData.avatar_url;
 
@@ -368,23 +376,24 @@ function MyECard({ profile }: any) {
         setUploading(false);
       }
 
-      // Use setDoc with merge: true for more robustness
       await setDoc(doc(db, 'profiles', profile.id), {
         ...formData,
         avatar_url: finalAvatarUrl,
         updated_at: new Date().toISOString()
       }, { merge: true });
       
+      clearTimeout(timeout);
       setFormData((prev: any) => ({ ...prev, avatar_url: finalAvatarUrl }));
       setIsNewImage(false);
       setLoading(false);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (err: any) {
+      clearTimeout(timeout);
       setLoading(false);
       setUploading(false);
       console.error("Save Error:", err);
-      alert('Мэдээлэл хадгалахад алдаа гарлаа: ' + (err.message || 'Тодорхойгүй алдаа'));
+      alert('Мэдээлэл хадгалахад алдаа гарлаа. Та дахин оролдоно уу.');
     }
   };
 
@@ -392,12 +401,18 @@ function MyECard({ profile }: any) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) return alert('Зөвхөн зураг оруулна уу.');
+    
+    // Check file size
+    if (file.size > 10 * 1024 * 1024) return alert('Зураг хэтэрхий том байна (Макс 10MB).');
 
     setIsProcessing(true);
     
+    // We use FileReader to get a data URL for initial preview
+    // as it's more stable for persistent state than ObjectURL
     const reader = new FileReader();
     reader.onload = (event) => {
-      setOriginalImage(event.target?.result as string);
+      const result = event.target?.result as string;
+      setOriginalImage(result);
       setZoom(1);
       setIsNewImage(true);
       setIsProcessing(false);
