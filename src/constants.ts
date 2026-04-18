@@ -1,21 +1,21 @@
 export const CATEGORIES = [
-  "Business & Management",
-  "Marketing & Sales",
-  "IT & Technology",
-  "Design & Creative",
-  "Finance & Accounting",
-  "Education & Training",
-  "Healthcare",
-  "Construction & Engineering",
-  "Retail & Services",
-  "Legal & Consulting",
-  "Transportation & Logistics",
-  "Entertainment & Arts",
-  "Sports & Fitness",
-  "Agriculture",
-  "Community & Religious Services",
-  "Student / Entry Level",
-  "Other"
+  "Бизнес ба Менежмент",
+  "Маркетинг ба Борлуулалт",
+  "Мэдээллийн Технологи",
+  "Дизайн ба Бүтээлч салбар",
+  "Санхүү ба Нягтлан бодох бүртгэл",
+  "Боловсрол ба Сургалт",
+  "Эрүүл мэнд",
+  "Барилга ба Инженерчлэл",
+  "Худалдаа ба Үйлчилгээ",
+  "Хууль ба Зөвлөх үйлчилгээ",
+  "Тээвэр ба Логистик",
+  "Урлаг ба Энтертайнмент",
+  "Спорт ба Фитнесс",
+  "Хөдөө аж ахуй",
+  "Олон нийт ба Шашны үйлчилгээ",
+  "Оюутан / Эхлэн суралцагч",
+  "Бусад"
 ];
 
 export const SKILLS_SUGGESTIONS = [

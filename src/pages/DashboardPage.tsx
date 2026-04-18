@@ -768,7 +768,7 @@ function DirectoryView() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedField, setSelectedField] = useState('Бүгд');
 
-  const fields = ['Бүгд', 'IT', 'Design', 'Marketing', 'Law', 'Health', 'Finance', 'Education', 'Business'];
+  const fields = ['Бүгд', ...CATEGORIES];
 
   useEffect(() => {
     const fetchProfiles = async () => {
