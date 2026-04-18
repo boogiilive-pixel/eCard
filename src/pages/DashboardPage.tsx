@@ -263,28 +263,30 @@ function MyECard({ profile }: any) {
   const [uploading, setUploading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [originalImage, setOriginalImage] = useState<string | null>(profile.avatar_url || null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(profile.avatar_url || null);
   const [isNewImage, setIsNewImage] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastSelectedFile, setLastSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     setFormData({ ...profile });
-    setOriginalImage(profile.avatar_url || null);
+    setPreviewUrl(profile.avatar_url || null);
     setIsNewImage(false);
     setLastSelectedFile(null);
   }, [profile]);
 
   const getCroppedImage = async (imageSrc: string, zoomLevel: number): Promise<Blob | null> => {
     return new Promise((resolve) => {
+      if (!imageSrc) return resolve(null);
+      
       const img = new Image();
       const timeout = setTimeout(() => {
-        console.warn("Crop Timeout");
+        console.warn("Image Crop Timeout");
         resolve(null);
-      }, 15000);
+      }, 10000);
 
-      // Only set crossOrigin if not a base64 data URL
-      if (!imageSrc.startsWith('data:')) {
+      // Handle CORS for remote images
+      if (!imageSrc.startsWith('data:') && !imageSrc.startsWith('blob:')) {
         img.crossOrigin = "anonymous";
       }
 
@@ -313,13 +315,12 @@ function MyECard({ profile }: any) {
             resolve(blob);
           }, 'image/jpeg', 0.85);
         } catch (e) {
-          console.error("Canvas Error:", e);
+          console.error("Canvas Processing Error:", e);
           resolve(null);
         }
       };
-      img.onerror = (e) => {
+      img.onerror = () => {
         clearTimeout(timeout);
-        console.error("Img Load Error:", e);
         resolve(null);
       };
       img.src = imageSrc;
@@ -363,47 +364,46 @@ function MyECard({ profile }: any) {
     if (loading) return;
     setLoading(true);
     
-    // Extended timeout for slow connections
-    const timeout = setTimeout(() => {
+    // Safety timeout to avoid getting stuck
+    const saveTimeout = setTimeout(() => {
       setLoading(false);
       setUploading(false);
-      alert('Хадгалах үйлдэл хэтэрхий удаж байна. Та интернэтээ шалгаад дахин оролдоно уу.');
-    }, 60000);
+    }, 45000);
 
     try {
       let finalAvatarUrl = formData.avatar_url;
 
-      if (isNewImage || (originalImage && zoom !== 1)) {
+      // Handle image upload if it's new or zoomed
+      if (isNewImage || (previewUrl && zoom !== 1)) {
         setUploading(true);
         let uploadBlob: Blob | null = null;
 
-        // Try to crop first
-        if (originalImage) {
-          try {
-            uploadBlob = await getCroppedImage(originalImage, zoom);
-          } catch (cropErr) {
-            console.error("Crop error, falling back to raw file:", cropErr);
+        // Strategy: If zoom is 1 and it's a new file, upload the FILE directly (most robust)
+        if (zoom === 1 && lastSelectedFile) {
+          uploadBlob = lastSelectedFile;
+        } else if (previewUrl) {
+          // Attempt cropping
+          uploadBlob = await getCroppedImage(previewUrl, zoom);
+          // If cropping fails and it's a new image, fallback to raw file
+          if (!uploadBlob && lastSelectedFile) {
+            uploadBlob = lastSelectedFile;
           }
         }
 
-        // Fallback to original file if crop fails or is not needed
-        if (!uploadBlob && isNewImage && lastSelectedFile) {
-          uploadBlob = lastSelectedFile;
-        }
-
         if (uploadBlob) {
+          // Use a timestamp to prevent browser cache issues
           const storageRef = ref(storage, `avatars/${profile.id}`);
-          console.log("Uploading to:", storageRef.fullPath);
           await uploadBytes(storageRef, uploadBlob);
           finalAvatarUrl = await getDownloadURL(storageRef);
           
-          setOriginalImage(finalAvatarUrl);
+          setPreviewUrl(finalAvatarUrl);
           setZoom(1);
           setIsNewImage(false);
         }
         setUploading(false);
       }
 
+      // Update Firestore
       const profileDoc = doc(db, 'profiles', profile.id);
       await setDoc(profileDoc, {
         ...formData,
@@ -411,45 +411,38 @@ function MyECard({ profile }: any) {
         updated_at: new Date().toISOString()
       }, { merge: true });
       
-      clearTimeout(timeout);
+      clearTimeout(saveTimeout);
       setFormData((prev: any) => ({ ...prev, avatar_url: finalAvatarUrl }));
       setIsNewImage(false);
       setLoading(false);
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 5000);
+      setTimeout(() => setShowSuccess(false), 3000);
     } catch (err: any) {
-      clearTimeout(timeout);
+      clearTimeout(saveTimeout);
       setLoading(false);
       setUploading(false);
-      console.error("Critical Save Error:", err);
-      alert(`Хадгалахад алдаа гарлаа: ${err.message || 'Сүлжээний алдаа'}. Та дахин оролдоно уу.`);
+      console.error("Save Error Details:", err);
+      alert('Мэдээлэл хадгалахад алдаа гарлаа. Та дахин оролдоно уу.');
     }
   };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) return alert('Зөвхөн зураг оруулна уу.');
     
-    if (file.size > 15 * 1024 * 1024) return alert('Зураг хэтэрхий том байна (Макс 15MB).');
+    // Size check
+    if (file.size > 20 * 1024 * 1024) return alert('Зураг хэтэрхий том байна (Макс 20MB).');
+    if (!file.type.startsWith('image/')) return alert('Зөвхөн зураг оруулна уу.');
 
     setIsProcessing(true);
-    setLastSelectedFile(file);
     
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
-      setOriginalImage(result);
-      setZoom(1);
-      setIsNewImage(true);
-      setIsProcessing(false);
-    };
-    reader.onerror = () => {
-      setIsProcessing(false);
-      setLastSelectedFile(null);
-      alert('Зураг уншихад алдаа гарлаа.');
-    };
-    reader.readAsDataURL(file);
+    // USE ObjectURL for maximum speed and memory safety
+    const objUrl = URL.createObjectURL(file);
+    setPreviewUrl(objUrl);
+    setLastSelectedFile(file);
+    setZoom(1);
+    setIsNewImage(true);
+    setIsProcessing(false);
   };
 
   const presets = [
@@ -516,9 +509,9 @@ function MyECard({ profile }: any) {
               <div className="flex flex-col items-center gap-4 mt-2">
                 <div className="relative w-32 h-32 group">
                   <div className="w-full h-full rounded-2xl border-2 border-aurora-violet/30 overflow-hidden bg-glass flex items-center justify-center">
-                    {originalImage ? (
+                    {previewUrl ? (
                       <img 
-                        src={originalImage} 
+                        src={previewUrl} 
                         className={cn("w-full h-full object-cover transition-transform duration-200", isProcessing && "opacity-50")} 
                         style={{ transform: `scale(${zoom})` }}
                         referrerPolicy="no-referrer" 
@@ -540,7 +533,7 @@ function MyECard({ profile }: any) {
                     <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
                   </label>
                 </div>
-                {originalImage && (
+                {previewUrl && (
                   <div className="w-full max-w-[120px] space-y-4">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-[10px] text-ivory/40 uppercase tracking-widest">
