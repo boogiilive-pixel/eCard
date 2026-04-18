@@ -266,17 +266,22 @@ function MyECard({ profile }: any) {
   const [originalImage, setOriginalImage] = useState<string | null>(profile.avatar_url || null);
   const [isNewImage, setIsNewImage] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [lastSelectedFile, setLastSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     setFormData({ ...profile });
     setOriginalImage(profile.avatar_url || null);
     setIsNewImage(false);
+    setLastSelectedFile(null);
   }, [profile]);
 
   const getCroppedImage = async (imageSrc: string, zoomLevel: number): Promise<Blob | null> => {
     return new Promise((resolve) => {
       const img = new Image();
-      const timeout = setTimeout(() => resolve(null), 10000);
+      const timeout = setTimeout(() => {
+        console.warn("Crop Timeout");
+        resolve(null);
+      }, 15000);
 
       // Only set crossOrigin if not a base64 data URL
       if (!imageSrc.startsWith('data:')) {
@@ -284,31 +289,37 @@ function MyECard({ profile }: any) {
       }
 
       img.onload = () => {
-        clearTimeout(timeout);
-        const canvas = document.createElement('canvas');
-        const size = 500;
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return resolve(null);
+        try {
+          clearTimeout(timeout);
+          const canvas = document.createElement('canvas');
+          const size = 500;
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return resolve(null);
 
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
 
-        const minDim = Math.min(img.width, img.height);
-        const cropDim = minDim / zoomLevel;
-        
-        const sx = (img.width - cropDim) / 2;
-        const sy = (img.height - cropDim) / 2;
-        
-        ctx.drawImage(img, sx, sy, cropDim, cropDim, 0, 0, size, size);
-        
-        canvas.toBlob((blob) => {
-          resolve(blob);
-        }, 'image/jpeg', 0.85);
+          const minDim = Math.min(img.width, img.height);
+          const cropDim = minDim / zoomLevel;
+          
+          const sx = (img.width - cropDim) / 2;
+          const sy = (img.height - cropDim) / 2;
+          
+          ctx.drawImage(img, sx, sy, cropDim, cropDim, 0, 0, size, size);
+          
+          canvas.toBlob((blob) => {
+            resolve(blob);
+          }, 'image/jpeg', 0.85);
+        } catch (e) {
+          console.error("Canvas Error:", e);
+          resolve(null);
+        }
       };
-      img.onerror = () => {
+      img.onerror = (e) => {
         clearTimeout(timeout);
+        console.error("Img Load Error:", e);
         resolve(null);
       };
       img.src = imageSrc;
@@ -356,17 +367,26 @@ function MyECard({ profile }: any) {
     const timeout = setTimeout(() => {
       setLoading(false);
       setUploading(false);
-    }, 30000);
+      alert('Хадгалах үйлдэл удаж байна. Та дахин оролдоно уу.');
+    }, 45000);
 
     try {
       let finalAvatarUrl = formData.avatar_url;
 
-      if (originalImage && (isNewImage || zoom !== 1)) {
+      if (isNewImage || (originalImage && zoom !== 1)) {
         setUploading(true);
-        const imageBlob = await getCroppedImage(originalImage, zoom);
-        if (imageBlob) {
-          const storageRef = ref(storage, `avatars/${profile.id}`);
-          await uploadBytes(storageRef, imageBlob);
+        let uploadBlob: Blob | null = null;
+
+        // Optimization: If it's a new image and no zoom, upload the file directly
+        if (isNewImage && zoom === 1 && lastSelectedFile) {
+          uploadBlob = lastSelectedFile;
+        } else if (originalImage) {
+          uploadBlob = await getCroppedImage(originalImage, zoom);
+        }
+
+        if (uploadBlob) {
+          const storageRef = ref(storage, `avatars/${profile.id}_${Date.now()}.jpg`);
+          await uploadBytes(storageRef, uploadBlob);
           finalAvatarUrl = await getDownloadURL(storageRef);
           
           setOriginalImage(finalAvatarUrl);
@@ -393,7 +413,7 @@ function MyECard({ profile }: any) {
       setLoading(false);
       setUploading(false);
       console.error("Save Error:", err);
-      alert('Мэдээлэл хадгалахад алдаа гарлаа. Та дахин оролдоно уу.');
+      alert('Мэдээлэл хадгалахад алдаа гарлаа. Та интернэт холболтоо шалгаад дахин оролдоно уу.');
     }
   };
 
@@ -402,13 +422,11 @@ function MyECard({ profile }: any) {
     if (!file) return;
     if (!file.type.startsWith('image/')) return alert('Зөвхөн зураг оруулна уу.');
     
-    // Check file size
-    if (file.size > 10 * 1024 * 1024) return alert('Зураг хэтэрхий том байна (Макс 10MB).');
+    if (file.size > 15 * 1024 * 1024) return alert('Зураг хэтэрхий том байна (Макс 15MB).');
 
     setIsProcessing(true);
+    setLastSelectedFile(file);
     
-    // We use FileReader to get a data URL for initial preview
-    // as it's more stable for persistent state than ObjectURL
     const reader = new FileReader();
     reader.onload = (event) => {
       const result = event.target?.result as string;
@@ -419,6 +437,7 @@ function MyECard({ profile }: any) {
     };
     reader.onerror = () => {
       setIsProcessing(false);
+      setLastSelectedFile(null);
       alert('Зураг уншихад алдаа гарлаа.');
     };
     reader.readAsDataURL(file);
