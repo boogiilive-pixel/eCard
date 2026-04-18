@@ -266,46 +266,32 @@ function MyECard({ profile }: any) {
   const [originalImage, setOriginalImage] = useState<string | null>(profile.avatar_url || null);
   const [isNewImage, setIsNewImage] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [pendingBlob, setPendingBlob] = useState<Blob | null>(null);
 
   useEffect(() => {
     setFormData({ ...profile });
     setOriginalImage(profile.avatar_url || null);
     setIsNewImage(false);
-    setPendingBlob(null);
   }, [profile]);
-
-  // Effect to pre-generate the blob when zoom or image changes
-  useEffect(() => {
-    const updateBlob = async () => {
-      if (originalImage && (isNewImage || zoom !== 1)) {
-        setIsProcessing(true);
-        const blob = await getCroppedImage(originalImage, zoom);
-        setPendingBlob(blob);
-        setIsProcessing(false);
-      } else {
-        setPendingBlob(null);
-      }
-    };
-    
-    const timer = setTimeout(updateBlob, 150); // Debounce processing
-    return () => clearTimeout(timer);
-  }, [originalImage, zoom, isNewImage]);
 
   const getCroppedImage = async (imageSrc: string, zoomLevel: number): Promise<Blob | null> => {
     return new Promise((resolve) => {
       const img = new Image();
+      // Set a timeout to prevent hanging forever
+      const timeout = setTimeout(() => {
+        console.warn("Image Load Timeout");
+        resolve(null);
+      }, 10000);
+
       img.crossOrigin = "anonymous";
-      img.src = imageSrc;
       img.onload = () => {
+        clearTimeout(timeout);
         const canvas = document.createElement('canvas');
-        const size = 500; // Efficient size for profile cards
+        const size = 500;
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
         if (!ctx) return resolve(null);
 
-        // Quality optimization: use image smoothing
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
@@ -319,9 +305,14 @@ function MyECard({ profile }: any) {
         
         canvas.toBlob((blob) => {
           resolve(blob);
-        }, 'image/jpeg', 0.85); // 0.85 quality is perfect balance
+        }, 'image/jpeg', 0.85);
       };
-      img.onerror = () => resolve(null);
+      img.onerror = () => {
+        clearTimeout(timeout);
+        console.error("Image Load Error:", imageSrc.substring(0, 50));
+        resolve(null);
+      };
+      img.src = imageSrc;
     });
   };
 
@@ -359,22 +350,22 @@ function MyECard({ profile }: any) {
   };
 
   const handleSave = async () => {
-    if (isProcessing) return; // Wait for image to finish processing
     setLoading(true);
     try {
       let finalAvatarUrl = formData.avatar_url;
 
-      if (pendingBlob) {
+      if (originalImage && (isNewImage || zoom !== 1)) {
         setUploading(true);
-        const storageRef = ref(storage, `avatars/${profile.id}`);
-        // Direct upload of pre-generated blob is very fast
-        await uploadBytes(storageRef, pendingBlob);
-        finalAvatarUrl = await getDownloadURL(storageRef);
-        
-        setOriginalImage(finalAvatarUrl);
-        setZoom(1);
-        setPendingBlob(null);
-        setIsNewImage(false);
+        const imageBlob = await getCroppedImage(originalImage, zoom);
+        if (imageBlob) {
+          const storageRef = ref(storage, `avatars/${profile.id}`);
+          await uploadBytes(storageRef, imageBlob);
+          finalAvatarUrl = await getDownloadURL(storageRef);
+          
+          setOriginalImage(finalAvatarUrl);
+          setZoom(1);
+          setIsNewImage(false);
+        }
         setUploading(false);
       }
 
@@ -404,46 +395,49 @@ function MyECard({ profile }: any) {
     if (!file.type.startsWith('image/')) return alert('Зөвхөн зураг оруулна уу.');
 
     setIsProcessing(true);
-    // Pre-resize image on client side before processing
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const rawImg = new Image();
-      rawImg.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxDim = 800; // Efficient size for preview
-        let width = rawImg.width;
-        let height = rawImg.height;
+    
+    // Use ObjectURL for much better memory management and speed
+    const objectUrl = URL.createObjectURL(file);
+    const rawImg = new Image();
+    
+    rawImg.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxDim = 1000;
+      let width = rawImg.width;
+      let height = rawImg.height;
 
-        if (width > height) {
-          if (width > maxDim) {
-            height *= maxDim / width;
-            width = maxDim;
-          }
-        } else {
-          if (height > maxDim) {
-            width *= maxDim / height;
-            height = maxDim;
-          }
+      if (width > height) {
+        if (width > maxDim) {
+          height *= maxDim / width;
+          width = maxDim;
         }
+      } else {
+        if (height > maxDim) {
+          width *= maxDim / height;
+          height = maxDim;
+        }
+      }
 
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(rawImg, 0, 0, width, height);
-        
-        setOriginalImage(canvas.toDataURL('image/jpeg', 0.8));
-        setZoom(1);
-        setIsNewImage(true);
-        setIsProcessing(false);
-      };
-      rawImg.onerror = () => {
-        setIsProcessing(false);
-        alert('Зураг уншихад алдаа гарлаа.');
-      };
-      rawImg.src = event.target?.result as string;
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(rawImg, 0, 0, width, height);
+      
+      const resizedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+      setOriginalImage(resizedBase64);
+      setZoom(1);
+      setIsNewImage(true);
+      setIsProcessing(false);
+      URL.revokeObjectURL(objectUrl); // Clean up memory
     };
-    reader.onerror = () => setIsProcessing(false);
-    reader.readAsDataURL(file);
+
+    rawImg.onerror = () => {
+      setIsProcessing(false);
+      URL.revokeObjectURL(objectUrl);
+      alert('Зураг уншихад алдаа гарлаа. Өөр зураг сонгоод үзнэ үү.');
+    };
+
+    rawImg.src = objectUrl;
   };
 
   const presets = [
