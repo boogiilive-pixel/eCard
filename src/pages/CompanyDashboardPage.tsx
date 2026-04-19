@@ -807,13 +807,53 @@ function SettingsView({ company }: { company: any }) {
     }
   };
 
+  const compressLogo = async (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 400;
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('Compression failed'));
+          }, 'image/jpeg', 0.7);
+        };
+      };
+      reader.onerror = reject;
+    });
+  };
+
   const handleSave = async () => {
     setLoading(true);
     try {
       let logoUrl = company.logo_url;
       if (logoFile) {
-        const logoRef = ref(storage, `companies/${company.id}/logo_${Date.now()}`);
-        await uploadBytes(logoRef, logoFile);
+        const compressedLogo = await compressLogo(logoFile);
+        const logoRef = ref(storage, `companies/${company.id}/logo_${Date.now()}.jpg`);
+        await uploadBytes(logoRef, compressedLogo);
         logoUrl = await getDownloadURL(logoRef);
       }
 

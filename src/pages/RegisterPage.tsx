@@ -185,7 +185,9 @@ export default function RegisterPage() {
 
         // Create Admin Profile
         console.log("[DEBUG] Creating admin profile for:", uid);
-        await createProfile(uid, formData.email, formData.firstname, formData.lastname, companyId, true);
+        const adminFirstname = formData.firstname || formData.email.split('@')[0];
+        const adminLastname = formData.lastname || 'Admin';
+        await createProfile(uid, formData.email, adminFirstname, adminLastname, companyId, true);
         console.log("[DEBUG] Admin profile created");
         
         // Add as member
@@ -231,23 +233,72 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = async () => {
+    if (regType === 'company' && !formData.companyName) {
+      setError('Байгууллагын нэрээ оруулна уу.');
+      return;
+    }
+
     try {
+      setLoading(true);
+      setError('');
       const result = await signInWithPopup(auth, googleProvider);
-      const docSnap = await getDoc(doc(db, 'profiles', result.user.uid));
+      const uid = result.user.uid;
+      const docSnap = await getDoc(doc(db, 'profiles', uid));
+      
       if (!docSnap.exists()) {
+        const email = result.user.email!;
         const names = result.user.displayName?.split(' ') || ['', ''];
-        await createProfile(result.user.uid, result.user.email!, names[1] || names[0], names[0]);
-      }
-      navigate('/dashboard');
-    } catch (err: any) {
-      console.error('Google Register Error:', err);
-      if (err.code === 'auth/unauthorized-domain') {
-        setError('Энэ домэйн Firebase-д бүртгэлгүй байна. Firebase Console дээр домэйнээ нэмнэ үү.');
-      } else if (err.code === 'auth/popup-blocked') {
-        setError('Browser-ийн popup хаагдсан байна. Зөвшөөрөөд дахин оролдоно уу.');
+        const firstname = names[1] || names[0] || email.split('@')[0];
+        const lastname = names[0] || 'Admin';
+
+        if (regType === 'company') {
+          // Create Company
+          const companyRef = doc(collection(db, 'companies'));
+          const companyId = companyRef.id;
+          await setDoc(companyRef, {
+            id: companyId,
+            name: formData.companyName,
+            logo_url: '',
+            brand_color: '#6366f1',
+            admin_uid: uid,
+            created_at: new Date().toISOString()
+          });
+
+          // Create Admin Profile
+          await createProfile(uid, email, firstname, lastname, companyId, true);
+          
+          // Add as member
+          await setDoc(doc(db, `companies/${companyId}/members`, uid), {
+            company_id: companyId,
+            user_id: uid,
+            role: 'admin',
+            joined_at: new Date().toISOString()
+          });
+
+          navigate('/company');
+        } else {
+          await createProfile(uid, email, firstname, lastname, joinCompanyId || undefined);
+          if (joinCompanyId) {
+            await setDoc(doc(db, `companies/${joinCompanyId}/members`, uid), {
+              company_id: joinCompanyId,
+              user_id: uid,
+              role: 'employee',
+              joined_at: new Date().toISOString()
+            });
+          }
+          navigate('/dashboard');
+        }
       } else {
-        setError(`Google-ээр бүртгүүлэхэд алдаа гарлаа: ${err.message}`);
+        // Exists - go to appropriate dash
+        const p = docSnap.data();
+        if (p?.is_company_admin) navigate('/company');
+        else navigate('/dashboard');
       }
+    } catch (err: any) {
+      console.error('Google Auth Error:', err);
+      setError('Google-ээр нэвтрэхэд алдаа гарлаа.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -331,28 +382,6 @@ export default function RegisterPage() {
                 animate={{ opacity: 1, height: 'auto' }}
                 className="space-y-4 pt-2 pb-4 border-b border-slate-100 mb-4"
               >
-                <div className="flex items-center gap-6">
-                  <div className="relative group">
-                    <div className="w-20 h-20 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden group-hover:border-aurora-blue transition-colors">
-                      {logoPreview ? (
-                        <img src={logoPreview} className="w-full h-full object-cover" />
-                      ) : (
-                        <Camera className="w-6 h-6 text-slate-400" />
-                      )}
-                    </div>
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={handleLogoChange}
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                    />
-                  </div>
-                  <div className="flex-1 space-y-3">
-                    <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Байгууллагын лого</label>
-                    <p className="text-[10px] text-slate-400 italic leading-none">Лого тань ажилчдын картанд харагдана.</p>
-                  </div>
-                </div>
-
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Байгууллагын нэр</label>
                   <div className="relative">
@@ -368,65 +397,59 @@ export default function RegisterPage() {
                     />
                   </div>
                 </div>
+              </motion.div>
+            )}
 
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Брэнд өнгө</label>
-                  <div className="flex items-center gap-4">
+            {regType === 'individual' && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Овог</label>
                     <input 
-                      type="color" 
-                      name="brandColor"
-                      value={formData.brandColor}
+                      type="text" 
+                      name="lastname"
+                      value={formData.lastname}
                       onChange={handleChange}
-                      className="w-12 h-12 rounded-xl border-none cursor-pointer p-0"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-aurora-blue focus:ring-4 focus:ring-aurora-blue/5 outline-none transition-all"
+                      placeholder="Овог"
+                      required={regType === 'individual'}
                     />
-                    <span className="text-xs font-mono text-slate-500">{formData.brandColor}</span>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Нэр</label>
+                    <input 
+                      type="text" 
+                      name="firstname"
+                      value={formData.firstname}
+                      onChange={handleChange}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-aurora-blue focus:ring-4 focus:ring-aurora-blue/5 outline-none transition-all"
+                      placeholder="Нэр"
+                      required={regType === 'individual'}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <CategorySelector 
+                    value={formData.category}
+                    onChange={(val) => setFormData(prev => ({ ...prev, category: val }))}
+                    required={regType === 'individual'}
+                  />
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Чадвар</label>
+                    <SkillsInput 
+                      skills={formData.skills}
+                      onChange={(val) => setFormData(prev => ({ ...prev, skills: val }))}
+                      suggestions={SKILLS_SUGGESTIONS}
+                    />
                   </div>
                 </div>
               </motion.div>
             )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Овог</label>
-                <input 
-                  type="text" 
-                  name="lastname"
-                  value={formData.lastname}
-                  onChange={handleChange}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-aurora-blue focus:ring-4 focus:ring-aurora-blue/5 outline-none transition-all"
-                  placeholder="Овог"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Нэр</label>
-                <input 
-                  type="text" 
-                  name="firstname"
-                  value={formData.firstname}
-                  onChange={handleChange}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-aurora-blue focus:ring-4 focus:ring-aurora-blue/5 outline-none transition-all"
-                  placeholder="Нэр"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <CategorySelector 
-                value={formData.category}
-                onChange={(val) => setFormData(prev => ({ ...prev, category: val }))}
-                required
-              />
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Чадвар</label>
-                <SkillsInput 
-                  skills={formData.skills}
-                  onChange={(val) => setFormData(prev => ({ ...prev, skills: val }))}
-                  suggestions={SKILLS_SUGGESTIONS}
-                />
-              </div>
-            </div>
 
             <div className="space-y-2">
               <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Имэйл хаяг</label>
