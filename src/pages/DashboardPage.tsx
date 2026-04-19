@@ -710,29 +710,6 @@ function MyECard({ profile }: any) {
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 min-h-screen font-inter">
-      {/* SaaS Header Bar */}
-      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-4 z-[110] bg-white border border-[#f0f0f0] p-4 rounded-xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2 text-[12px] text-[#888] font-medium mb-0.5">
-              <span>Дижитал нэрийн хуудас</span>
-              <ChevronRight className="w-3 h-3" />
-              <span className="text-[#111]">Засварлагч</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-[14px] font-semibold text-[#111]">Миний eCard</h1>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success-bg border border-[#e0f0e0]">
-                <div className="w-1.5 h-1.5 rounded-full bg-success-text animate-pulse" />
-                <span className="text-[10px] font-bold text-success-text uppercase tracking-wider">Хадгалагдсан</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-        </div>
-      </header>
-
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-8 items-start">
         {/* Main Editor Form */}
         <div className="space-y-6">
