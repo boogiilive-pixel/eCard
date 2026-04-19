@@ -141,6 +141,9 @@ export function SkillsInput({ skills, onChange, suggestions = [] }: SkillsInputP
 
   return (
     <div className="space-y-4 relative group">
+      <label className="text-[14px] font-semibold text-[#888]">
+        Чадвар (хамгийн ихдээ 5)
+      </label>
       <div className={cn(
         "flex flex-wrap gap-2.5 p-4 bg-white border border-[#f0f0f0] rounded-xl transition-all duration-200 focus-within:border-[#6366f1] focus-within:ring-2 focus-within:ring-[#6366f1]/10 min-h-[56px]",
         skills.length >= 5 && "cursor-not-allowed"
