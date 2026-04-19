@@ -496,248 +496,247 @@ function MyECard({ profile }: any) {
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-8 items-start">
         {/* Main Editor Form */}
         <div className="space-y-6">
-          {/* Tab Navigation */}
-          <div className="flex bg-white border border-[#f0f0f0] p-1 rounded-xl shadow-sm">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-[13px] font-semibold transition-all",
-                  activeTab === tab.id 
-                    ? "bg-[#111] text-white shadow-xl" 
-                    : "text-[#888] hover:text-[#111] hover:bg-[#fafafa]"
-                )}
-              >
-                {tab.icon}
-                <span className="hidden sm:inline">{tab.label}</span>
-              </button>
-            ))}
-          </div>
+          <div className="bg-white border border-[#f0f0f0] rounded-2xl overflow-hidden editor-container shadow-sm">
+            {/* Minimal Underline Tab Navigation */}
+            <div className="flex border-b border-[#f0f0f0] bg-[#fafafa]/20 overflow-x-auto no-scrollbar">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "flex-1 md:flex-none px-5 py-4 text-[13px] font-semibold transition-all relative outline-none group whitespace-nowrap",
+                    activeTab === tab.id 
+                      ? "text-[#111]" 
+                      : "text-[#888] hover:text-[#111]"
+                  )}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <span className={cn(
+                      "transition-colors", 
+                      activeTab === tab.id ? "text-[#6366f1]" : "text-[#bbb] group-hover:text-[#888]"
+                    )}>
+                      {tab.icon}
+                    </span>
+                    <span>{tab.label}</span>
+                  </div>
+                  {activeTab === tab.id && (
+                    <motion.div 
+                      layoutId="activeTabUnderline"
+                      className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#6366f1] rounded-t-full"
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
 
-          {/* Identity Section */}
-          {activeTab === 'basic' && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white border border-[#f0f0f0] rounded-xl overflow-hidden editor-container"
-            >
-              <div className="p-6 border-b border-[#f0f0f0] bg-[#fafafa]/50">
-                <h3 className="text-[14px] font-semibold text-[#111]">Үндсэн мэдээлэл</h3>
-                <p className="text-[12px] text-[#888] mt-1">Таны нэрийн хуудсан дээр харагдах үндсэн мэдээллүүд.</p>
-              </div>
-              <div className="p-8 space-y-8">
-                <div className="flex flex-col md:flex-row gap-10">
-                  <div className="flex-shrink-0">
-                    <div className="relative group">
-                      <div className="w-32 h-32 rounded-xl border border-[#f0f0f0] overflow-hidden bg-[#fafafa] flex items-center justify-center shadow-inner relative">
-                        {previewUrl ? (
-                          <img 
-                            src={previewUrl} 
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                            referrerPolicy="no-referrer" 
-                          />
-                        ) : (
-                          <div className="text-4xl font-bold text-[#bbb]">{formData.firstname?.[0]}</div>
-                        )}
-                        
-                        {loading && selectedFile && (
-                          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-20">
-                             <div className="w-8 h-8 border-2 border-[#6366f1]/20 border-t-[#6366f1] rounded-full animate-spin" />
+            <div className="p-8">
+              {/* Identity Content */}
+              {activeTab === 'basic' && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8"
+                >
+                  <div className="flex flex-col md:flex-row gap-10">
+                    <div className="flex-shrink-0">
+                      <div className="relative group">
+                        <div className="w-32 h-32 rounded-2xl border border-[#f0f0f0] overflow-hidden bg-[#fafafa] flex items-center justify-center shadow-inner relative">
+                          {previewUrl ? (
+                            <img 
+                              src={previewUrl} 
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                              referrerPolicy="no-referrer" 
+                            />
+                          ) : (
+                            <div className="text-4xl font-bold text-[#bbb]">{formData.firstname?.[0]}</div>
+                          )}
+                          
+                          {loading && selectedFile && (
+                            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-20">
+                               <div className="w-8 h-8 border-2 border-[#6366f1]/20 border-t-[#6366f1] rounded-full animate-spin" />
+                            </div>
+                          )}
+
+                          <label className="absolute inset-0 cursor-pointer opacity-0 group-hover:opacity-100 bg-black/40 flex flex-col items-center justify-center transition-all duration-200 z-10">
+                            <Camera className="w-6 h-6 text-white mb-1.5" />
+                            <span className="text-[10px] text-white font-bold uppercase tracking-widest">Зураг солих</span>
+                            <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
+                          </label>
+                        </div>
+                        {selectedFile && (
+                          <div className="mt-2 text-center text-[10px] text-[#6366f1] font-bold uppercase tracking-wider">
+                            Шинэ зураг
                           </div>
                         )}
-
-                        <label className="absolute inset-0 cursor-pointer opacity-0 group-hover:opacity-100 bg-black/40 flex flex-col items-center justify-center transition-all duration-200 z-10">
-                          <Camera className="w-6 h-6 text-white mb-1.5" />
-                          <span className="text-[10px] text-white font-bold uppercase tracking-widest">Зураг солих</span>
-                          <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
-                        </label>
                       </div>
-                      {selectedFile && (
-                        <div className="mt-2 text-center text-[10px] text-[#6366f1] font-bold uppercase tracking-wider">
-                          Шинэ зураг
+                    </div>
+
+                    <div className="flex-1 space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[13px] font-semibold text-[#555]">Нэр</label>
+                          <input 
+                            name="firstname" 
+                            value={formData.firstname} 
+                            onChange={handleChange} 
+                            placeholder="Жишээ: Дорж"
+                            className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                          />
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex-1 space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[13px] font-medium text-[#555]">Нэр</label>
-                        <input 
-                          name="firstname" 
-                          value={formData.firstname} 
-                          onChange={handleChange} 
-                          placeholder="Жишээ: Дорж"
-                          className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[13px] font-medium text-[#555]">Овог</label>
-                        <input 
-                          name="lastname" 
-                          value={formData.lastname} 
-                          onChange={handleChange} 
-                          placeholder="Жишээ: Бат"
-                          className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[13px] font-medium text-[#555]">Албан тушаал</label>
-                        <input 
-                          name="job_title" 
-                          value={formData.job_title || ''} 
-                          onChange={handleChange} 
-                          placeholder="Жишээ: Ерөнхий захирал"
-                          className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[13px] font-medium text-[#555]">Компани</label>
-                        <input 
-                          name="company" 
-                          value={formData.company || ''} 
-                          onChange={handleChange} 
-                          placeholder="Жишээ: Тесла Моторс"
-                          className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                  <CategorySelector 
-                    value={formData.category || ''} 
-                    onChange={(val) => setFormData((prev: any) => ({ ...prev, category: val }))}
-                    required
-                  />
-                  <SkillsInput 
-                    skills={formData.skills || []}
-                    onChange={(val) => setFormData((prev: any) => ({ ...prev, skills: val }))}
-                    suggestions={SKILLS_SUGGESTIONS}
-                  />
-                </div>
-
-                <div className="space-y-1.5 pt-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[13px] font-medium text-[#555]">Био / Танилцуулга</label>
-                    <button 
-                      onClick={handleAIImprove} 
-                      className="flex items-center gap-1.5 text-[11px] font-bold text-[#6366f1] hover:text-[#4f46e5] transition-colors py-1 px-2 bg-[#6366f1]/5 rounded-md border border-[#6366f1]/10"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" /> ✦ AI Сайжруулах
-                    </button>
-                  </div>
-                  <textarea 
-                    name="bio" 
-                    value={formData.bio || ''} 
-                    onChange={handleChange} 
-                    rows={4} 
-                    placeholder="Өөрийн тухай товчхон..."
-                    className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-3 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 resize-none text-[14px] transition-all placeholder:text-[#bbb]" 
-                  />
-                </div>
-              </div>
-            </motion.div>
-          )}
-          
-          {/* Contact Section */}
-          {activeTab === 'contact' && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white border border-[#f0f0f0] rounded-xl overflow-hidden editor-container"
-            >
-              <div className="p-6 border-b border-[#f0f0f0] bg-[#fafafa]/50">
-                <h3 className="text-[14px] font-semibold text-[#111]">Холбоо барих мэдээлэл</h3>
-                <p className="text-[12px] text-[#888] mt-1">Таныг олоход туслах холбоо барих мэдээллүүд.</p>
-              </div>
-              <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-medium text-[#555]">Гар утас</label>
-                    <input 
-                      name="phone" 
-                      value={formData.phone || ''} 
-                      onChange={handleChange} 
-                      placeholder="+976 0000 0000" 
-                      className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-medium text-[#555]">И-мэйл хаяг</label>
-                    <input 
-                      name="email" 
-                      value={formData.email || ''} 
-                      onChange={handleChange} 
-                      placeholder="example@ecard.mn" 
-                      className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-medium text-[#555]">Хаяг / Байршил</label>
-                    <input 
-                      name="address" 
-                      value={formData.address || ''} 
-                      onChange={handleChange} 
-                      placeholder="Улаанбаатар хот, Сүхбаатар дүүрэг..." 
-                      className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-medium text-[#555]">Google Maps Холбоос</label>
-                    <input 
-                      name="maps_url" 
-                      value={formData.maps_url || ''} 
-                      onChange={handleChange} 
-                      placeholder="https://maps.google.com/..." 
-                      className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                    />
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Social Section */}
-          {activeTab === 'social' && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white border border-[#f0f0f0] rounded-xl overflow-hidden editor-container"
-            >
-              <div className="p-6 border-b border-[#f0f0f0] bg-[#fafafa]/50">
-                <h3 className="text-[14px] font-semibold text-[#111]">Олон нийтийн сүлжээ</h3>
-                <p className="text-[12px] text-[#888] mt-1">Өөрийн сошиал хаягуудыг холбож илүү үр дүнтэй харилцааг бий болго.</p>
-              </div>
-              <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                  {['linkedin', 'facebook', 'instagram', 'twitter', 'youtube'].map((key) => (
-                    <div key={key} className="space-y-1.5">
-                      <label className="text-[13px] font-medium text-[#555] capitalize">{key}</label>
-                      <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#bbb] group-focus-within:text-[#6366f1]">
-                          <Share2 className="w-4 h-4" />
+                        <div className="space-y-1.5">
+                          <label className="text-[13px] font-semibold text-[#555]">Овог</label>
+                          <input 
+                            name="lastname" 
+                            value={formData.lastname} 
+                            onChange={handleChange} 
+                            placeholder="Жишээ: Бат"
+                            className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                          />
                         </div>
-                        <input 
-                          name={key} 
-                          value={(formData as any)[key] || ''} 
-                          onChange={handleChange} 
-                          placeholder={`https://${key}.com/your-profile`}
-                          className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 pl-11 pr-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[13px] font-semibold text-[#555]">Албан тушаал</label>
+                          <input 
+                            name="job_title" 
+                            value={formData.job_title || ''} 
+                            onChange={handleChange} 
+                            placeholder="Жишээ: Ерөнхий захирал"
+                            className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[13px] font-semibold text-[#555]">Компани</label>
+                          <input 
+                            name="company" 
+                            value={formData.company || ''} 
+                            onChange={handleChange} 
+                            placeholder="Жишээ: Тесла Моторс"
+                            className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                          />
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                    <CategorySelector 
+                      value={formData.category || ''} 
+                      onChange={(val) => setFormData((prev: any) => ({ ...prev, category: val }))}
+                      required
+                    />
+                    <SkillsInput 
+                      skills={formData.skills || []}
+                      onChange={(val) => setFormData((prev: any) => ({ ...prev, skills: val }))}
+                      suggestions={SKILLS_SUGGESTIONS}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5 pt-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[13px] font-semibold text-[#555]">Био / Танилцуулга</label>
+                      <button 
+                        onClick={handleAIImprove} 
+                        className="flex items-center gap-1.5 text-[11px] font-bold text-[#6366f1] hover:text-[#4f46e5] transition-colors py-1 px-2 bg-[#6366f1]/5 rounded-lg border border-[#6366f1]/10"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" /> ✦ AI Сайжруулах
+                      </button>
+                    </div>
+                    <textarea 
+                      name="bio" 
+                      value={formData.bio || ''} 
+                      onChange={handleChange} 
+                      rows={4} 
+                      placeholder="Өөрийн тухай товчхон..."
+                      className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-2xl py-3 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 resize-none text-[14px] transition-all placeholder:text-[#bbb]" 
+                    />
+                  </div>
+                </motion.div>
+              )}
+              
+              {/* Contact Content */}
+              {activeTab === 'contact' && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <div className="space-y-1.5">
+                      <label className="text-[13px] font-semibold text-[#555]">Гар утас</label>
+                      <input 
+                        name="phone" 
+                        value={formData.phone || ''} 
+                        onChange={handleChange} 
+                        placeholder="+976 0000 0000" 
+                        className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[13px] font-semibold text-[#555]">И-мэйл хаяг</label>
+                      <input 
+                        name="email" 
+                        value={formData.email || ''} 
+                        onChange={handleChange} 
+                        placeholder="example@ecard.mn" 
+                        className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[13px] font-semibold text-[#555]">Хаяг / Байршил</label>
+                      <input 
+                        name="address" 
+                        value={formData.address || ''} 
+                        onChange={handleChange} 
+                        placeholder="Улаанбаатар хот, Сүхбаатар дүүрэг..." 
+                        className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[13px] font-semibold text-[#555]">Google Maps Холбоос</label>
+                      <input 
+                        name="maps_url" 
+                        value={formData.maps_url || ''} 
+                        onChange={handleChange} 
+                        placeholder="https://maps.google.com/..." 
+                        className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Social Content */}
+              {activeTab === 'social' && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-8"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    {['linkedin', 'facebook', 'instagram', 'twitter', 'youtube'].map((key) => (
+                      <div key={key} className="space-y-1.5">
+                        <label className="text-[13px] font-semibold text-[#555] capitalize">{key}</label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#bbb] group-focus-within:text-[#6366f1] transition-colors">
+                            <Share2 className="w-4 h-4" />
+                          </div>
+                          <input 
+                            name={key} 
+                            value={(formData as any)[key] || ''} 
+                            onChange={handleChange} 
+                            placeholder={`https://${key}.com/your-profile`}
+                            className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 pl-11 pr-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Right Column: Design & Preview */}
