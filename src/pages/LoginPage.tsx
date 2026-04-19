@@ -47,7 +47,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-stretch bg-void relative overflow-hidden">
+    <div className="min-h-screen flex items-stretch bg-void relative">
       <NetworkNodes />
       <AuroraBackground />
 
@@ -68,7 +68,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 relative z-10">
+      <div className="flex-1 flex items-start sm:items-center justify-center p-6 sm:p-8 relative z-10 overflow-y-auto py-12 sm:py-8">
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
