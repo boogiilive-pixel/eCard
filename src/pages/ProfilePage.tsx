@@ -280,7 +280,7 @@ export default function ProfilePage() {
                     <span className="text-[12px] font-normal opacity-80 uppercase tracking-widest" style={{ color: profile.card_text_color }}>
                       {profile.lastname_display === 'initial' ? `${profile.lastname?.[0]}.` : profile.lastname}
                     </span>
-                    <h2 className="text-[12px] font-bold uppercase tracking-wider -mt-0.5" style={{ color: profile.card_text_color }}>
+                    <h2 className="text-[14px] font-bold uppercase tracking-wider -mt-0.5" style={{ color: profile.card_text_color }}>
                       {profile.firstname}
                     </h2>
                   </div>

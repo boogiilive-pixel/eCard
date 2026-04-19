@@ -1063,7 +1063,7 @@ function MyECard({ profile }: any) {
                           <span className="text-[10px] sm:text-[12px] font-normal opacity-70 uppercase tracking-widest" style={{ color: formData.card_text_color }}>
                             {formData.lastname || ''}
                           </span>
-                          <h4 className="text-[10px] sm:text-[12px] font-bold uppercase tracking-wider -mt-0.5" style={{ color: formData.card_text_color }}>
+                          <h4 className="text-[11px] sm:text-[14px] font-bold uppercase tracking-wider -mt-0.5" style={{ color: formData.card_text_color }}>
                             {formData.firstname || 'Нэр'}
                           </h4>
                         </div>
