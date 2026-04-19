@@ -397,9 +397,6 @@ function Overview({ profile, handleCopy, handleShare, copied }: any) {
                     </motion.span>
                   )}
                 </div>
-                <div className="px-3 py-1 rounded-full bg-aurora-blue text-white text-[9px] font-black uppercase tracking-widest shadow-lg shadow-aurora-blue/20">
-                  {profile?.plan || 'PRO'} PLAN
-                </div>
               </div>
             </div>
           </div>

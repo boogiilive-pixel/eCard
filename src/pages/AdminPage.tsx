@@ -13,7 +13,7 @@ import { cn } from '../lib/utils';
 export default function AdminPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ total: 0, pro: 0, new: 0, views: 0 });
+  const [stats, setStats] = useState({ total: 0, new: 0, views: 0 });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,10 +24,9 @@ export default function AdminPage() {
         setUsers(userData);
 
         const total = userData.length;
-        const pro = userData.filter(u => u.plan === 'pro').length;
         const views = userData.reduce((acc, curr) => acc + (curr.view_count || 0), 0);
         
-        setStats({ total, pro, new: 5, views });
+        setStats({ total, new: 5, views });
       } catch (err) {
         console.error(err);
       } finally {
@@ -101,7 +100,6 @@ export default function AdminPage() {
               <tr className="text-[10px] uppercase tracking-widest text-ivory/40 border-b border-white/5">
                 <th className="px-8 py-6 font-medium">Хэрэглэгч</th>
                 <th className="px-8 py-6 font-medium">Мэргэжил</th>
-                <th className="px-8 py-6 font-medium">Төлөвлөгөө</th>
                 <th className="px-8 py-6 font-medium">Verified</th>
                 <th className="px-8 py-6 font-medium">Үзэлт</th>
                 <th className="px-8 py-6 font-medium text-right">Үйлдэл</th>
@@ -128,14 +126,6 @@ export default function AdminPage() {
                     </div>
                   </td>
                   <td className="px-8 py-6 text-sm text-ivory/60">{user.job_title || '-'}</td>
-                  <td className="px-8 py-6">
-                    <span className={cn(
-                      "text-[10px] uppercase font-bold px-2 py-1 rounded-md",
-                      user.plan === 'pro' ? "bg-aurora-violet/20 text-aurora-violet" : "bg-white/5 text-ivory/40"
-                    )}>
-                      {user.plan}
-                    </span>
-                  </td>
                   <td className="px-8 py-6">
                     <button onClick={() => toggleVerified(user.id, user.verified)}>
                       {user.verified ? <CheckCircle className="w-5 h-5 text-aurora-cyan" /> : <XCircle className="w-5 h-5 text-ivory/20" />}
