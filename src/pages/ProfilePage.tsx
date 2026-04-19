@@ -240,8 +240,8 @@ export default function ProfilePage() {
           ref={cardRef}
           className="relative w-full min-h-[280px] h-auto rounded-[32px] p-10 shadow-2xl overflow-hidden group transition-all duration-500 hover:scale-[1.01] flex flex-col justify-between"
           style={{ 
-            background: profile.card_color?.startsWith('linear') ? profile.card_color : undefined,
-            backgroundColor: !profile.card_color?.startsWith('linear') ? (profile.card_color || '#0d1530') : undefined 
+            backgroundColor: !profile.card_color?.startsWith('linear') ? (profile.card_color || '#0d1530') : 'transparent',
+            backgroundImage: profile.card_color?.startsWith('linear') ? profile.card_color : 'none'
           }}
         >
           {/* Pattern Overlay */}
@@ -275,16 +275,18 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div className="text-right flex-1 min-w-0">
-                <div className="flex items-center justify-end gap-2 mb-1 flex-wrap">
-                  <h2 className="text-2xl md:text-3xl font-serif font-bold tracking-tight uppercase break-words" style={{ color: profile.card_text_color }}>
-                    {profile.lastname_display === 'initial' 
-                      ? `${profile.lastname?.[0]}. ${profile.firstname}`
-                      : `${profile.lastname} ${profile.firstname}`
-                    }
-                  </h2>
-                  {profile.verified && <ShieldCheck className="w-5 h-5 text-aurora-cyan shrink-0" />}
+                <div className="flex items-center justify-end gap-2 mb-1">
+                  <div className="flex flex-col items-end">
+                    <span className="text-[12px] font-normal opacity-80 uppercase tracking-widest" style={{ color: profile.card_text_color }}>
+                      {profile.lastname_display === 'initial' ? `${profile.lastname?.[0]}.` : profile.lastname}
+                    </span>
+                    <h2 className="text-[12px] font-bold uppercase tracking-wider -mt-0.5" style={{ color: profile.card_text_color }}>
+                      {profile.firstname}
+                    </h2>
+                  </div>
+                  {profile.verified && <ShieldCheck className="w-4 h-4 text-aurora-cyan shrink-0 mt-0.5" />}
                 </div>
-                <p className="text-base font-medium" style={{ color: profile.card_text_color, opacity: 0.9 }}>{profile.job_title}</p>
+                <p className="text-base font-medium mt-2" style={{ color: profile.card_text_color, opacity: 0.9 }}>{profile.job_title}</p>
                 {profile.company && (
                   <p className="text-sm mt-1.5 flex items-center justify-end gap-1.5" style={{ color: profile.card_text_color, opacity: 0.7 }}>
                     <Building2 className="w-3.5 h-3.5" /> {profile.company}
@@ -352,10 +354,16 @@ export default function ProfilePage() {
               )}
             </div>
             <button 
-              onClick={handleDownload}
+              onClick={() => {
+                if (profile?.phone) {
+                  window.location.href = `tel:${profile.phone}`;
+                } else {
+                  alert('Утасны дугаар бүртгэгдээгүй байна.');
+                }
+              }}
               className="flex items-center justify-center gap-2 py-3 rounded-xl glass-panel text-ivory text-sm font-bold hover:bg-glass-hover transition-all"
             >
-              <Download className="w-4 h-4" /> Татах
+              <Phone className="w-4 h-4" /> Залгах
             </button>
           </div>
           <button 
@@ -369,7 +377,7 @@ export default function ProfilePage() {
             )}
           >
             {isSaved ? <Heart className="w-4 h-4 fill-current" /> : <Heart className="w-4 h-4" />}
-            {isSaved ? 'Хадгалсан' : 'Дуртай болгох'}
+            {isSaved ? 'Хадгалсан' : 'eCard-д хадгалах'}
           </button>
         </div>
 
@@ -379,7 +387,7 @@ export default function ProfilePage() {
             <div className="space-y-6">
               {profile.category && (
                 <div>
-                  <h3 className="text-xs uppercase tracking-[0.25em] text-aurora-violet font-black mb-3">Мэргэжлийн ангилал</h3>
+                  <h3 className="text-[13px] font-bold text-slate-900 mb-3">Мэргэжлийн ангилал</h3>
                   <span className="inline-block px-4 py-1.5 bg-aurora-violet/10 text-aurora-violet text-xs font-bold rounded-lg border border-aurora-violet/20">
                     {profile.category}
                   </span>
@@ -387,7 +395,7 @@ export default function ProfilePage() {
               )}
               {profile.skills && profile.skills.length > 0 && (
                 <div>
-                  <h3 className="text-xs uppercase tracking-[0.25em] text-aurora-violet font-black mb-3">Ур чадвар / Үйлчилгээ</h3>
+                  <h3 className="text-[13px] font-bold text-slate-900 mb-3">Ур чадвар / Үйлчилгээ</h3>
                   <div className="flex flex-wrap gap-2">
                     {profile.skills.map((skill, i) => (
                       <span key={i} className="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full">
@@ -402,7 +410,7 @@ export default function ProfilePage() {
 
           {profile.bio && (
             <div>
-              <h3 className="text-xs uppercase tracking-[0.25em] text-aurora-violet font-black mb-4">Танилцуулга</h3>
+              <h3 className="text-[13px] font-bold text-slate-900 mb-4">Танилцуулга</h3>
               <p className="text-ivory/60 leading-relaxed text-sm">{profile.bio}</p>
             </div>
           )}

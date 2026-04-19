@@ -12,13 +12,13 @@
   
   --color-aurora-violet: #6366f1;
   --color-aurora-indigo: #4f46e5;
-  --color-aurora-blue: #6366f1;
-  --color-aurora-cyan: #8b5cf6;
-  --color-aurora-teal: #14b8a6;
+  --color-aurora-blue: #2563eb;
+  --color-aurora-magenta: #d946ef;
+  --color-aurora-cyan: #06b6d4;
   --color-aurora-purple: #8b5cf6;
 
-  --color-accent-soft: #f0f0ff;
-  --color-accent-text: #4338ca;
+  --color-accent-soft: #fdf4ff;
+  --color-accent-text: #a21caf;
   --color-success-bg: #f0f9f0;
   --color-success-text: #1a8a3a;
   --color-danger-custom: #e84545;

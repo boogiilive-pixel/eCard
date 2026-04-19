@@ -71,80 +71,111 @@ export default function DashboardPage() {
 
   const menuItems = [
     { icon: <LayoutDashboard className="w-4 h-4" />, label: 'Хяналтын самбар', path: '/dashboard' },
-    { icon: <User className="w-4 h-4" />, label: 'eCard үүсгэх', path: '/dashboard/my-ecard' },
-    { icon: <Nfc className="w-4 h-4" />, label: 'NFC Tag захиалах', path: '/dashboard/nfc' },
-    { icon: <Heart className="w-4 h-4" />, label: 'Хадгалсан eCard', path: '/dashboard/saved' },
-    { icon: <BarChart3 className="w-4 h-4" />, label: 'Лавлах', path: '/dashboard/directory' },
+    { icon: <User className="w-4 h-4" />, label: 'Миний eCard', path: '/dashboard/my-ecard' },
+    { icon: <Nfc className="w-4 h-4" />, label: 'NFC захиалах', path: '/dashboard/nfc' },
+    { icon: <Heart className="w-4 h-4" />, label: 'Хадгалсан', path: '/dashboard/saved', count: 12 },
+    { icon: <Search className="w-4 h-4" />, label: 'Лавлах', path: '/dashboard/directory' },
     { icon: <Settings className="w-4 h-4" />, label: 'Тохиргоо', path: '/dashboard/settings' },
   ];
 
   return (
-    <div className="min-h-screen bg-white relative flex flex-col antialiased">
+    <div className="min-h-screen bg-[#f8fafc] relative flex flex-col antialiased font-sans">
       {/* Mobile Top Bar */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white/80 backdrop-blur-md border-b border-slate-100 z-[100] flex items-center justify-between px-5">
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-100 z-[100] flex items-center justify-between px-6 shadow-sm">
         <Logo size="sm" />
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 -mr-2 text-slate-500 hover:text-slate-900 transition-colors"
+          className="p-2 -mr-2 text-slate-500 hover:text-aurora-blue transition-colors bg-slate-50 rounded-xl"
         >
           {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </header>
 
-      <div className="flex flex-1 relative pt-14 lg:pt-0">
-        {/* Sidebar - Minimal Desktop / Drawer Mobile */}
+      <div className="flex flex-1 relative pt-16 lg:pt-0">
+        {/* Sidebar */}
         <aside className={cn(
-          "fixed lg:sticky lg:top-0 inset-y-0 left-0 z-[120] w-72 flex flex-col bg-white border-r border-slate-100 transition-transform duration-300 transform lg:translate-x-0 outline-none",
+          "fixed lg:sticky lg:top-0 inset-y-0 left-0 z-[120] w-72 flex flex-col bg-white border-r border-slate-100 transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) transform lg:translate-x-0 outline-none shadow-2xl lg:shadow-none",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}>
-          <div className="p-6 hidden lg:block">
+          <div className="px-8 py-10 hidden lg:block">
             <Link to="/">
-              <Logo size="sm" />
+              <Logo size="md" />
             </Link>
           </div>
 
-          <nav className="flex-1 px-3 py-6 lg:py-2 space-y-0.5 mt-10 lg:mt-0">
+          <div className="flex-1 px-4 space-y-1 mt-6 lg:mt-0">
+            <div className="px-4 mb-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Үндсэн</p>
+            </div>
             {menuItems.map((item, idx) => (
               <Link
                 key={idx}
                 to={item.path!}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all",
+                  "flex items-center justify-between px-4 py-3 rounded-2xl text-[13px] transition-all duration-300 group",
                   location.pathname === item.path 
-                    ? "bg-slate-50 text-slate-900 font-semibold" 
-                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-50/50"
+                    ? "bg-aurora-blue text-white shadow-xl shadow-aurora-blue/25 font-bold scale-[1.02]" 
+                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
                 )}
               >
-                {item.icon}
-                {item.label}
+                <div className="flex items-center gap-3">
+                  <span className={cn(
+                    "transition-transform duration-300 group-hover:scale-110",
+                    location.pathname === item.path ? "text-white" : "text-slate-400 group-hover:text-aurora-blue"
+                  )}>
+                    {item.icon}
+                  </span>
+                  {item.label}
+                </div>
+                {item.count && (
+                  <span className={cn(
+                    "text-[10px] font-black px-2 py-0.5 rounded-full",
+                    location.pathname === item.path ? "bg-white/20 text-white" : "bg-slate-100 text-slate-400"
+                  )}>
+                    {item.count}
+                  </span>
+                )}
               </Link>
             ))}
             
-            <div className="pt-2 mt-2 border-t border-slate-50">
-              {profile?.username && (
-                <Link 
-                  to={`/${profile.username}`} 
-                  target="_blank"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-50/50 transition-all font-medium"
+            <div className="pt-8 mt-8 border-t border-slate-50 px-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Бүртгэл</p>
+              <div className="space-y-1">
+                {profile?.username && (
+                  <Link 
+                    to={`/${profile.username}`} 
+                    target="_blank"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-2xl text-[13px] text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all font-bold"
+                  >
+                    <ExternalLink className="w-4 h-4 text-slate-400" />
+                    Миний eCard
+                  </Link>
+                )}
+                <button 
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-2xl text-[13px] text-slate-500 hover:text-danger-custom hover:bg-danger-custom/5 transition-all w-full text-left font-bold"
                 >
-                  <ExternalLink className="w-4 h-4" />
-                  Миний eCard
-                </Link>
-              )}
-              <button 
-                onClick={() => {
-                  handleLogout();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-slate-500 hover:text-danger hover:bg-danger/5 transition-all w-full text-left font-medium"
-              >
-                <LogOut className="w-4 h-4" /> 
-                Гарах
-              </button>
+                  <LogOut className="w-4 h-4 text-slate-400" /> 
+                  Системээс гарах
+                </button>
+              </div>
             </div>
-          </nav>
+          </div>
+
+          {/* Sidebar Pro Card */}
+          <div className="p-6">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-3xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-aurora-blue/20 rounded-full -mr-16 -mt-16 blur-2xl" />
+              <p className="relative z-10 text-white font-black text-sm mb-1 tracking-tight">Pro Болох</p>
+              <p className="relative z-10 text-slate-400 text-[10px] mb-4 font-medium leading-relaxed">Дэлгэрэнгүй аналитик болон бүх хээг ашиглах.</p>
+              <button className="relative z-10 w-full py-2 bg-aurora-blue text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-aurora-indigo transition-colors shadow-lg shadow-aurora-blue/20">Шинэчлэх</button>
+            </div>
+          </div>
         </aside>
 
         {/* Backdrop for Mobile */}
@@ -156,10 +187,10 @@ export default function DashboardPage() {
         )}
 
         {/* Main Content Area */}
-        <main className="flex-1 w-full min-h-screen bg-slate-100/40 relative overflow-x-hidden">
-          <div className="p-5 sm:p-10 lg:p-14 max-w-5xl mx-auto w-full">
+        <main className="flex-1 w-full min-h-screen relative overflow-x-hidden">
+          <div className="p-6 sm:p-10 lg:p-12 max-w-[1400px] mx-auto w-full">
             {profile ? (
-              <div className="animate-in fade-in duration-500">
+              <div className="animate-in fade-in duration-700">
                 <Routes>
                   <Route path="/" element={<Overview profile={profile} handleCopy={handleCopy} copied={copied} />} />
                   <Route path="my-ecard" element={<MyECard profile={profile} />} />
@@ -171,9 +202,9 @@ export default function DashboardPage() {
                 </Routes>
               </div>
             ) : (
-              <div className="h-[60vh] flex flex-col items-center justify-center gap-4">
-                <LoadingAnimation />
-                <p className="text-xs text-slate-400 tracking-wider">Мэдээлэл ачаалж байна</p>
+              <div className="h-[70vh] flex flex-col items-center justify-center gap-6">
+                <div className="w-12 h-12 border-4 border-slate-100 border-t-aurora-blue rounded-full animate-spin" />
+                <p className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Мэдээлэл ачаалж байна</p>
               </div>
             )}
           </div>
@@ -184,74 +215,174 @@ export default function DashboardPage() {
 }
 
 function Overview({ profile, handleCopy, copied }: any) {
-  const data = [
-    { name: 'Да', views: 40 },
-    { name: 'Мя', views: 30 },
-    { name: 'Лх', views: 60 },
-    { name: 'Пү', views: 45 },
-    { name: 'Ба', views: 90 },
-    { name: 'Бя', views: 25 },
-    { name: 'Ня', views: 15 },
+  const chartData = [
+    { name: 'Да', views: 42, scans: 12 },
+    { name: 'Мя', views: 35, scans: 8 },
+    { name: 'Лх', views: 65, scans: 15 },
+    { name: 'Пү', views: 50, scans: 10 },
+    { name: 'Ба', views: 95, scans: 22 },
+    { name: 'Бя', views: 30, scans: 5 },
+    { name: 'Ня', views: 20, scans: 4 },
+  ];
+
+  const stats = [
+    { label: 'Нийт үзэлт', value: profile?.view_count || 0, trend: '+12%', icon: <ZoomIn className="w-4 h-4 text-aurora-blue" />, color: 'bg-aurora-blue/10' },
+    { label: 'QR скан', value: profile?.qr_scan_count || 0, trend: '+8%', icon: <Search className="w-4 h-4 text-aurora-magenta" />, color: 'bg-aurora-magenta/10' },
+    { label: 'Хадгалалт', value: 24, trend: '+5%', icon: <Heart className="w-4 h-4 text-danger-custom" />, color: 'bg-danger-custom/10' },
+    { label: 'Хөрвүүлэлт', value: '42%', trend: '+2%', icon: <Sparkles className="w-4 h-4 text-aurora-cyan" />, color: 'bg-aurora-cyan/10' },
+  ];
+
+  const recentActivity = [
+    { id: 1, type: 'view', user: 'Шинэ зочин', time: '2 минутын өмнө', detail: 'Улаанбаатар хотоос хандсан' },
+    { id: 2, type: 'save', user: 'А. Бат-Эрдэнэ', time: '1 цагийн өмнө', detail: 'Нэрийн хуудсыг хадгаллаа' },
+    { id: 3, type: 'scan', user: 'Шинэ скан', time: '3 цагийн өмнө', detail: 'NFC картаар дамжуулсан' },
   ];
 
   return (
-    <div className="space-y-8 w-full">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 items-start">
-        <div className="flex items-center gap-4 sm:gap-6 w-full">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-slate-300">
-                {profile?.firstname?.[0]}
+    <div className="space-y-8 w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Welcome & Profile Header */}
+      <div className="bg-white border border-[#f0f0f0] p-6 sm:p-10 rounded-[32px] shadow-sm relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-aurora-blue/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-aurora-magenta/5 transition-colors duration-1000" />
+        
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
+          <div className="flex items-center gap-6">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden bg-white border-2 border-slate-100 shadow-xl relative group/avatar">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-4xl font-black text-slate-200 bg-slate-50 uppercase">
+                  {profile?.firstname?.[0]}
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center">
+                <Link to="/dashboard/my-ecard" className="text-white text-[10px] font-bold uppercase tracking-widest border border-white/30 px-3 py-1.5 rounded-full backdrop-blur-sm">Засах</Link>
               </div>
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Сайн байна уу, {profile?.firstname}! 👋</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-slate-400 font-mono truncate max-w-[150px] sm:max-w-none">ecard.mn/{profile?.username}</span>
-              <button onClick={handleCopy} className="text-slate-400 hover:text-slate-900 transition-colors p-1">
-                {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
-              </button>
+            </div>
+            <div className="space-y-1">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                Сайн байна уу, <span className="text-aurora-blue">{profile?.firstname}</span>! 👋
+              </h1>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-100 shrink-0">
+                  <span className="text-[10px] text-slate-400 font-mono tracking-wider font-bold">ecard.mn/{profile?.username}</span>
+                  <button onClick={handleCopy} className="text-slate-300 hover:text-aurora-blue transition-colors">
+                    {copied ? <Check className="w-3 h-3 text-success-text" /> : <Copy className="w-3 h-3" />}
+                  </button>
+                </div>
+                <div className="px-3 py-1 rounded-full bg-aurora-blue text-white text-[9px] font-black uppercase tracking-widest shadow-lg shadow-aurora-blue/20">
+                  {profile?.plan || 'PRO'} PLAN
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="shrink-0 w-full lg:w-auto">
-          <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-sm text-center flex lg:flex-col items-center lg:items-center justify-between lg:justify-center gap-2 lg:min-w-[140px]">
-            <p className="text-[10px] uppercase font-bold text-slate-300 tracking-widest">Төлөвлөгөө</p>
-            <p className="font-bold text-slate-900 text-sm tracking-widest">{profile?.plan || 'FREE'}</p>
+          
+          <div className="flex items-center gap-3 w-full lg:w-auto">
+            <Link to="/dashboard/my-ecard" className="flex-1 lg:flex-none btn-aurora py-3 px-6 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-2xl">
+              <Sparkles className="w-4 h-4" /> eCard засах
+            </Link>
+            <button className="flex-1 lg:flex-none py-3 px-6 rounded-2xl bg-white border border-[#f0f0f0] text-[#111] font-black text-[11px] uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2">
+              <Share2 className="w-4 h-4" /> Хуваалцах
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {[
-          { label: 'Нийт үзэлт', value: profile?.view_count || 0 },
-          { label: 'QR скан', value: profile?.qr_scan_count || 0 },
-          { label: 'Сошиал', value: 12 },
-          { label: 'Verified', value: profile?.verified ? 'Тийм' : 'Үгүй' },
-        ].map((stat, i) => (
-          <div key={i} className="bg-white border border-slate-100 p-5 rounded-xl shadow-sm">
-            <p className="text-[10px] uppercase font-bold text-slate-300 tracking-widest mb-2">{stat.label}</p>
-            <p className="text-xl font-bold text-slate-900">{stat.value}</p>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, i) => (
+          <div key={i} className="bg-white border border-[#f0f0f0] p-6 rounded-[24px] shadow-sm hover:shadow-xl hover:shadow-black/5 transition-all group">
+            <div className="flex items-center justify-between mb-4">
+              <div className={cn("p-2.5 rounded-xl transition-transform group-hover:scale-110", stat.color)}>
+                {stat.icon}
+              </div>
+              <span className="text-[10px] font-black text-success-text bg-success-bg px-2 py-0.5 rounded-full">{stat.trend}</span>
+            </div>
+            <p className="text-[11px] uppercase font-bold text-slate-400 tracking-widest mb-1">{stat.label}</p>
+            <p className="text-2xl font-black text-slate-900 tracking-tight">{stat.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-white border border-slate-100 p-6 sm:p-8 rounded-2xl shadow-sm">
-        <h3 className="text-sm font-bold text-slate-900 mb-6 uppercase tracking-wider">Долоо хоногийн үзүүлэлт</h3>
-        <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
-              <Tooltip 
-                cursor={{ fill: '#f8fafc' }}
-                contentStyle={{ backgroundColor: '#fff', border: '1px solid #f1f5f9', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-              />
-              <Bar dataKey="views" fill="#0f172a" radius={[4, 4, 0, 0]} barSize={32} />
-            </BarChart>
-          </ResponsiveContainer>
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-8">
+        {/* Analytics Chart */}
+        <div className="bg-white border border-[#f0f0f0] p-8 rounded-[32px] shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-widest">Долоо хоногийн үзүүлэлт</h3>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-aurora-blue" />
+                <span className="text-[10px] font-bold text-slate-400 tracking-wider">ҮЗЭЛТ</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-aurora-magenta" />
+                <span className="text-[10px] font-bold text-slate-400 tracking-wider">СКАН</span>
+              </div>
+            </div>
+          </div>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} />
+                <YAxis hide />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }}
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: 'none', 
+                    borderRadius: '16px', 
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+                    padding: '12px'
+                  }}
+                  labelStyle={{ fontWeight: 800, fontSize: '10px', color: '#111', marginBottom: '4px', textTransform: 'uppercase' }}
+                />
+                <Bar dataKey="views" fill="#2563eb" radius={[6, 6, 0, 0]} barSize={24} />
+                <Bar dataKey="scans" fill="#d946ef" radius={[6, 6, 0, 0]} barSize={24} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-white border border-[#f0f0f0] p-8 rounded-[32px] shadow-sm flex flex-col">
+          <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-widest mb-6 border-b border-slate-50 pb-4">Сүүлийн үйлдэл</h3>
+          <div className="space-y-6 flex-1">
+            {recentActivity.map((activity) => (
+              <div key={activity.id} className="flex gap-4 group cursor-pointer border-b border-slate-50 pb-6 last:border-0 last:pb-0">
+                <div className={cn(
+                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110",
+                  activity.type === 'view' ? 'bg-blue-50 text-blue-500' :
+                  activity.type === 'save' ? 'bg-pink-50 text-pink-500' : 'bg-cyan-50 text-cyan-500'
+                )}>
+                  {activity.type === 'view' ? <ZoomIn className="w-4 h-4" /> :
+                   activity.type === 'save' ? <Heart className="w-4 h-4" /> : <Search className="w-4 h-4" />}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <p className="text-[13px] font-bold text-slate-900 truncate">{activity.user}</p>
+                    <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">{activity.time}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium">{activity.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button className="mt-8 text-[11px] font-bold text-aurora-blue uppercase tracking-widest hover:text-aurora-magenta transition-colors">Бүгдийг харах →</button>
+        </div>
+      </div>
+
+      {/* Upgrade Banner */}
+      <div className="bg-slate-900 p-8 rounded-[32px] relative overflow-hidden group shadow-2xl">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-aurora-blue/20 rounded-full -mr-40 -mt-40 blur-3xl group-hover:bg-aurora-magenta/20 transition-all duration-1000" />
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="space-y-2 text-center md:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-aurora-blue/20 border border-aurora-blue/30 text-aurora-blue text-[10px] font-bold uppercase tracking-widest mb-2">
+              Шинэ боломж
+            </div>
+            <h4 className="text-xl font-black text-white tracking-tight">Өөрийн NFC картаа захиалж амжсан уу?</h4>
+            <p className="text-slate-400 text-sm font-medium">Ганц хүрэлтээр мэдээллээ хуваалцаж, бусдад мартагдашгүй сэтгэгдэл төрүүл.</p>
+          </div>
+          <Link to="/dashboard/nfc" className="w-full md:w-auto px-8 py-4 bg-white text-slate-900 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-100 hover:scale-105 transition-all shadow-xl shimmer-sweep">Одоо захиалах</Link>
         </div>
       </div>
     </div>
@@ -763,16 +894,16 @@ function MyECard({ profile }: any) {
             <div className="relative group overflow-visible">
               <div 
                 className={cn(
-                  "relative w-full min-h-[260px] h-auto rounded-[32px] p-8 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] transition-all duration-500 flex flex-col justify-between hover:translate-y-[-4px]",
+                  "relative w-full min-h-[260px] h-auto rounded-[32px] p-8 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.25)] transition-all duration-500 flex flex-col justify-between hover:translate-y-[-4px] z-0",
                   formData.card_pattern || 'pattern-none'
                 )}
                 style={{ 
-                  background: formData.card_color?.startsWith('linear') ? formData.card_color : undefined,
-                  backgroundColor: !formData.card_color?.startsWith('linear') ? (formData.card_color || '#0d1530') : undefined 
+                  backgroundColor: !formData.card_color?.startsWith('linear') ? (formData.card_color || '#0d1530') : 'transparent',
+                  backgroundImage: formData.card_color?.startsWith('linear') ? formData.card_color : 'none'
                 }}
               >
-                {/* Pattern Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+                {/* Pattern Overlay with enhanced visibility */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none z-[1]" />
                 
                 <div className="relative z-10">
                   <div className="flex justify-between items-start gap-5">
@@ -786,13 +917,18 @@ function MyECard({ profile }: any) {
                       )}
                     </div>
                     <div className="text-right flex-1 min-w-0">
-                      <div className="flex items-center justify-end gap-1.5 mb-0.5 flex-wrap">
-                        <h4 className="text-[18px] font-bold tracking-tight leading-none break-words" style={{ color: formData.card_text_color }}>
-                          {formData.lastname || ''} {formData.firstname || 'Нэр'}
-                        </h4>
+                      <div className="flex items-center justify-end gap-1.5 mb-1 flex-wrap">
+                        <div className="flex flex-col items-end">
+                          <span className="text-[10px] sm:text-[12px] font-normal opacity-70 uppercase tracking-widest" style={{ color: formData.card_text_color }}>
+                            {formData.lastname || ''}
+                          </span>
+                          <h4 className="text-[10px] sm:text-[12px] font-bold uppercase tracking-wider -mt-0.5" style={{ color: formData.card_text_color }}>
+                            {formData.firstname || 'Нэр'}
+                          </h4>
+                        </div>
                         {profile.verified && <ShieldCheck className="w-4 h-4 text-aurora-cyan shrink-0" />}
                       </div>
-                      <p className="text-[11px] font-medium opacity-80 uppercase tracking-wider truncate" style={{ color: formData.card_text_color }}>
+                      <p className="text-[11px] font-medium opacity-80 uppercase tracking-wider truncate mt-1" style={{ color: formData.card_text_color }}>
                         {formData.job_title || 'Албан тушаал'}
                       </p>
                       {formData.company && (

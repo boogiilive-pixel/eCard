@@ -93,7 +93,7 @@ export default function DirectoryPage() {
                   "px-6 py-2.5 rounded-full text-sm font-medium transition-all",
                   selectedField === field 
                     ? "btn-aurora text-white" 
-                    : "glass-panel text-slate-500 hover:text-aurora-blue"
+                    : "glass-panel text-slate-500 hover:text-aurora-magenta"
                 )}
               >
                 {field}

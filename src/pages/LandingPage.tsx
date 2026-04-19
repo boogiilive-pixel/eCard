@@ -44,7 +44,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen selection:bg-aurora-violet selection:text-white relative">
+    <div className="min-h-screen selection:bg-aurora-blue selection:text-white relative">
       <NetworkNodes />
       {/* Hero Section */}
       <section className="relative pt-48 pb-32 overflow-hidden min-h-screen flex items-center">
@@ -230,66 +230,54 @@ export default function LandingPage() {
               <Logo size="lg" />
             </Link>
             <div className="flex gap-10 text-sm text-slate-400 font-bold uppercase tracking-widest">
-              <Link to="/directory" className="hover:text-aurora-blue transition-colors">Лавлах</Link>
-              <Link to="/register" className="hover:text-aurora-blue transition-colors">Бүртгүүлэх</Link>
-              <Link to="/login" className="hover:text-aurora-blue transition-colors">Нэвтрэх</Link>
-              <a href="#" className="hover:text-aurora-blue transition-colors">Холбоо барих</a>
+              <Link to="/directory" className="hover:text-aurora-magenta transition-colors">Лавлах</Link>
+              <Link to="/register" className="hover:text-aurora-magenta transition-colors">Бүртгүүлэх</Link>
+              <Link to="/login" className="hover:text-aurora-magenta transition-colors">Нэвтрэх</Link>
+              <a href="#" className="hover:text-aurora-magenta transition-colors">Холбоо барих</a>
             </div>
           </div>
           
           <div className="relative flex justify-center py-20 pointer-events-none group/footer overflow-hidden">
-            <motion.h2 
+            <motion.div 
               style={{ 
                 scale: springScale,
                 y: springY,
                 filter: textBlur,
                 opacity: textOpacity,
-                letterSpacing: textTracking
               }}
-              className="text-[20vw] font-serif font-black leading-none select-none relative cursor-default pointer-events-auto"
+              className="relative cursor-default pointer-events-auto flex items-center justify-center transition-all duration-700 h-[30vw]"
             >
-              {/* Background Outline Layer */}
-              <span className="absolute inset-0 text-transparent stroke-white/10" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.05)' }}>
+              {/* Normal State: The Text */}
+              <h2 className="text-[20vw] font-serif font-black leading-none select-none relative bg-clip-text text-transparent bg-gradient-to-b from-aurora-blue via-aurora-blue/40 to-transparent transition-all duration-700 group-hover/footer:opacity-0 group-hover/footer:scale-95 group-hover/footer:blur-xl">
                 eCARD
-              </span>
-              
-              {/* Main Gradient Layer */}
-              <span className="relative bg-clip-text text-transparent bg-gradient-to-b from-slate-900 via-slate-900/40 to-transparent opacity-80 group-hover/footer:opacity-100 transition-all duration-700">
-                eCARD
-              </span>
+              </h2>
 
-              {/* Glowing Interactive Layer */}
-              <motion.span 
-                className="absolute inset-0 flex items-center justify-center text-transparent bg-clip-text bg-gradient-to-r from-aurora-blue via-aurora-violet to-aurora-cyan opacity-0 group-hover/footer:opacity-100 transition-all duration-1000 blur-[2px] group-hover/footer:blur-[0px]"
-                animate={{ 
-                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                }}
-                transition={{ 
-                  duration: 5, 
-                  repeat: Infinity, 
-                  ease: "linear" 
-                }}
-                style={{ backgroundSize: '200% auto' }}
-              >
-                eCARD
-              </motion.span>
+              {/* Hover State: The 'PNG' Logo */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/footer:opacity-100 transition-all duration-700 pointer-events-none translate-y-10 group-hover/footer:translate-y-0 scale-75 group-hover/footer:scale-110">
+                <img 
+                  src="https://lh3.googleusercontent.com/d/1Jm2Xbyd-6Xi1mqhE7foilH7L8S5xe1te" 
+                  alt="eCARD Logo" 
+                  className="w-[45vw] md:w-[35vw] h-auto object-contain drop-shadow-[0_20px_60px_rgba(255,0,255,0.4)]"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
 
-              {/* Ultimate Glow Aura on Hover */}
-              <div className="absolute inset-0 bg-gradient-to-r from-aurora-blue/20 via-aurora-violet/20 to-aurora-cyan/20 blur-[120px] rounded-full opacity-0 group-hover/footer:opacity-100 transition-all duration-1000 scale-150 -z-10" />
-            </motion.h2>
+              {/* Minimal Magenta Base Line */}
+              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-0 group-hover/footer:w-1/3 h-1 bg-gradient-to-r from-transparent via-aurora-magenta to-transparent transition-all duration-1000 opacity-40 blur-[1px]" />
+            </motion.div>
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-center mt-20 pt-10 border-t border-slate-100/50 gap-8">
             <div className="flex flex-col md:flex-row items-center gap-10">
               <p className="text-sm text-slate-400">
-                © 2026 eCard.mn. <a href="https://cornerstoneai.dev/" target="_blank" rel="noopener noreferrer" className="hover:text-aurora-blue transition-colors underline underline-offset-4 decoration-aurora-blue/30">Cornerstone AI</a>-ийн бүтээл.
+                © 2026 eCard.mn. <a href="https://cornerstoneai.dev/" target="_blank" rel="noopener noreferrer" className="hover:text-aurora-magenta transition-colors underline underline-offset-4 decoration-aurora-magenta/30">Cornerstone AI</a>-ийн бүтээл.
               </p>
               <div className="flex flex-wrap gap-8">
-                <Link to="/privacy" className="text-xs font-bold text-slate-500 hover:text-aurora-blue transition-colors flex flex-col items-start gap-1">
+                <Link to="/privacy" className="text-xs font-bold text-slate-500 hover:text-aurora-magenta transition-colors flex flex-col items-start gap-1">
                   <span>Нууцлалын бодлого</span>
                   <span className="text-[9px] uppercase tracking-wider opacity-60">Privacy Policy</span>
                 </Link>
-                <Link to="/terms" className="text-xs font-bold text-slate-500 hover:text-aurora-blue transition-colors flex flex-col items-start gap-1">
+                <Link to="/terms" className="text-xs font-bold text-slate-500 hover:text-aurora-magenta transition-colors flex flex-col items-start gap-1">
                   <span>Үйлчилгээний нөхцөл</span>
                   <span className="text-[9px] uppercase tracking-wider opacity-60">Terms of Service</span>
                 </Link>

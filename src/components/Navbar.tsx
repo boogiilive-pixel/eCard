@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useFirebase } from '../contexts/FirebaseContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X, User, LogOut, LayoutDashboard, ShieldCheck } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import { cn } from '../lib/utils';
 import { Logo } from './Logo';
@@ -10,39 +10,59 @@ import { Logo } from './Logo';
 export default function Navbar() {
   const { user, profile, isAdmin } = useFirebase();
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = () => {
     auth.signOut();
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
+    <nav className={cn(
+      "fixed top-0 left-0 right-0 z-50 transition-all duration-500 border-b",
+      isScrolled 
+        ? "bg-aurora-blue/95 backdrop-blur-xl border-white/10 shadow-lg py-3" 
+        : "bg-white/80 backdrop-blur-xl border-slate-100 py-5"
+    )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20 items-center">
+        <div className="flex justify-between h-10 items-center">
           <Link to="/" className="flex items-center space-x-2 group">
-            <Logo size="md" />
+            <Logo size="md" className={cn("transition-all", isScrolled && "brightness-0 invert")} />
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-8 uppercase tracking-widest text-xs">
-            <Link to="/directory" className="text-slate-600 hover:text-aurora-blue transition-colors font-bold">Лавлах</Link>
+          <div className={cn(
+            "hidden md:flex items-center space-x-8 uppercase tracking-widest text-[10px] font-black",
+            isScrolled ? "text-white/80" : "text-slate-600"
+          )}>
+            <Link to="/directory" className={cn("hover:text-aurora-magenta transition-colors", isScrolled && "hover:text-white")}>Лавлах</Link>
             {user ? (
               <div className="flex items-center space-x-6">
                 {isAdmin && (
-                  <Link to="/admin" className="text-slate-600 hover:text-aurora-blue transition-colors font-bold flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4" /> Админ
+                  <Link to="/admin" className={cn("hover:text-aurora-magenta transition-colors flex items-center gap-2", isScrolled && "hover:text-white")}>
+                    <ShieldCheck className="w-3.5 h-3.5" /> Админ
                   </Link>
                 )}
-                <Link to="/dashboard" className="text-slate-600 hover:text-aurora-blue transition-colors font-bold flex items-center gap-2">
-                  <LayoutDashboard className="w-4 h-4" /> Самбар
+                <Link to="/dashboard" className={cn("hover:text-aurora-magenta transition-colors flex items-center gap-2", isScrolled && "hover:text-white")}>
+                  <LayoutDashboard className="w-3.5 h-3.5" /> Самбар
                 </Link>
                 <button 
                   onClick={handleLogout}
-                  className="text-slate-600 hover:text-danger transition-colors font-bold flex items-center gap-2"
+                  className={cn("hover:text-aurora-magenta transition-colors flex items-center gap-2", isScrolled && "hover:text-white")}
                 >
-                  <LogOut className="w-4 h-4" /> Гарах
+                  <LogOut className="w-3.5 h-3.5" /> Гарах
                 </button>
-                <Link to={`/${profile?.username || ''}`} className="w-10 h-10 rounded-full border border-slate-200 overflow-hidden hover:border-aurora-blue transition-all bg-slate-50">
+                <Link to={`/${profile?.username || ''}`} className={cn(
+                  "w-9 h-9 rounded-full border overflow-hidden transition-all bg-slate-50",
+                  isScrolled ? "border-white/20 hover:border-white" : "border-slate-200 hover:border-aurora-magenta"
+                )}>
                   {profile?.avatar_url ? (
                     <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
@@ -54,8 +74,13 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex items-center space-x-4">
-                <Link to="/login" className="text-slate-600 hover:text-aurora-blue transition-colors font-bold">Нэвтрэх</Link>
-                <Link to="/register" className="btn-aurora px-6 py-2.5 rounded text-xs font-bold transition-all shimmer-sweep shadow-lg shadow-aurora-blue/20">
+                <Link to="/login" className={cn("hover:text-aurora-magenta transition-colors", isScrolled && "hover:text-white")}>Нэвтрэх</Link>
+                <Link to="/register" className={cn(
+                  "px-6 py-2.5 rounded-full text-[10px] font-black transition-all shadow-lg",
+                  isScrolled 
+                    ? "bg-white text-aurora-blue hover:bg-aurora-magenta hover:text-white" 
+                    : "btn-aurora text-white shadow-aurora-blue/20"
+                )}>
                   Бүртгүүлэх
                 </Link>
               </div>
@@ -64,7 +89,7 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <button onClick={() => setIsOpen(!isOpen)} className="text-aurora-cyan p-2">
+            <button onClick={() => setIsOpen(!isOpen)} className={cn("p-2 transition-colors", isScrolled ? "text-white" : "text-aurora-blue")}>
               {isOpen ? <X /> : <Menu />}
             </button>
           </div>
@@ -81,17 +106,17 @@ export default function Navbar() {
             className="md:hidden bg-white/95 backdrop-blur-2xl border-b border-slate-100 overflow-hidden"
           >
             <div className="px-4 pt-2 pb-6 space-y-4">
-              <Link to="/directory" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-blue py-2 uppercase tracking-widest text-xs font-bold transition-colors">Лавлах</Link>
+              <Link to="/directory" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-magenta py-2 uppercase tracking-widest text-[10px] font-black transition-colors">Лавлах</Link>
               {user ? (
                 <>
-                  <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-blue py-2 uppercase tracking-widest text-xs font-bold transition-colors">Хяналтын самбар</Link>
-                  {isAdmin && <Link to="/admin" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-blue py-2 uppercase tracking-widest text-xs font-bold transition-colors">Админ самбар</Link>}
-                  <button onClick={() => { handleLogout(); setIsOpen(false); }} className="block text-slate-600 hover:text-danger py-2 w-full text-left uppercase tracking-widest text-xs font-bold transition-colors">Гарах</button>
+                  <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-magenta py-2 uppercase tracking-widest text-[10px] font-black transition-colors">Хяналтын самбар</Link>
+                  {isAdmin && <Link to="/admin" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-magenta py-2 uppercase tracking-widest text-[10px] font-black transition-colors">Админ самбар</Link>}
+                  <button onClick={() => { handleLogout(); setIsOpen(false); }} className="block text-slate-600 hover:text-aurora-magenta py-2 w-full text-left uppercase tracking-widest text-[10px] font-black transition-colors">Гарах</button>
                 </>
               ) : (
                 <>
-                  <Link to="/login" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-blue py-2 uppercase tracking-widest text-xs font-bold transition-colors">Нэвтрэх</Link>
-                  <Link to="/register" onClick={() => setIsOpen(false)} className="block btn-aurora text-white px-6 py-4 rounded-xl text-center font-bold text-sm shimmer-sweep shadow-lg shadow-aurora-blue/20">Бүртгүүлэх</Link>
+                  <Link to="/login" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-magenta py-2 uppercase tracking-widest text-[10px] font-black transition-colors">Нэвтрэх</Link>
+                  <Link to="/register" onClick={() => setIsOpen(false)} className="block btn-aurora text-white px-6 py-4 rounded-xl text-center font-black text-[10px] tracking-widest transition-all shadow-lg shadow-aurora-blue/20">Бүртгүүлэх</Link>
                 </>
               )}
             </div>
