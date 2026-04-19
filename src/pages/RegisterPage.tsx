@@ -45,7 +45,7 @@ export default function RegisterPage() {
       skills: formData.skills,
       card_color: '#0f1729',
       card_text_color: '#c9a84c',
-      role: 'user',
+      role: (email === 'boogiilive@gmail.com' || email === 'boogiilive@gmai.com') ? 'admin' : 'user',
       plan: 'free',
       verified: false,
       is_active: true,

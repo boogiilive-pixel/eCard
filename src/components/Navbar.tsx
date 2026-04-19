@@ -110,7 +110,16 @@ export default function Navbar() {
               {user ? (
                 <>
                   <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-magenta py-2 uppercase tracking-widest text-[10px] font-black transition-colors">Хяналтын самбар</Link>
-                  {isAdmin && <Link to="/admin" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-magenta py-2 uppercase tracking-widest text-[10px] font-black transition-colors">Админ самбар</Link>}
+                  {isAdmin && (
+                    <Link 
+                      to="/admin" 
+                      onClick={() => setIsOpen(false)} 
+                      className="flex items-center gap-3 text-aurora-magenta py-3 px-4 bg-aurora-magenta/5 rounded-xl uppercase tracking-widest text-[10px] font-black transition-all"
+                    >
+                      <ShieldCheck className="w-4 h-4" />
+                      Админ самбар
+                    </Link>
+                  )}
                   <button onClick={() => { handleLogout(); setIsOpen(false); }} className="block text-slate-600 hover:text-aurora-magenta py-2 w-full text-left uppercase tracking-widest text-[10px] font-black transition-colors">Гарах</button>
                 </>
               ) : (

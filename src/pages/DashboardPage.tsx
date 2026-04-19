@@ -23,7 +23,7 @@ import { CategorySelector, SkillsInput } from '../components/ProfileFields';
 import { SKILLS_SUGGESTIONS, CATEGORIES } from '../constants';
 
 export default function DashboardPage() {
-  const { profile, user, loading } = useFirebase();
+  const { profile, user, loading, isAdmin } = useFirebase();
   const location = useLocation();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
@@ -99,6 +99,8 @@ export default function DashboardPage() {
     { icon: <Settings className="w-4 h-4" />, label: 'Тохиргоо', path: '/dashboard/settings' },
   ];
 
+  const adminItem = { icon: <ShieldCheck className="w-4 h-4" />, label: 'Админ самбар', path: '/admin' };
+
   return (
     <div className="min-h-screen bg-[#f8fafc] relative flex flex-col antialiased font-sans">
       {/* Mobile Top Bar */}
@@ -159,6 +161,17 @@ export default function DashboardPage() {
                 )}
               </Link>
             ))}
+
+            {isAdmin && (
+              <Link
+                to="/admin"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-2xl text-[13px] text-aurora-magenta hover:bg-aurora-magenta/5 transition-all font-black mt-2"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Админ самбар
+              </Link>
+            )}
             
             <div className="pt-8 mt-8 border-t border-slate-50 px-4">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Бүртгэл</p>

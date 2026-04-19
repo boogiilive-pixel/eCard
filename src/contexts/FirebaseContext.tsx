@@ -48,7 +48,7 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribeProfile();
   }, [user]);
 
-  const isAdmin = profile?.role === 'admin' || user?.email === 'boogiilive@gmail.com';
+  const isAdmin = profile?.role === 'admin' || user?.email === 'boogiilive@gmail.com' || user?.email === 'boogiilive@gmai.com';
 
   return (
     <FirebaseContext.Provider value={{ user, profile, loading, isAdmin }}>
