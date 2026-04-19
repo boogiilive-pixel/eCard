@@ -270,8 +270,6 @@ function MyECard({ profile }: any) {
   const tabs = [
     { id: 'basic', label: 'Үндсэн мэдээлэл', icon: <User className="w-4 h-4" /> },
     { id: 'contact', label: 'Холбоо барих', icon: <Phone className="w-4 h-4" /> },
-    { id: 'social', label: 'Олон нийтийн сүлжээ', icon: <Share2 className="w-4 h-4" /> },
-    { id: 'design', label: 'Загвар & Өнгө', icon: <Palette className="w-4 h-4" /> },
   ];
 
   useEffect(() => {
@@ -469,28 +467,8 @@ function MyECard({ profile }: any) {
           </div>
         </div>
         
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button 
-            onClick={() => window.open(`/${formData.username}`, '_blank')}
-            className="flex-1 sm:flex-none py-2 px-4 rounded-lg bg-white border border-[#f0f0f0] text-[#555] font-semibold text-[13px] hover:bg-[#fafafa] hover:border-[#ddd] transition-all flex items-center justify-center gap-2"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Урьдчилан харах
-          </button>
-          <button 
-            onClick={handleSave} 
-            disabled={loading} 
-            className="flex-1 sm:flex-none py-2 px-6 rounded-lg bg-[#6366f1] text-white font-semibold text-[13px] hover:bg-[#4f46e5] transition-all flex items-center justify-center gap-2 shadow-[0_4px_12px_-4px_rgba(99,102,241,0.4)] disabled:opacity-50"
-          >
-            {loading ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Хадгалж байна...</span>
-              </div>
-            ) : (
-              <>Хадгалах</>
-            )}
-          </button>
+        <div className="hidden lg:flex items-center gap-2 text-[11px] text-[#888] font-medium px-4">
+          <Sparkles className="w-3.5 h-3.5 text-[#6366f1]" /> AI Сайжруулалт идэвхтэй
         </div>
       </header>
 
@@ -656,12 +634,12 @@ function MyECard({ profile }: any) {
                 </motion.div>
               )}
               
-              {/* Contact Content */}
+              {/* Contact & Social Content */}
               {activeTab === 'contact' && (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="space-y-8"
+                  className="space-y-12"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-1.5">
@@ -705,138 +683,30 @@ function MyECard({ profile }: any) {
                       />
                     </div>
                   </div>
-                </motion.div>
-              )}
 
-              {/* Social Content */}
-              {activeTab === 'social' && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-8"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    {['linkedin', 'facebook', 'instagram', 'twitter', 'youtube'].map((key) => (
-                      <div key={key} className="space-y-1.5">
-                        <label className="text-[13px] font-semibold text-[#555] capitalize">{key}</label>
-                        <div className="relative group">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#bbb] group-focus-within:text-[#6366f1] transition-colors">
-                            <Share2 className="w-4 h-4" />
-                          </div>
-                          <input 
-                            name={key} 
-                            value={(formData as any)[key] || ''} 
-                            onChange={handleChange} 
-                            placeholder={`https://${key}.com/your-profile`}
-                            className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 pl-11 pr-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Design & Color Content */}
-              {activeTab === 'design' && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-10"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <div className="space-y-6">
-                      <div className="space-y-3">
-                        <label className="text-[13px] font-semibold text-[#555] flex items-center gap-2">
-                          <Palette className="w-4 h-4 text-[#6366f1]" /> Үндсэн өнгөнүүд
-                        </label>
-                        <div className="flex flex-wrap gap-2.5 bg-[#fafafa] p-4 rounded-xl border border-[#f0f0f0]">
-                          {presets.map(p => (
-                            <button 
-                              key={p.color} 
-                              onClick={() => setFormData((prev: any) => ({ ...prev, card_color: p.color }))}
-                              title={p.name}
-                              className={cn(
-                                "w-7 h-7 rounded-full border transition-all duration-200 hover:scale-110",
-                                formData.card_color === p.color ? "ring-2 ring-[#6366f1] ring-offset-2 border-transparent scale-110" : "border-[#f0f0f0]"
-                              )}
-                              style={{ backgroundColor: p.color }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-3">
-                          <label className="text-[13px] font-semibold text-[#555]">Фон өнгө</label>
-                          <div className="relative group">
-                            <input 
-                              type="color" 
-                              value={formData.card_color.startsWith('linear') ? '#0f172a' : (formData.card_color || '#0d1530')} 
-                              onChange={(e) => setFormData((prev: any) => ({ ...prev, card_color: e.target.value }))} 
-                              className="absolute inset-0 w-full h-11 opacity-0 cursor-pointer z-10" 
-                            />
-                            <div className="w-full h-11 rounded-xl border border-[#f0f0f0] flex items-center justify-between px-3 bg-[#fafafa] group-hover:bg-white transition-colors">
-                              <div className="w-5 h-5 rounded-md border border-black/5 shadow-sm" style={{ backgroundColor: formData.card_color.startsWith('linear') ? '#0f172a' : (formData.card_color || '#0d1530') }} />
-                              <span className="text-[11px] font-mono font-bold text-[#555]">{formData.card_color.startsWith('linear') ? '#LINEAR' : (formData.card_color || '#0D1530').toUpperCase()}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <label className="text-[13px] font-semibold text-[#555]">Текст өнгө</label>
-                          <div className="relative group">
-                            <input 
-                              type="color" 
-                              value={formData.card_text_color || '#c9a84c'} 
-                              onChange={(e) => setFormData((prev: any) => ({ ...prev, card_text_color: e.target.value }))} 
-                              className="absolute inset-0 w-full h-11 opacity-0 cursor-pointer z-10" 
-                            />
-                            <div className="w-full h-11 rounded-xl border border-[#f0f0f0] flex items-center justify-between px-3 bg-[#fafafa] group-hover:bg-white transition-colors">
-                              <div className="w-5 h-5 rounded-md border border-black/5 shadow-sm" style={{ backgroundColor: formData.card_text_color || '#c9a84c' }} />
-                              <span className="text-[11px] font-mono font-bold text-[#555]">{(formData.card_text_color || '#C9A84C').toUpperCase()}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                  <div className="pt-8 border-t border-[#f0f0f0]">
+                    <div className="flex items-center gap-2 mb-6">
+                      <Share2 className="w-4 h-4 text-[#6366f1]" />
+                      <h4 className="text-[13px] font-bold text-[#111] uppercase tracking-wider">Олон нийтийн сүлжээ</h4>
                     </div>
-
-                    <div className="space-y-6">
-                      <div className="space-y-3">
-                        <label className="text-[13px] font-semibold text-[#555]">Градиент загварууд</label>
-                        <div className="grid grid-cols-3 gap-2 bg-[#fafafa] p-4 rounded-xl border border-[#f0f0f0]">
-                          {gradients.map(g => (
-                            <button 
-                              key={g.color} 
-                              onClick={() => setFormData((prev: any) => ({ ...prev, card_color: g.color }))}
-                              className={cn(
-                                "h-9 rounded-lg border transition-all duration-200",
-                                formData.card_color === g.color ? "ring-2 ring-[#6366f1] ring-offset-2 border-transparent" : "border-[#f0f0f0]"
-                              )}
-                              style={{ background: g.color }}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                      {['linkedin', 'facebook', 'instagram', 'twitter', 'youtube'].map((key) => (
+                        <div key={key} className="space-y-1.5">
+                          <label className="text-[13px] font-semibold text-[#555] capitalize">{key}</label>
+                          <div className="relative group">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#bbb] group-focus-within:text-[#6366f1] transition-colors">
+                              <Share2 className="w-4 h-4" />
+                            </div>
+                            <input 
+                              name={key} 
+                              value={(formData as any)[key] || ''} 
+                              onChange={handleChange} 
+                              placeholder={`https://${key}.com/your-profile`}
+                              className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 pl-11 pr-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
                             />
-                          ))}
+                          </div>
                         </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <label className="text-[13px] font-semibold text-[#555]">Хээ (Patterns)</label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {patterns.map(p => (
-                            <button
-                              key={p.id}
-                              onClick={() => setFormData((prev: any) => ({ ...prev, card_pattern: p.id }))}
-                              className={cn(
-                                "py-2.5 rounded-xl border text-[11px] font-bold transition-all",
-                                formData.card_pattern === p.id 
-                                  ? "bg-[#111] border-[#111] text-white shadow-xl shadow-black/10" 
-                                  : "bg-[#fafafa] border-[#f0f0f0] text-[#555] hover:border-[#ddd]"
-                              )}
-                            >
-                              {p.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </motion.div>
@@ -845,8 +715,31 @@ function MyECard({ profile }: any) {
           </div>
         </div>
 
-        {/* Right Column: High Fidelity Preview */}
-        <aside className="sticky top-24 space-y-8">
+        {/* Right Column: High Fidelity Preview & Design Controls */}
+        <aside className="sticky top-24 space-y-6">
+          {/* Action Box moved to sidebar to align with cards */}
+          <div className="bg-white border border-[#f0f0f0] p-4 rounded-2xl shadow-sm flex items-center gap-3">
+            <button 
+              onClick={() => window.open(`/${formData.username}`, '_blank')}
+              className="flex-1 py-2.5 px-4 rounded-xl bg-white border border-[#f0f0f0] text-[#555] font-semibold text-[13px] hover:bg-[#fafafa] hover:border-[#ddd] transition-all flex items-center justify-center gap-2"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Харах
+            </button>
+            <button 
+              onClick={handleSave} 
+              disabled={loading} 
+              className="flex-1 py-2.5 px-6 rounded-xl bg-[#6366f1] text-white font-semibold text-[13px] hover:bg-[#4f46e5] transition-all flex items-center justify-center gap-2 shadow-[0_4px_12px_-4px_rgba(99,102,241,0.4)] disabled:opacity-50"
+            >
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              Хадгалах
+            </button>
+          </div>
+
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
               <h3 className="text-[13px] font-semibold text-[#111] flex items-center gap-2">
@@ -868,7 +761,6 @@ function MyECard({ profile }: any) {
                   backgroundColor: !formData.card_color?.startsWith('linear') ? (formData.card_color || '#0d1530') : undefined 
                 }}
               >
-
                 {/* Pattern Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
                 
@@ -928,15 +820,103 @@ function MyECard({ profile }: any) {
                 {/* Decorative glow */}
                 <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white/10 blur-3xl rounded-full" />
               </div>
+            </div>
+          </div>
 
-              {/* Interaction hints */}
-              <div className="mt-6 flex items-center justify-center gap-6 opacity-40 group-hover:opacity-100 transition-opacity">
-                 <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#888]">
-                    <ZoomIn className="w-3.5 h-3.5" /> Хэмжээ
-                 </div>
-                 <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#888]">
-                    <Share2 className="w-3.5 h-3.5" /> Хуваалцах
-                 </div>
+          {/* Design & Color Section relocated below Preview */}
+          <div className="bg-white border border-[#f0f0f0] rounded-2xl overflow-hidden shadow-sm">
+            <div className="p-4 border-b border-[#f0f0f0] bg-[#fafafa]/50 flex items-center gap-2">
+              <Palette className="w-4 h-4 text-[#6366f1]" />
+              <h3 className="text-[13px] font-bold text-[#111] uppercase tracking-wider">Загвар & Өнгө</h3>
+            </div>
+            
+            <div className="p-6 space-y-8">
+              <div className="space-y-3">
+                <label className="text-[12px] font-semibold text-[#888] uppercase tracking-widest">Үндсэн өнгөнүүд</label>
+                <div className="flex flex-wrap gap-2.5">
+                  {presets.map(p => (
+                    <button 
+                      key={p.color} 
+                      onClick={() => setFormData((prev: any) => ({ ...prev, card_color: p.color }))}
+                      title={p.name}
+                      className={cn(
+                        "w-6 h-6 rounded-full border transition-all duration-200 hover:scale-110",
+                        formData.card_color === p.color ? "ring-2 ring-[#6366f1] ring-offset-2 border-transparent scale-110" : "border-[#f0f0f0]"
+                      )}
+                      style={{ backgroundColor: p.color }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[12px] font-semibold text-[#888] uppercase tracking-widest">Фон</label>
+                  <div className="relative group">
+                    <input 
+                      type="color" 
+                      value={formData.card_color.startsWith('linear') ? '#0f172a' : (formData.card_color || '#0d1530')} 
+                      onChange={(e) => setFormData((prev: any) => ({ ...prev, card_color: e.target.value }))} 
+                      className="absolute inset-0 w-full h-10 opacity-0 cursor-pointer z-10" 
+                    />
+                    <div className="w-full h-10 rounded-xl border border-[#f0f0f0] flex items-center justify-between px-3 bg-[#fafafa] group-hover:bg-white transition-colors">
+                      <div className="w-4 h-4 rounded-sm border border-black/5" style={{ backgroundColor: formData.card_color.startsWith('linear') ? '#0f172a' : (formData.card_color || '#0d1530') }} />
+                      <span className="text-[10px] font-mono font-bold text-[#555]">{formData.card_color.startsWith('linear') ? '#LIN' : (formData.card_color || '#0D1530').toUpperCase().substring(0, 7)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[12px] font-semibold text-[#888] uppercase tracking-widest">Текст</label>
+                  <div className="relative group">
+                    <input 
+                      type="color" 
+                      value={formData.card_text_color || '#c9a84c'} 
+                      onChange={(e) => setFormData((prev: any) => ({ ...prev, card_text_color: e.target.value }))} 
+                      className="absolute inset-0 w-full h-10 opacity-0 cursor-pointer z-10" 
+                    />
+                    <div className="w-full h-10 rounded-xl border border-[#f0f0f0] flex items-center justify-between px-3 bg-[#fafafa] group-hover:bg-white transition-colors">
+                      <div className="w-4 h-4 rounded-sm border border-black/5" style={{ backgroundColor: formData.card_text_color || '#c9a84c' }} />
+                      <span className="text-[10px] font-mono font-bold text-[#555]">{(formData.card_text_color || '#C9A84C').toUpperCase().substring(0, 7)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[12px] font-semibold text-[#888] uppercase tracking-widest">Градиент</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {gradients.map(g => (
+                    <button 
+                      key={g.color} 
+                      onClick={() => setFormData((prev: any) => ({ ...prev, card_color: g.color }))}
+                      className={cn(
+                        "h-8 rounded-lg border transition-all duration-200",
+                        formData.card_color === g.color ? "ring-2 ring-[#6366f1] ring-offset-2 border-transparent" : "border-[#f0f0f0]"
+                      )}
+                      style={{ background: g.color }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[12px] font-semibold text-[#888] uppercase tracking-widest">Хээ</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {patterns.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => setFormData((prev: any) => ({ ...prev, card_pattern: p.id }))}
+                      className={cn(
+                        "py-2 rounded-xl border text-[10px] font-bold transition-all",
+                        formData.card_pattern === p.id 
+                          ? "bg-[#111] border-[#111] text-white" 
+                          : "bg-[#fafafa] border-[#f0f0f0] text-[#555] hover:border-[#ddd]"
+                      )}
+                    >
+                      {p.name}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
