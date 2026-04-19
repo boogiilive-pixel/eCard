@@ -70,6 +70,25 @@ export default function DashboardPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleShare = async () => {
+    const shareData = {
+      title: `${profile?.firstname} ${profile?.lastname} - Digital Business Card`,
+      text: `${profile?.job_title} | Digital Business Card`,
+      url: `${window.location.origin}/${profile?.username}`
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        handleCopy();
+      }
+    } catch (err) {
+      console.error('Share failed:', err);
+      handleCopy();
+    }
+  };
+
   const menuItems = [
     { icon: <LayoutDashboard className="w-4 h-4" />, label: 'Хяналтын самбар', path: '/dashboard' },
     { icon: <User className="w-4 h-4" />, label: 'Миний eCard', path: '/dashboard/my-ecard' },
@@ -193,7 +212,7 @@ export default function DashboardPage() {
             {profile ? (
               <div className="animate-in fade-in duration-700">
                 <Routes>
-                  <Route path="/" element={<Overview profile={profile} handleCopy={handleCopy} copied={copied} />} />
+                  <Route path="/" element={<Overview profile={profile} handleCopy={handleCopy} handleShare={handleShare} copied={copied} />} />
                   <Route path="my-ecard" element={<MyECard profile={profile} />} />
                   <Route path="saved" element={<SavedCards user={user} />} />
                   <Route path="directory" element={<DirectoryView />} />
@@ -215,7 +234,7 @@ export default function DashboardPage() {
   );
 }
 
-function Overview({ profile, handleCopy, copied }: any) {
+function Overview({ profile, handleCopy, handleShare, copied }: any) {
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState(profile?.username || '');
   const [isChecking, setIsChecking] = useState(false);
@@ -399,7 +418,10 @@ function Overview({ profile, handleCopy, copied }: any) {
             <Link to="/dashboard/my-ecard" className="flex-1 lg:flex-none btn-aurora py-3 px-6 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-2xl">
               <Sparkles className="w-4 h-4" /> eCard засах
             </Link>
-            <button className="flex-1 lg:flex-none py-3 px-6 rounded-2xl bg-white border border-[#f0f0f0] text-[#111] font-black text-[11px] uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2">
+            <button 
+              onClick={handleShare}
+              className="flex-1 lg:flex-none py-3 px-6 rounded-2xl bg-white border border-[#f0f0f0] text-[#111] font-black text-[11px] uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2"
+            >
               <Share2 className="w-4 h-4" /> Хуваалцах
             </button>
           </div>
