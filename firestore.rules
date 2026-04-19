@@ -2,6 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Глобал хаалт (Default Deny)
     match /{document=**} {
       allow read, write: if false;
     }
@@ -10,44 +11,30 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isSystemAdmin() {
-      return isSignedIn() && (request.auth.token.email == "boogiilive@gmail.com");
-    }
-
-    // Profiles - Allow any signed-in user to GET any profile (safe for MVP)
-    // but only owner can UPDATE.
+    // Landing Page stats болон Directory-д зориулж profiles-ийг УНШИХ эрхийг нээх
     match /profiles/{userId} {
-      allow read, get, list: if isSignedIn();
-      allow write: if isSignedIn() && (request.auth.uid == userId || isSystemAdmin());
+      allow read, get, list: if true; // Нийтэд нээлттэй (Landing Page stats-д хэрэгтэй)
+      allow write: if isSignedIn() && request.auth.uid == userId;
     }
 
-    // Companies - Allow any signed-in user to GET company info.
+    // Байгууллагын мэдээллийг нэвтэрсэн хэрэглэгч бүрт нээлттэй байлгах (Dashboard-д хэрэгтэй)
     match /companies/{companyId} {
       allow read, get, list: if isSignedIn();
-      allow write: if isSignedIn() && (
-        isSystemAdmin() || 
-        resource.data.admin_uid == request.auth.uid ||
-        get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.company_id == companyId
-      );
-
-      match /members/{memberId} {
-        allow read, get, list: if isSignedIn();
-        allow write: if isSignedIn();
+      allow write: if isSignedIn();
+      
+      match /{allSubcollections=**} {
+        allow read, write: if isSignedIn();
       }
     }
 
-    // Orders - Allow signed-in users to list if they own the order OR are part of the company
+    // Захиалгын мэдээлэл
     match /orders/{orderId} {
-      allow list, get: if isSignedIn() && (
-        isSystemAdmin() || 
-        resource.data.user_id == request.auth.uid || 
-        resource.data.company_id == get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.get('company_id', 'none')
-      );
+      allow read, get, list: if isSignedIn();
       allow create: if isSignedIn();
-      allow update, delete: if isSystemAdmin();
+      allow update, delete: if isSignedIn() && request.auth.token.email == "boogiilive@gmail.com";
     }
 
-    // Support collections
+    // Туслах коллекцууд
     match /profile_views/{id} { allow read, write: if true; }
     match /saved_cards/{id} { allow read, write: if isSignedIn(); }
     match /verified_requests/{id} { allow read, write: if isSignedIn(); }

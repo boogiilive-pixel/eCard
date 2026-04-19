@@ -5,7 +5,6 @@ import { storage as firebaseStorage, db, auth, googleProvider } from '../lib/fir
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { UserPlus, Mail, Lock, Chrome, User, Building2, Palette, Camera, CheckCircle } from 'lucide-react';
-import LoadingAnimation from '../components/LoadingAnimation';
 import { AuroraBackground } from '../components/AuroraBackground';
 import { Logo } from '../components/Logo';
 import { CategorySelector, SkillsInput } from '../components/ProfileFields';
@@ -116,19 +115,22 @@ export default function RegisterPage() {
         // Create Company
         const companyRef = doc(collection(db, 'companies'));
         const companyId = companyRef.id;
+        console.log("Creating company document:", companyId);
         await setDoc(companyRef, {
           id: companyId,
           name: formData.companyName,
-          logo_url: logoUrl,
-          brand_color: formData.brandColor,
+          logo_url: logoUrl || '',
+          brand_color: formData.brandColor || '#6366f1',
           admin_uid: uid,
           created_at: new Date().toISOString()
         });
 
         // Create Admin Profile
+        console.log("Creating admin profile for:", uid);
         await createProfile(uid, formData.email, formData.firstname, formData.lastname, companyId, true);
         
         // Add as member
+        console.log("Adding member record to company");
         await setDoc(doc(db, `companies/${companyId}/members`, uid), {
           company_id: companyId,
           user_id: uid,
@@ -136,11 +138,13 @@ export default function RegisterPage() {
           joined_at: new Date().toISOString()
         });
 
-        navigate('/dashboard');
+        navigate('/company');
       } else {
+        console.log("Creating individual profile for:", uid);
         await createProfile(uid, formData.email, formData.firstname, formData.lastname, joinCompanyId || undefined);
         
         if (joinCompanyId) {
+          console.log("Joining existing company:", joinCompanyId);
           await setDoc(doc(db, `companies/${joinCompanyId}/members`, uid), {
             company_id: joinCompanyId,
             user_id: uid,
@@ -152,7 +156,12 @@ export default function RegisterPage() {
         navigate('/dashboard');
       }
     } catch (err: any) {
-      setError(err.message || 'Бүртгүүлэхэд алдаа гарлаа.');
+      console.error('Registration Full Error:', err);
+      let msg = 'Бүртгүүлэхэд алдаа гарлаа.';
+      if (err.code === 'auth/email-already-in-use') msg = 'Энэ и-мэйл хаяг аль хэдийн бүртгэлтэй байна.';
+      if (err.code === 'auth/invalid-email') msg = 'И-мэйл хаяг буруу байна.';
+      if (err.code === 'auth/weak-password') msg = 'Нууц үг хэтэрхий сул байна.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -393,7 +402,14 @@ export default function RegisterPage() {
               disabled={loading}
               className="w-full btn-aurora text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-4 shimmer-sweep shadow-lg shadow-aurora-blue/20"
             >
-              {loading ? <div className="scale-50"><LoadingAnimation /></div> : <><UserPlus className="w-5 h-5" /> Бүртгүүлэх</>}
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Түр хүлээнэ үү...</span>
+                </div>
+              ) : (
+                <><UserPlus className="w-5 h-5" /> Бүртгүүлэх</>
+              )}
             </button>
           </form>
 

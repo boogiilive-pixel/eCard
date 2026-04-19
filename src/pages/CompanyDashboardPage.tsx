@@ -23,15 +23,21 @@ export default function CompanyDashboardPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (!loading && (!user || !isCompanyAdmin)) {
+    // Only redirect if we ARE sure they are NOT an admin
+    // If profile is null but user exists, we might still be loading the record (latency)
+    if (!loading && user && profile && !isCompanyAdmin) {
       navigate('/dashboard');
     }
-  }, [user, isCompanyAdmin, loading, navigate]);
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [user, isCompanyAdmin, loading, navigate, profile]);
 
-  if (loading || !company) {
+  if (loading || !company || !profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <LoadingAnimation />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-6">
+        <div className="w-12 h-12 border-4 border-slate-100 border-t-aurora-blue rounded-full animate-spin" />
+        <p className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Байгууллагын мэдээлэл ачаалж байна...</p>
       </div>
     );
   }
@@ -185,26 +191,35 @@ function Overview({ company }: { company: any }) {
           return;
         }
 
+        console.log("--- B2B Stats Diagnostic ---");
+        console.log("Current User UID:", auth.currentUser.uid);
+        console.log("Current User Email:", auth.currentUser.email);
+        console.log("Target Company ID:", company.id);
         console.log("Fetching Dashboard Stats for:", company.id);
         
         // 1. Members
+        console.log("Attempting to fetch members list...");
         const membersRef = collection(db, `companies/${company.id}/members`);
         const empSnap = await getDocs(membersRef).catch(e => {
-          console.error("Members Permission Denied:", e.code, e.message);
-          throw new Error(`Members Access Denied. Check B2B Admin status for ID: ${company.id}`);
+          console.error("Members Collection Fetch FAILED:", e.code, e.message);
+          throw new Error(`Members Access Denied (Code: ${e.code}). Company ID: ${company.id}`);
         });
+        console.log("Successfully fetched members:", empSnap.size);
         
         // 2. Orders
+        console.log("Attempting to fetch orders query...");
         const ordersQuery = query(collection(db, 'orders'), where('company_id', '==', company.id));
         const ordSnap = await getDocs(ordersQuery).catch(e => {
-          console.error("Orders Permission Denied:", e.code, e.message);
-          throw new Error(`Orders Access Denied. Check B2B Admin status for ID: ${company.id}`);
+          console.error("Orders Collection Query FAILED:", e.code, e.message);
+          throw new Error(`Orders Access Denied (Code: ${e.code}). Company ID: ${company.id}`);
         });
+        console.log("Successfully fetched orders:", ordSnap.size);
 
         setStats({
           employees: empSnap.size,
           orders: ordSnap.size
         });
+        console.log("--- End Diagnostic ---");
       } catch (err: any) {
         console.error('Stats Sync Error:', err);
         setLocalError(err.message);
