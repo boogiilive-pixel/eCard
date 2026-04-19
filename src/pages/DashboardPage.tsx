@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { auth, db, storage } from '../lib/firebase';
 import { collection, doc, updateDoc, getDocs, query, where, deleteDoc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { GoogleGenAI } from "@google/genai";
 import { cn } from '../lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -282,16 +282,18 @@ function MyECard({ profile }: any) {
     setLoading(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const result = await model.generateContent(`Та мэргэжлийн дижитал нэрийн хуудасны танилцуулга бичигч байна. Дараах танилцуулгыг илүү мэргэжлийн, товч бөгөөд утга төгөлдөр болгож засаж өгнө үү. Зөвхөн зассан текстийг буцаана уу: "${formData.bio}"`);
-      const response = await result.response;
-      const improvedText = response.text();
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: `Та мэргэжлийн дижитал нэрийн хуудасны танилцуулга бичигч байна. Дараах танилцуулгыг илүү мэргэжлийн, товч бөгөөд утга төгөлдөр болгож засаж өгнө үү. Зөвхөн зассан текстийг буцаана уу: "${formData.bio}"`
+      });
       
+      const improvedText = response.text;
       if (improvedText) {
         setFormData((prev: any) => ({ ...prev, bio: improvedText.trim() }));
       }
     } catch (err) {
       console.error("AI Improvement Error:", err);
+      alert('AI текст засахад алдаа гарлаа. Дахин оролдоно уу.');
     } finally {
       setLoading(false);
     }
@@ -301,68 +303,80 @@ function MyECard({ profile }: any) {
     if (loading) return;
     
     setLoading(true);
-    setUploadProgress(0);
+    setUploadProgress(10); // Instant feedback
+    
+    console.log("Saving profile for:", profile.id);
     
     // Safety exit - if something hangs for 45s, clear it
     const safetyTimer = setTimeout(() => {
       setLoading(false);
-      alert('Хүсэлт илгээх хугацаа дууслаа. Дахин оролдоно уу.');
+      setUploadProgress(0);
+      alert('Хүсэлт илгээх хугацаа дууслаа. Таны интернет холболт тогтворгүй байж магадгүй. Дахин оролдоно уу.');
     }, 45000);
 
     try {
       let finalAvatarUrl = formData.avatar_url;
 
-      // 1. Image Upload with Progress Tracking
+      // 1. Robust Image Upload (using uploadBytes for better proxy compatibility)
       if (selectedFile) {
-        const uniqueFileName = `av_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
-        const storageRef = ref(storage, `avatars/${profile.id}/${uniqueFileName}`);
-        const uploadTask = uploadBytesResumable(storageRef, selectedFile);
-
-        const uploadPromise = new Promise<string>((resolve, reject) => {
-          uploadTask.on('state_changed', 
-            (snapshot) => {
-              const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-              setUploadProgress(progress);
-            }, 
-            (error) => reject(error), 
-            async () => {
-              const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve(downloadUrl);
-            }
-          );
-        });
-
-        finalAvatarUrl = await uploadPromise;
+        setUploadProgress(25);
+        const fileExt = selectedFile.name.split('.').pop() || 'jpg';
+        const uniqueFileName = `av_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const storageRef = ref(storage, `profiles/${profile.id}/${uniqueFileName}`);
         
-        // Cleanup old preview
+        console.log("Starting uploadBytes...");
+        setUploadProgress(40);
+        
+        await uploadBytes(storageRef, selectedFile);
+        
+        console.log("Upload success, getting URL...");
+        setUploadProgress(80);
+        
+        finalAvatarUrl = await getDownloadURL(storageRef);
+        console.log("New Avatar URL:", finalAvatarUrl);
+        setUploadProgress(90);
+        
+        // Revoke the preview blob to free memory only after success
         if (previewUrl?.startsWith('blob:')) {
           URL.revokeObjectURL(previewUrl);
         }
       }
 
-      // 2. Save Updated Profile to Firestore
+      // 2. Data Cleaning & Firestore Update
       const profileRef = doc(db, 'profiles', profile.id);
-      // Remove id from the data being saved to avoid redundancy
-      const { id, ...dataToSave } = formData;
       
-      await updateDoc(profileRef, {
-        ...dataToSave,
+      // Sanitizing data: remove 'id' field if it exists in formData to avoid merge conflicts
+      const sanitizedData = { ...formData };
+      if ('id' in sanitizedData) delete (sanitizedData as any).id;
+      
+      const dataToSave = {
+        ...sanitizedData,
         avatar_url: finalAvatarUrl,
         updated_at: new Date().toISOString()
-      });
-
+      };
+      
+      console.log("Updating Firestore document...");
+      await setDoc(profileRef, dataToSave, { merge: true });
+      
+      setUploadProgress(100);
       setPreviewUrl(finalAvatarUrl);
       setSelectedFile(null);
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 4000);
-      
+      setTimeout(() => setShowSuccess(false), 5000);
+      console.log("Profile update complete.");
+
     } catch (err: any) {
-      console.error("Profile Save Failure:", err);
-      alert(`Алдаа гарлаа: ${err.message || 'Интернет холболтоо шалгана уу'}`);
+      console.error("CRITICAL SAVE ERROR:", err);
+      let errorMsg = 'Хадгалахад алдаа гарлаа. ';
+      if (err.code === 'storage/unauthorized') errorMsg += 'Зураг оруулах эрхгүй байна.';
+      else if (err.code === 'storage/canceled') errorMsg += 'Үйлдэл цуцлагдлаа.';
+      else errorMsg += (err.message || 'Интернет холболтоо шалгана уу.');
+      
+      alert(errorMsg);
     } finally {
       clearTimeout(safetyTimer);
       setLoading(false);
-      setUploadProgress(0);
+      setTimeout(() => setUploadProgress(0), 1000);
     }
   };
 
