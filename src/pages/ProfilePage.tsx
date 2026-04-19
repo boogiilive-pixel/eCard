@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { collection, query, where, getDocs, doc, updateDoc, increment, addDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, increment, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { UserProfile } from '../types';
+import { UserProfile, Company } from '../types';
 import { useFirebase } from '../contexts/FirebaseContext';
 import { motion } from 'motion/react';
 import { 
@@ -18,6 +18,7 @@ import { Logo } from '../components/Logo';
 export default function ProfilePage() {
   const { username } = useParams();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isSaved, setIsSaved] = useState(false);
@@ -32,13 +33,19 @@ export default function ProfilePage() {
       // 1. Check if the profile we're looking for is the currently logged-in user's profile
       if (contextProfile && contextProfile.username === username) {
         setProfile(contextProfile);
+        if (contextProfile.company_id) {
+          try {
+            const compSnap = await getDoc(doc(db, 'companies', contextProfile.company_id));
+            if (compSnap.exists()) {
+              setCompany({ id: compSnap.id, ...compSnap.data() } as Company);
+            }
+          } catch (e) { console.error(e); }
+        }
         setLoading(false);
         return;
       }
 
       try {
-        // 2. Otherwise, fetch from Firestore with public filters
-        // These filters are required by security rules for public access
         const q = query(
           collection(db, 'profiles'), 
           where('username', '==', username),
@@ -52,6 +59,16 @@ export default function ProfilePage() {
           const docData = querySnapshot.docs[0];
           const data = { id: docData.id, ...docData.data() } as UserProfile;
           setProfile(data);
+
+          // Fetch company if exists
+          if (data.company_id) {
+            try {
+              const compSnap = await getDoc(doc(db, 'companies', data.company_id));
+              if (compSnap.exists()) {
+                setCompany({ id: compSnap.id, ...compSnap.data() } as Company);
+              }
+            } catch (e) { console.error(e); }
+          }
           
           // Check if already saved
           if (user) {
@@ -240,10 +257,17 @@ export default function ProfilePage() {
           ref={cardRef}
           className="relative w-full min-h-[280px] h-auto rounded-[32px] p-10 shadow-2xl overflow-hidden group transition-all duration-500 hover:scale-[1.01] flex flex-col justify-between"
           style={{ 
-            backgroundColor: !profile.card_color?.startsWith('linear') ? (profile.card_color || '#0d1530') : 'transparent',
+            backgroundColor: !profile.card_color?.startsWith('linear') ? (company?.brand_color || profile.card_color || '#0d1530') : 'transparent',
             backgroundImage: profile.card_color?.startsWith('linear') ? profile.card_color : 'none'
           }}
         >
+          {/* Company Branding Logo */}
+          {company?.logo_url && (
+            <div className="absolute top-6 left-6 w-10 h-10 rounded-lg bg-white/20 backdrop-blur-md p-1.5 overflow-hidden border border-white/10 z-20">
+              <img src={company.logo_url} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+            </div>
+          )}
+
           {/* Pattern Overlay */}
           <div className={cn("absolute inset-0 opacity-30 pointer-events-none", profile.card_pattern || 'pattern-none')} />
           
@@ -287,9 +311,9 @@ export default function ProfilePage() {
                   {profile.verified && <ShieldCheck className="w-4 h-4 text-aurora-cyan shrink-0 mt-0.5" />}
                 </div>
                 <p className="text-base font-medium mt-2" style={{ color: profile.card_text_color, opacity: 0.9 }}>{profile.job_title}</p>
-                {profile.company && (
+                {(profile.company || company?.name) && (
                   <p className="text-sm mt-1.5 flex items-center justify-end gap-1.5" style={{ color: profile.card_text_color, opacity: 0.7 }}>
-                    <Building2 className="w-3.5 h-3.5" /> {profile.company}
+                    <Building2 className="w-3.5 h-3.5" /> {company?.name || profile.company}
                   </p>
                 )}
               </div>

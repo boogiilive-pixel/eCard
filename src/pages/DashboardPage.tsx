@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useFirebase } from '../contexts/FirebaseContext';
 import { motion } from 'motion/react';
 import { 
@@ -26,6 +26,8 @@ export default function DashboardPage() {
   const { profile, user, loading } = useFirebase();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const joinCompanyId = searchParams.get('joinCompanyId');
   const [copied, setCopied] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -34,6 +36,35 @@ export default function DashboardPage() {
       navigate('/login');
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    const processJoin = async () => {
+      if (joinCompanyId && profile && !profile.company_id) {
+        try {
+          const compSnap = await getDocs(query(collection(db, 'companies'), where('id', '==', joinCompanyId)));
+          if (!compSnap.empty) {
+            const compData = compSnap.docs[0].data();
+            await updateDoc(doc(db, 'profiles', profile.id), {
+              company_id: joinCompanyId,
+              company: compData.name,
+              card_color: compData.brand_color
+            });
+            await setDoc(doc(db, `companies/${joinCompanyId}/members`, profile.id), {
+              company_id: joinCompanyId,
+              user_id: profile.id,
+              role: 'employee',
+              joined_at: new Date().toISOString()
+            });
+            alert(`${compData.name} байгууллагад амжилттай нэгдлээ!`);
+            window.location.reload();
+          }
+        } catch (e) {
+          console.error('Join error:', e);
+        }
+      }
+    };
+    if (!loading) processJoin();
+  }, [joinCompanyId, profile, loading]);
 
   if (loading) {
     return (

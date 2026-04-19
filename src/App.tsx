@@ -17,6 +17,8 @@ import DashboardPage from './pages/DashboardPage';
 import AdminPage from './pages/AdminPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
+import CompanyDashboardPage from './pages/CompanyDashboardPage';
+import CompanyJoinRedirect from './pages/CompanyJoinRedirect';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from './components/Logo';
 import LoadingAnimation from './components/LoadingAnimation';
@@ -43,6 +45,7 @@ function AppRoutes() {
       <Route path="/directory" element={<DirectoryPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/join/:companyId" element={<CompanyJoinRedirect />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/:username" element={<ProfilePage />} />
@@ -58,13 +61,21 @@ function AppRoutes() {
           <AdminPage />
         </ProtectedRoute>
       } />
+
+      <Route path="/company/*" element={
+        <ProtectedRoute>
+          <CompanyDashboardPage />
+        </ProtectedRoute>
+      } />
     </Routes>
   );
 }
 
 function Layout() {
   const location = useLocation();
-  const isDashboard = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
+  const isDashboard = location.pathname.startsWith('/dashboard') || 
+                      location.pathname.startsWith('/admin') || 
+                      location.pathname.startsWith('/company');
   
   return (
     <div className="relative min-h-screen overflow-x-hidden">

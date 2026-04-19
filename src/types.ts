@@ -1,5 +1,6 @@
 export type UserRole = 'user' | 'admin';
 export type SubscriptionPlan = 'free' | 'pro' | 'business';
+export type CompanyRole = 'admin' | 'employee';
 
 export interface UserProfile {
   id: string;
@@ -8,6 +9,8 @@ export interface UserProfile {
   username: string;
   job_title?: string;
   company?: string;
+  company_id?: string;
+  is_company_admin?: boolean;
   phone?: string;
   email?: string;
   website?: string;
@@ -33,20 +36,39 @@ export interface UserProfile {
   maps_url?: string;
   lastname_display?: 'full' | 'initial';
   card_pattern?: string;
-  // Business Fields
-  business_name?: string;
-  business_logo?: string;
-  business_bio?: string;
-  business_phone?: string;
-  business_email?: string;
-  business_website?: string;
-  business_address?: string;
-  business_color?: string;
-  business_industry?: string;
   view_count: number;
   qr_scan_count: number;
   created_at: any;
   updated_at: any;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  logo_url?: string;
+  brand_color: string;
+  admin_uid: string;
+  created_at: any;
+}
+
+export interface CompanyMember {
+  id: string;
+  company_id: string;
+  user_id: string;
+  role: CompanyRole;
+  joined_at: any;
+}
+
+export interface Order {
+  id: string;
+  company_id?: string;
+  user_id: string;
+  type: 'individual' | 'B2B';
+  quantity: number;
+  address: string;
+  contact_phone: string;
+  status: 'pending' | 'shipped' | 'delivered';
+  created_at: any;
 }
 
 export interface ProfileView {
