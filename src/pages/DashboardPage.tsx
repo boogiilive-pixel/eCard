@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useFirebase } from '../contexts/FirebaseContext';
 import { motion } from 'motion/react';
 import { 
@@ -26,66 +26,14 @@ export default function DashboardPage() {
   const { profile, user, loading } = useFirebase();
   const location = useLocation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const joinCompanyId = searchParams.get('joinCompanyId');
   const [copied, setCopied] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showMissingProfile, setShowMissingProfile] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/login');
     }
   }, [user, loading, navigate]);
-
-  // Redirect company admins to company dashboard
-  useEffect(() => {
-    if (!loading && profile?.is_company_admin) {
-      navigate('/company');
-    }
-  }, [profile, loading, navigate]);
-
-  // Delay "missing profile" screen to allow Firestore propagation
-  useEffect(() => {
-    let timer: any;
-    if (!loading && user && !profile) {
-      timer = setTimeout(() => {
-        setShowMissingProfile(true);
-      }, 6000); // Increased to 6 seconds to handle higher latency
-    } else {
-      setShowMissingProfile(false);
-    }
-    return () => clearTimeout(timer);
-  }, [profile, user, loading]);
-
-  useEffect(() => {
-    const processJoin = async () => {
-      if (joinCompanyId && profile && !profile.company_id) {
-        try {
-          const compSnap = await getDocs(query(collection(db, 'companies'), where('id', '==', joinCompanyId)));
-          if (!compSnap.empty) {
-            const compData = compSnap.docs[0].data();
-            await updateDoc(doc(db, 'profiles', profile.id), {
-              company_id: joinCompanyId,
-              company: compData.name,
-              card_color: compData.brand_color
-            });
-            await setDoc(doc(db, `companies/${joinCompanyId}/members`, profile.id), {
-              company_id: joinCompanyId,
-              user_id: profile.id,
-              role: 'employee',
-              joined_at: new Date().toISOString()
-            });
-            alert(`${compData.name} байгууллагад амжилттай нэгдлээ!`);
-            window.location.reload();
-          }
-        } catch (e) {
-          console.error('Join error:', e);
-        }
-      }
-    };
-    if (!loading) processJoin();
-  }, [joinCompanyId, profile, loading]);
 
   if (loading) {
     return (
@@ -96,27 +44,18 @@ export default function DashboardPage() {
   }
 
   // Handle missing profile - redirect to register or show setup
-  if (!profile && user && showMissingProfile) {
+  if (!profile && user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-void p-6 text-center">
         <div className="max-w-md glass-panel p-10 rounded-[32px] space-y-6">
           <Logo size="md" className="mx-auto" />
           <h2 className="text-2xl font-serif font-bold text-slate-900">Профайл бүртгэгдээгүй байна</h2>
-          <p className="text-slate-500 text-sm">Таны мэдээллийг ачаалахад хугацаа орж байна. Хэрэв та саяхан бүртгүүлсэн бол хэдхэн секунд хүлээгээд дахин ачаална уу.</p>
+          <p className="text-slate-500 text-sm">Таны бүртгэл үүссэн боловч нэрийн хуудсын мэдээлэл алга байна. Шинэ төсөл рүү шилжсэнтэй холбоотой байж магадгүй.</p>
           <div className="flex flex-col gap-3 pt-4">
-            <button onClick={() => window.location.reload()} className="btn-aurora py-4 rounded-xl font-bold">Дахин ачаалах</button>
-            <Link to="/register" className="text-slate-400 text-xs hover:text-slate-900 transition-colors uppercase tracking-widest font-bold">Дахин бүртгүүлэх</Link>
+            <Link to="/register" className="btn-aurora py-4 rounded-xl font-bold">Одоо үүсгэх</Link>
+            <button onClick={() => auth.signOut()} className="text-slate-400 text-xs hover:text-slate-900 transition-colors uppercase tracking-widest font-bold">Гарах</button>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (!profile && user && !showMissingProfile) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-6">
-        <div className="w-12 h-12 border-4 border-slate-100 border-t-aurora-blue rounded-full animate-spin" />
-        <p className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Мэдээлэл бэлтгэж байна...</p>
       </div>
     );
   }

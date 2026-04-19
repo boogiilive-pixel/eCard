@@ -2,15 +2,13 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
-import { UserProfile, Company } from '../types';
+import { UserProfile } from '../types';
 
 interface FirebaseContextType {
   user: User | null;
   profile: UserProfile | null;
-  company: Company | null;
   loading: boolean;
   isAdmin: boolean;
-  isCompanyAdmin: boolean;
 }
 
 const FirebaseContext = createContext<FirebaseContextType | undefined>(undefined);
@@ -18,7 +16,6 @@ const FirebaseContext = createContext<FirebaseContextType | undefined>(undefined
 export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,7 +23,6 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
       setUser(currentUser);
       if (!currentUser) {
         setProfile(null);
-        setCompany(null);
         setLoading(false);
       }
     });
@@ -37,56 +33,25 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) return;
 
-    let unsubscribeCompany: (() => void) | null = null;
-
     const unsubscribeProfile = onSnapshot(doc(db, 'profiles', user.uid), (docSnap) => {
       if (docSnap.exists()) {
-        const pData = { id: docSnap.id, ...docSnap.data() } as UserProfile;
-        setProfile(pData);
-
-        // Cleanup old company subscription if it exists
-        if (unsubscribeCompany) {
-          unsubscribeCompany();
-          unsubscribeCompany = null;
-        }
-
-        if (pData.company_id) {
-          unsubscribeCompany = onSnapshot(doc(db, 'companies', pData.company_id), (compSnap) => {
-            if (compSnap.exists()) {
-              setCompany({ id: compSnap.id, ...compSnap.data() } as Company);
-            } else {
-              setCompany(null);
-            }
-            setLoading(false);
-          }, (err) => {
-            console.error("Company sync error:", err);
-            setLoading(false);
-          });
-        } else {
-          setCompany(null);
-          setLoading(false);
-        }
+        setProfile({ id: docSnap.id, ...docSnap.data() } as UserProfile);
       } else {
         setProfile(null);
-        setCompany(null);
-        setLoading(false);
       }
+      setLoading(false);
     }, (error) => {
       console.error("Profile fetch error:", error);
       setLoading(false);
     });
 
-    return () => {
-      unsubscribeProfile();
-      if (unsubscribeCompany) unsubscribeCompany();
-    };
+    return () => unsubscribeProfile();
   }, [user]);
 
   const isAdmin = profile?.role === 'admin' || user?.email === 'boogiilive@gmail.com';
-  const isCompanyAdmin = profile?.is_company_admin || false;
 
   return (
-    <FirebaseContext.Provider value={{ user, profile, company, loading, isAdmin, isCompanyAdmin }}>
+    <FirebaseContext.Provider value={{ user, profile, loading, isAdmin }}>
       {children}
     </FirebaseContext.Provider>
   );

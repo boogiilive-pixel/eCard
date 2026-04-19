@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom';
 import { useFirebase } from '../contexts/FirebaseContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, User, LogOut, LayoutDashboard, ShieldCheck, Building2 } from 'lucide-react';
+import { Menu, X, User, LogOut, LayoutDashboard, ShieldCheck } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import { cn } from '../lib/utils';
 import { Logo } from './Logo';
 
 export default function Navbar() {
-  const { user, profile, isAdmin, isCompanyAdmin } = useFirebase();
+  const { user, profile, isAdmin } = useFirebase();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -48,11 +48,6 @@ export default function Navbar() {
                 {isAdmin && (
                   <Link to="/admin" className={cn("hover:text-aurora-magenta transition-colors flex items-center gap-2", isScrolled && "hover:text-white")}>
                     <ShieldCheck className="w-3.5 h-3.5" /> Админ
-                  </Link>
-                )}
-                {isCompanyAdmin && (
-                  <Link to="/company" className={cn("hover:text-aurora-magenta transition-colors flex items-center gap-2", isScrolled && "hover:text-white")}>
-                    <Building2 className="w-3.5 h-3.5" /> Байгууллага
                   </Link>
                 )}
                 <Link to="/dashboard" className={cn("hover:text-aurora-magenta transition-colors flex items-center gap-2", isScrolled && "hover:text-white")}>
@@ -115,7 +110,6 @@ export default function Navbar() {
               {user ? (
                 <>
                   <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-magenta py-2 uppercase tracking-widest text-[10px] font-black transition-colors">Хяналтын самбар</Link>
-                  {isCompanyAdmin && <Link to="/company" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-magenta py-2 uppercase tracking-widest text-[10px] font-black transition-colors">Байгууллагын самбар</Link>}
                   {isAdmin && <Link to="/admin" onClick={() => setIsOpen(false)} className="block text-slate-600 hover:text-aurora-magenta py-2 uppercase tracking-widest text-[10px] font-black transition-colors">Админ самбар</Link>}
                   <button onClick={() => { handleLogout(); setIsOpen(false); }} className="block text-slate-600 hover:text-aurora-magenta py-2 w-full text-left uppercase tracking-widest text-[10px] font-black transition-colors">Гарах</button>
                 </>

@@ -1,146 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
-import { storage as firebaseStorage, db, auth, googleProvider } from '../lib/firebase';
-import { motion, AnimatePresence } from 'motion/react';
-import { cn } from '../lib/utils';
-import { UserPlus, Mail, Lock, Chrome, User, Building2, Palette, Camera, CheckCircle } from 'lucide-react';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db, googleProvider } from '../lib/firebase';
+import { motion } from 'motion/react';
+import { UserPlus, Mail, Lock, Chrome, User } from 'lucide-react';
+import LoadingAnimation from '../components/LoadingAnimation';
 import { AuroraBackground } from '../components/AuroraBackground';
 import { Logo } from '../components/Logo';
 import { CategorySelector, SkillsInput } from '../components/ProfileFields';
 import { NetworkNodes } from '../components/NetworkNodes';
 import { SKILLS_SUGGESTIONS } from '../constants';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { collection, doc, setDoc, getDoc, addDoc } from 'firebase/firestore';
 
 export default function RegisterPage() {
-  const [searchParams] = useSearchParams();
-  const joinCompanyId = searchParams.get('companyId');
-  const [joiningCompany, setJoiningCompany] = useState<any>(null);
-
-  const [regType, setRegType] = useState<'individual' | 'company'>('individual');
   const [formData, setFormData] = useState({
     lastname: '',
     firstname: '',
     email: '',
     password: '',
     category: '',
-    skills: [] as string[],
-    companyName: '',
-    brandColor: '#6366f1'
+    skills: [] as string[]
   });
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (joinCompanyId) {
-      const fetchComp = async () => {
-        try {
-          const snap = await getDoc(doc(db, 'companies', joinCompanyId));
-          if (snap.exists()) {
-            setJoiningCompany({ id: snap.id, ...snap.data() });
-          }
-        } catch (e) {
-          console.error('Error fetching company:', e);
-        }
-      };
-      fetchComp();
-    }
-  }, [joinCompanyId]);
-
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setLogoFile(file);
-      setLogoPreview(URL.createObjectURL(file));
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const createProfile = async (userId: string, email: string, firstname: string, lastname: string, companyId?: string, isCompanyAdmin?: boolean) => {
-    try {
-      // Ensure username is Latin-only
-      const combined = (firstname + lastname).toLowerCase();
-      const latinOnly = combined.split('').filter(char => /^[a-z0-9]$/.test(char)).join('');
-      const base = latinOnly || 'user';
-      const username = base + Math.floor(Math.random() * 1000);
-      
-      const profileData = {
-        lastname,
-        firstname,
-        username,
-        email,
-        category: formData.category,
-        skills: formData.skills,
-        card_color: regType === 'company' ? formData.brandColor : '#0f1729',
-        card_text_color: '#ffffff',
-        role: 'user',
-        plan: regType === 'company' ? 'business' : 'free',
-        verified: false,
-        is_active: true,
-        show_in_directory: true,
-        profile_public: true,
-        view_count: 0,
-        qr_scan_count: 0,
-        company_id: companyId || null,
-        is_company_admin: isCompanyAdmin || false,
-        company: regType === 'company' ? formData.companyName : '',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      
-      console.log("[DEBUG] Writing profile to Firestore:", userId);
-      await setDoc(doc(db, 'profiles', userId), profileData);
-      console.log("[DEBUG] Profile write success");
-    } catch (e) {
-      console.error("[DEBUG] Error creating profile:", e);
-      throw e;
-    }
-  };
-
-  const compressLogo = async (file: File): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (e) => {
-        const img = new Image();
-        img.src = e.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_SIZE = 400;
-          let width = img.width;
-          let height = img.height;
-          
-          if (width > height) {
-            if (width > MAX_SIZE) {
-              height *= MAX_SIZE / width;
-              width = MAX_SIZE;
-            }
-          } else {
-            if (height > MAX_SIZE) {
-              width *= MAX_SIZE / height;
-              height = MAX_SIZE;
-            }
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          canvas.toBlob((blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Compression failed'));
-          }, 'image/jpeg', 0.7);
-        };
-      };
-      reader.onerror = reject;
-    });
+  const createProfile = async (userId: string, email: string, firstname: string, lastname: string) => {
+    // Ensure username is Latin-only
+    const combined = (firstname + lastname).toLowerCase();
+    const latinOnly = combined.split('').filter(char => /^[a-z0-9]$/.test(char)).join('');
+    const base = latinOnly || 'user';
+    const username = base + Math.floor(Math.random() * 1000);
+    
+    const profileData = {
+      lastname,
+      firstname,
+      username,
+      email,
+      category: formData.category,
+      skills: formData.skills,
+      card_color: '#0f1729',
+      card_text_color: '#c9a84c',
+      role: 'user',
+      plan: 'free',
+      verified: false,
+      is_active: true,
+      show_in_directory: true,
+      profile_public: true,
+      view_count: 0,
+      qr_scan_count: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    await setDoc(doc(db, 'profiles', userId), profileData);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -148,157 +64,34 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
     try {
-      console.log("Starting registration for:", formData.email);
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-      const uid = userCredential.user.uid;
-      console.log("Auth success, UID:", uid);
-
-      if (regType === 'company') {
-        let logoUrl = '';
-        if (logoFile) {
-          try {
-            console.log("[DEBUG] Compressing and uploading logo...");
-            const compressedLogo = await compressLogo(logoFile);
-            const logoRef = ref(firebaseStorage, `companies/${uid}/logo_${Date.now()}.jpg`);
-            await uploadBytes(logoRef, compressedLogo);
-            logoUrl = await getDownloadURL(logoRef);
-            console.log("[DEBUG] Logo upload complete, URL:", logoUrl);
-          } catch (logoErr) {
-            console.error("[DEBUG] Logo upload failed (skipping):", logoErr);
-            // Non-critical failure, proceed without logo
-          }
-        }
-
-        // Create Company
-        const companyRef = doc(collection(db, 'companies'));
-        const companyId = companyRef.id;
-        console.log("[DEBUG] Creating company document:", companyId);
-        await setDoc(companyRef, {
-          id: companyId,
-          name: formData.companyName,
-          logo_url: logoUrl || '',
-          brand_color: formData.brandColor || '#6366f1',
-          admin_uid: uid,
-          created_at: new Date().toISOString()
-        });
-        console.log("[DEBUG] Company document created");
-
-        // Create Admin Profile
-        console.log("[DEBUG] Creating admin profile for:", uid);
-        const adminFirstname = formData.firstname || formData.email.split('@')[0];
-        const adminLastname = formData.lastname || 'Admin';
-        await createProfile(uid, formData.email, adminFirstname, adminLastname, companyId, true);
-        console.log("[DEBUG] Admin profile created");
-        
-        // Add as member
-        console.log("[DEBUG] Adding member record to company");
-        await setDoc(doc(db, `companies/${companyId}/members`, uid), {
-          company_id: companyId,
-          user_id: uid,
-          role: 'admin',
-          joined_at: new Date().toISOString()
-        });
-        console.log("[DEBUG] Member record added, navigating to /company");
-
-        navigate('/company');
-      } else {
-        console.log("Creating individual profile for:", uid);
-        await createProfile(uid, formData.email, formData.firstname, formData.lastname, joinCompanyId || undefined);
-        
-        if (joinCompanyId) {
-          console.log("Joining existing company:", joinCompanyId);
-          await setDoc(doc(db, `companies/${joinCompanyId}/members`, uid), {
-            company_id: joinCompanyId,
-            user_id: uid,
-            role: 'employee',
-            joined_at: new Date().toISOString()
-          });
-        }
-
-        navigate('/dashboard');
-      }
+      await createProfile(userCredential.user.uid, formData.email, formData.firstname, formData.lastname);
+      navigate('/dashboard');
     } catch (err: any) {
-      console.error('Registration Full Error:', err);
-      let msg = 'Бүртгүүлэхэд алдаа гарлаа.';
-      if (err.code === 'auth/email-already-in-use') msg = 'Энэ и-мэйл хаяг аль хэдийн бүртгэлтэй байна.';
-      if (err.code === 'auth/invalid-email') msg = 'И-мэйл хаяг буруу байна.';
-      if (err.code === 'auth/weak-password') msg = 'Нууц үг хэтэрхий сул байна.';
-      if (err.code === 'auth/operation-not-allowed') {
-        msg = 'Email/Password бүртгэл хаагдсан байна. Firebase Console -> Authentication -> Sign-in method хэсэгт Email/Password-ыг Enable хийнэ үү.';
-      }
-      setError(msg);
+      setError(err.message || 'Бүртгүүлэхэд алдаа гарлаа.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    if (regType === 'company' && !formData.companyName) {
-      setError('Байгууллагын нэрээ оруулна уу.');
-      return;
-    }
-
     try {
-      setLoading(true);
-      setError('');
       const result = await signInWithPopup(auth, googleProvider);
-      const uid = result.user.uid;
-      const docSnap = await getDoc(doc(db, 'profiles', uid));
-      
+      const docSnap = await getDoc(doc(db, 'profiles', result.user.uid));
       if (!docSnap.exists()) {
-        const email = result.user.email!;
         const names = result.user.displayName?.split(' ') || ['', ''];
-        const firstname = names[1] || names[0] || email.split('@')[0];
-        const lastname = names[0] || 'Admin';
-
-        if (regType === 'company') {
-          // Create Company
-          const companyRef = doc(collection(db, 'companies'));
-          const companyId = companyRef.id;
-          await setDoc(companyRef, {
-            id: companyId,
-            name: formData.companyName,
-            logo_url: '',
-            brand_color: '#6366f1',
-            admin_uid: uid,
-            created_at: new Date().toISOString()
-          });
-
-          // Create Admin Profile
-          await createProfile(uid, email, firstname, lastname, companyId, true);
-          
-          // Add as member
-          await setDoc(doc(db, `companies/${companyId}/members`, uid), {
-            company_id: companyId,
-            user_id: uid,
-            role: 'admin',
-            joined_at: new Date().toISOString()
-          });
-
-          navigate('/company');
-        } else {
-          await createProfile(uid, email, firstname, lastname, joinCompanyId || undefined);
-          if (joinCompanyId) {
-            await setDoc(doc(db, `companies/${joinCompanyId}/members`, uid), {
-              company_id: joinCompanyId,
-              user_id: uid,
-              role: 'employee',
-              joined_at: new Date().toISOString()
-            });
-          }
-          navigate('/dashboard');
-        }
-      } else {
-        // Exists - go to appropriate dash
-        const p = docSnap.data();
-        if (p?.is_company_admin) navigate('/company');
-        else navigate('/dashboard');
+        await createProfile(result.user.uid, result.user.email!, names[1] || names[0], names[0]);
       }
+      navigate('/dashboard');
     } catch (err: any) {
-      console.error('Google Auth Error:', err);
-      setError('Google-ээр нэвтрэхэд алдаа гарлаа.');
-    } finally {
-      setLoading(false);
+      console.error('Google Register Error:', err);
+      if (err.code === 'auth/unauthorized-domain') {
+        setError('Энэ домэйн Firebase-д бүртгэлгүй байна. Firebase Console дээр домэйнээ нэмнэ үү.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('Browser-ийн popup хаагдсан байна. Зөвшөөрөөд дахин оролдоно уу.');
+      } else {
+        setError(`Google-ээр бүртгүүлэхэд алдаа гарлаа: ${err.message}`);
+      }
     }
   };
 
@@ -337,119 +130,48 @@ export default function RegisterPage() {
           <h1 className="text-4xl font-serif font-bold mb-2 text-slate-900">Бүртгүүлэх</h1>
           <p className="text-slate-500 mb-8">Мэдээллээ оруулан картаа үүсгэнэ үү.</p>
 
-          {joiningCompany && (
-            <div className="bg-aurora-blue/5 border border-aurora-blue/20 p-6 rounded-2xl mb-8 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center p-2 overflow-hidden border border-slate-100">
-                {joiningCompany.logo_url ? <img src={joiningCompany.logo_url} className="w-full h-full object-contain" /> : <Building2 className="text-aurora-blue" />}
-              </div>
-              <div>
-                <p className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Таныг урьж байна</p>
-                <p className="text-sm font-black text-slate-900">{joiningCompany.name}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Registration Type Toggle */}
-          {!joinCompanyId && (
-            <div className="flex p-1 bg-slate-100 rounded-2xl mb-8">
-              <button 
-                onClick={() => setRegType('individual')}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all",
-                  regType === 'individual' ? "bg-white text-aurora-blue shadow-sm" : "text-slate-500 hover:text-slate-700"
-                )}
-              >
-                <User className="w-4 h-4" /> Хувь хүн
-              </button>
-              <button 
-                onClick={() => setRegType('company')}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all",
-                  regType === 'company' ? "bg-white text-aurora-blue shadow-sm" : "text-slate-500 hover:text-slate-700"
-                )}
-              >
-                <Building2 className="w-4 h-4" /> Байгууллага
-              </button>
-            </div>
-          )}
-
           {error && <div className="bg-danger/10 border border-danger/20 text-danger p-4 rounded-xl mb-6 text-sm">{error}</div>}
 
           <form onSubmit={handleRegister} className="space-y-4">
-            {regType === 'company' && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="space-y-4 pt-2 pb-4 border-b border-slate-100 mb-4"
-              >
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Байгууллагын нэр</label>
-                  <div className="relative">
-                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-                    <input 
-                      type="text" 
-                      name="companyName"
-                      value={formData.companyName}
-                      onChange={handleChange}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 focus:border-aurora-blue focus:ring-4 focus:ring-aurora-blue/5 outline-none transition-all"
-                      placeholder="Жишээ: Тесла Моторс"
-                      required={regType === 'company'}
-                    />
-                  </div>
-                </div>
-              </motion.div>
-            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Овог</label>
+                <input 
+                  type="text" 
+                  name="lastname"
+                  value={formData.lastname}
+                  onChange={handleChange}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-aurora-blue focus:ring-4 focus:ring-aurora-blue/5 outline-none transition-all"
+                  placeholder="Овог"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Нэр</label>
+                <input 
+                  type="text" 
+                  name="firstname"
+                  value={formData.firstname}
+                  onChange={handleChange}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-aurora-blue focus:ring-4 focus:ring-aurora-blue/5 outline-none transition-all"
+                  placeholder="Нэр"
+                  required
+                />
+              </div>
+            </div>
 
-            {regType === 'individual' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="space-y-4"
-              >
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Овог</label>
-                    <input 
-                      type="text" 
-                      name="lastname"
-                      value={formData.lastname}
-                      onChange={handleChange}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-aurora-blue focus:ring-4 focus:ring-aurora-blue/5 outline-none transition-all"
-                      placeholder="Овог"
-                      required={regType === 'individual'}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Нэр</label>
-                    <input 
-                      type="text" 
-                      name="firstname"
-                      value={formData.firstname}
-                      onChange={handleChange}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-aurora-blue focus:ring-4 focus:ring-aurora-blue/5 outline-none transition-all"
-                      placeholder="Нэр"
-                      required={regType === 'individual'}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <CategorySelector 
-                    value={formData.category}
-                    onChange={(val) => setFormData(prev => ({ ...prev, category: val }))}
-                    required={regType === 'individual'}
-                  />
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Чадвар</label>
-                    <SkillsInput 
-                      skills={formData.skills}
-                      onChange={(val) => setFormData(prev => ({ ...prev, skills: val }))}
-                      suggestions={SKILLS_SUGGESTIONS}
-                    />
-                  </div>
-                </div>
-              </motion.div>
-            )}
+            <div className="space-y-4">
+              <CategorySelector 
+                value={formData.category}
+                onChange={(val) => setFormData(prev => ({ ...prev, category: val }))}
+                required
+              />
+              <SkillsInput 
+                skills={formData.skills}
+                onChange={(val) => setFormData(prev => ({ ...prev, skills: val }))}
+                suggestions={SKILLS_SUGGESTIONS}
+              />
+            </div>
 
             <div className="space-y-2">
               <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Имэйл хаяг</label>
@@ -488,14 +210,7 @@ export default function RegisterPage() {
               disabled={loading}
               className="w-full btn-aurora text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-4 shimmer-sweep shadow-lg shadow-aurora-blue/20"
             >
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Түр хүлээнэ үү...</span>
-                </div>
-              ) : (
-                <><UserPlus className="w-5 h-5" /> Бүртгүүлэх</>
-              )}
+              {loading ? <div className="scale-50"><LoadingAnimation /></div> : <><UserPlus className="w-5 h-5" /> Бүртгүүлэх</>}
             </button>
           </form>
 
