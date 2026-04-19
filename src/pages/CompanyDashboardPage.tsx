@@ -798,6 +798,7 @@ function SettingsView({ company }: { company: any }) {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(company.logo_url);
   const [loading, setLoading] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -807,74 +808,109 @@ function SettingsView({ company }: { company: any }) {
     }
   };
 
-  const compressLogo = async (file: File): Promise<Blob> => {
+  // THE RELIABLE OPTION: Direct Base64 storage in Firestore (Identical to DashboardPage)
+  const compressToDataUrl = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = (e) => {
+      reader.onload = (event) => {
         const img = new Image();
-        img.src = e.target?.result as string;
+        img.src = event.target?.result as string;
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_SIZE = 400;
+          const MAX_WIDTH = 600; // Limit size for Firestore
+          const MAX_HEIGHT = 400;
           let width = img.width;
           let height = img.height;
-          
+
+          // Maintain aspect ratio (Better for logos)
           if (width > height) {
-            if (width > MAX_SIZE) {
-              height *= MAX_SIZE / width;
-              width = MAX_SIZE;
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
             }
           } else {
-            if (height > MAX_SIZE) {
-              width *= MAX_SIZE / height;
-              height = MAX_SIZE;
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
             }
           }
-          
+
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          canvas.toBlob((blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Compression failed'));
-          }, 'image/jpeg', 0.7);
+          if (!ctx) return reject(new Error('Canvas ctx null'));
+
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const base64 = canvas.toDataURL('image/jpeg', 0.6); // 60% quality is perfect
+          resolve(base64);
         };
+        img.onerror = () => reject(new Error('Зургийг уншихад алдаа гарлаа.'));
       };
-      reader.onerror = reject;
+      reader.onerror = () => reject(new Error('Файлыг уншихад алдаа гарлаа.'));
     });
   };
 
   const handleSave = async () => {
+    if (loading) return;
     setLoading(true);
+    setSaveStatus('saving');
+
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+      setSaveStatus('error');
+      alert('Интернет холболт удаан байна. Дахин оролдоно уу.');
+    }, 45000);
+
     try {
-      let logoUrl = company.logo_url;
+      let finalLogoUrl = company.logo_url;
       if (logoFile) {
-        const compressedLogo = await compressLogo(logoFile);
-        const logoRef = ref(storage, `companies/${company.id}/logo_${Date.now()}.jpg`);
-        await uploadBytes(logoRef, compressedLogo);
-        logoUrl = await getDownloadURL(logoRef);
+        console.log("Compressing company logo to Base64...");
+        finalLogoUrl = await compressToDataUrl(logoFile);
+        console.log("Compression complete.");
       }
 
+      console.log("Updating document in Firestore...");
       await updateDoc(doc(db, 'companies', company.id), {
         name: formData.name,
         brand_color: formData.brand_color,
-        logo_url: logoUrl
+        logo_url: finalLogoUrl,
+        updated_at: new Date().toISOString()
       });
-      alert('Амжилттай шинэчлэгдлээ.');
-    } catch (error) {
-      console.error(error);
+      
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+      console.log("Update success.");
+    } catch (error: any) {
+      console.error("SAVE ERROR:", error);
+      setSaveStatus('error');
+      alert(`Хадгалахад алдаа гарлаа: ${error.message || 'Сүлжээгээ шалгана уу'}`);
     } finally {
+      clearTimeout(safetyTimer);
       setLoading(false);
     }
   };
 
   return (
     <div className="max-w-2xl space-y-8">
+      <AnimatePresence>
+        {saveStatus === 'success' && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="fixed top-24 right-10 z-[100] bg-emerald-500 text-white px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3">
+            <CheckCircle className="w-5 h-5" />
+            <span className="font-bold">Мэдээлэл амжилттай шинэчлэгдлээ!</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div>
-        <h2 className="text-2xl font-serif font-black text-slate-900">Байгууллагын тохиргоо</h2>
-        <p className="text-sm text-slate-500 mt-1">Профайл мэдээлэл болон брэндинг тохируулах.</p>
+        <div className="flex items-center gap-3 mb-1">
+          <Settings className="w-6 h-6 text-aurora-blue" />
+          <h2 className="text-2xl font-serif font-black text-slate-900">Байгууллагын тохиргоо</h2>
+        </div>
+        <p className="text-sm text-slate-500">Профайл мэдээлэл болон брэндинг тохируулах.</p>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-[32px] p-10 space-y-8 shadow-sm">
@@ -882,7 +918,7 @@ function SettingsView({ company }: { company: any }) {
           <div className="relative group">
             <div className="w-24 h-24 rounded-[32px] bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden group-hover:border-aurora-blue transition-all">
               {logoPreview ? (
-                <img src={logoPreview} className="w-full h-full object-cover" />
+                <img src={logoPreview} className="w-full h-full object-contain p-2" referrerPolicy="no-referrer" />
               ) : (
                 <Building2 className="w-8 h-8 text-slate-300" />
               )}
@@ -905,7 +941,8 @@ function SettingsView({ company }: { company: any }) {
               type="text" 
               value={formData.name}
               onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-aurora-blue transition-all text-sm" 
+              placeholder="Компанийн нэр"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl py-4 px-5 outline-none focus:border-aurora-blue focus:ring-4 focus:ring-aurora-blue/5 transition-all text-sm font-medium" 
             />
           </div>
           <div className="space-y-1.5">
@@ -915,21 +952,37 @@ function SettingsView({ company }: { company: any }) {
                 type="color" 
                 value={formData.brand_color}
                 onChange={e => setFormData(p => ({ ...p, brand_color: e.target.value }))}
-                className="w-12 h-12 rounded-xl border-none cursor-pointer p-0"
+                className="w-14 h-14 rounded-2xl border-none cursor-pointer p-0 shadow-sm"
               />
-              <span className="text-xs font-mono text-slate-500 uppercase">{formData.brand_color}</span>
+              <div className="bg-slate-50 border border-slate-100 px-4 py-2 rounded-xl">
+                <span className="text-xs font-mono text-slate-500 uppercase font-bold">{formData.brand_color}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="pt-4">
+        <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
           <button 
             onClick={handleSave} 
             disabled={loading}
-            className="btn-aurora text-white px-10 py-4 rounded-2xl font-bold shadow-lg shadow-aurora-blue/10 disabled:opacity-50"
+            className="btn-aurora text-white px-10 py-5 rounded-2xl font-bold shadow-xl shadow-aurora-blue/20 disabled:opacity-50 flex items-center gap-2 group"
           >
-            {loading ? "Хадгалж байна..." : "Өөрчлөлтийг хадгалах"}
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Хадгалж байна...</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <span>Өөрчлөлтийг хадгалах</span>
+              </>
+            )}
           </button>
+          
+          {saveStatus === 'error' && (
+            <p className="text-xs font-bold text-red-500">Сүлжээний алдаа.</p>
+          )}
         </div>
       </div>
     </div>
