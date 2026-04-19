@@ -34,11 +34,8 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-void">
-        <div className="flex flex-col items-center gap-4">
-          <LoadingAnimation />
-          <p className="text-sm text-slate-500 animate-pulse">Мэдээлэл ачаалж байна...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <LoadingAnimation />
       </div>
     );
   }
@@ -299,94 +296,13 @@ function MyECard({ profile }: any) {
     }
   };
 
-  const handleSave = async () => {
-    if (loading) return;
-    
-    setLoading(true);
-    setUploadProgress(10); // Instant feedback
-    
-    console.log("Saving profile for:", profile.id);
-    
-    // Safety exit - if something hangs for 45s, clear it
-    const safetyTimer = setTimeout(() => {
-      setLoading(false);
-      setUploadProgress(0);
-      alert('Хүсэлт илгээх хугацаа дууслаа. Таны интернет холболт тогтворгүй байж магадгүй. Дахин оролдоно уу.');
-    }, 45000);
-
-    try {
-      let finalAvatarUrl = formData.avatar_url;
-
-      // 1. Robust Image Upload (using uploadBytes for better proxy compatibility)
-      if (selectedFile) {
-        setUploadProgress(25);
-        const fileExt = selectedFile.name.split('.').pop() || 'jpg';
-        const uniqueFileName = `av_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const storageRef = ref(storage, `profiles/${profile.id}/${uniqueFileName}`);
-        
-        console.log("Starting uploadBytes...");
-        setUploadProgress(40);
-        
-        await uploadBytes(storageRef, selectedFile);
-        
-        console.log("Upload success, getting URL...");
-        setUploadProgress(80);
-        
-        finalAvatarUrl = await getDownloadURL(storageRef);
-        console.log("New Avatar URL:", finalAvatarUrl);
-        setUploadProgress(90);
-        
-        // Revoke the preview blob to free memory only after success
-        if (previewUrl?.startsWith('blob:')) {
-          URL.revokeObjectURL(previewUrl);
-        }
-      }
-
-      // 2. Data Cleaning & Firestore Update
-      const profileRef = doc(db, 'profiles', profile.id);
-      
-      // Sanitizing data: remove 'id' field if it exists in formData to avoid merge conflicts
-      const sanitizedData = { ...formData };
-      if ('id' in sanitizedData) delete (sanitizedData as any).id;
-      
-      const dataToSave = {
-        ...sanitizedData,
-        avatar_url: finalAvatarUrl,
-        updated_at: new Date().toISOString()
-      };
-      
-      console.log("Updating Firestore document...");
-      await setDoc(profileRef, dataToSave, { merge: true });
-      
-      setUploadProgress(100);
-      setPreviewUrl(finalAvatarUrl);
-      setSelectedFile(null);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 5000);
-      console.log("Profile update complete.");
-
-    } catch (err: any) {
-      console.error("CRITICAL SAVE ERROR:", err);
-      let errorMsg = 'Хадгалахад алдаа гарлаа. ';
-      if (err.code === 'storage/unauthorized') errorMsg += 'Зураг оруулах эрхгүй байна.';
-      else if (err.code === 'storage/canceled') errorMsg += 'Үйлдэл цуцлагдлаа.';
-      else errorMsg += (err.message || 'Интернет холболтоо шалгана уу.');
-      
-      alert(errorMsg);
-    } finally {
-      clearTimeout(safetyTimer);
-      setLoading(false);
-      setTimeout(() => setUploadProgress(0), 1000);
-    }
-  };
-
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Limit to 10MB to avoid upload hangs on slow connections
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Зураг хэтэрхий том байна. 10MB-аас бага зураг сонгоно уу.');
+    // We can handle larger files now because we will compress them
+    if (file.size > 20 * 1024 * 1024) {
+      alert('Зураг хэтэрхий том байна. 20MB-аас бага зураг сонгоно уу.');
       return;
     }
     
@@ -401,6 +317,115 @@ function MyECard({ profile }: any) {
 
     setPreviewUrl(URL.createObjectURL(file));
     setSelectedFile(file);
+  };
+
+  // NEW: Professional Image Compressor
+  const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('Зураг шахахад алдаа гарлаа.'));
+          }, 'image/jpeg', 0.85); // 85% quality is perfect balance
+        };
+        img.onerror = reject;
+      };
+      reader.onerror = reject;
+    });
+  };
+
+  const handleSave = async () => {
+    if (loading) return;
+    
+    setLoading(true);
+    setUploadProgress(5); 
+    
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+      setUploadProgress(0);
+      alert('Хүсэлт илгээх хугацаа дууслаа. Дахин оролдоно уу.');
+    }, 60000);
+
+    try {
+      let finalAvatarUrl = formData.avatar_url;
+
+      if (selectedFile) {
+        setUploadProgress(15);
+        
+        // Step 1: Compress the image locally
+        const compressedBlob = await compressImage(selectedFile);
+        setUploadProgress(40);
+        
+        const fileExt = 'jpg';
+        const uniqueFileName = `av_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const storageRef = ref(storage, `profiles/${profile.id}/${uniqueFileName}`);
+        
+        // Step 2: Upload the small, optimized file
+        setUploadProgress(60);
+        await uploadBytes(storageRef, compressedBlob);
+        
+        setUploadProgress(85);
+        finalAvatarUrl = await getDownloadURL(storageRef);
+        setUploadProgress(95);
+        
+        if (previewUrl?.startsWith('blob:')) {
+          URL.revokeObjectURL(previewUrl);
+        }
+      }
+
+      // Step 3: Fast Firestore update
+      const profileRef = doc(db, 'profiles', profile.id);
+      const sanitizedData = { ...formData };
+      if ('id' in sanitizedData) delete (sanitizedData as any).id;
+      
+      await setDoc(profileRef, {
+        ...sanitizedData,
+        avatar_url: finalAvatarUrl,
+        updated_at: new Date().toISOString()
+      }, { merge: true });
+      
+      setUploadProgress(100);
+      setPreviewUrl(finalAvatarUrl);
+      setSelectedFile(null);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+
+    } catch (err: any) {
+      console.error("SAVE ERROR:", err);
+      alert(`Алдаа гарлаа: ${err.message || 'Интернетээ шалгаад дахин оролдоно уу.'}`);
+    } finally {
+      clearTimeout(safetyTimer);
+      setLoading(false);
+      setTimeout(() => setUploadProgress(0), 1000);
+    }
   };
 
   const presets = [

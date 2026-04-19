@@ -19,18 +19,14 @@ import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import { motion, AnimatePresence } from 'motion/react';
 import { Logo } from './components/Logo';
+import LoadingAnimation from './components/LoadingAnimation';
 
 function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) {
   const { user, profile, loading, isAdmin } = useFirebase();
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="relative">
-        <div className="w-24 h-24 rounded-full border-2 border-aurora-blue/20 animate-ping" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Logo size="md" className="animate-pulse" />
-        </div>
-      </div>
+      <LoadingAnimation />
     </div>
   );
   if (!user) return <Navigate to="/login" />;
