@@ -119,28 +119,31 @@ export default function DashboardPage() {
                 {item.label}
               </Link>
             ))}
-          </nav>
-
-          <footer className="p-4 border-t border-slate-50">
-            <div className="space-y-0.5">
+            
+            <div className="pt-2 mt-2 border-t border-slate-50">
               {profile?.username && (
                 <Link 
                   to={`/${profile.username}`} 
                   target="_blank"
-                  className="flex items-center gap-3 px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-900 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-50/50 transition-all font-medium"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  Миний хуудас
+                  <ExternalLink className="w-4 h-4" />
+                  Миний eCard
                 </Link>
               )}
               <button 
-                onClick={handleLogout}
-                className="flex items-center gap-3 px-4 py-2 w-full text-xs font-medium text-slate-400 hover:text-danger transition-colors text-left"
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-slate-500 hover:text-danger hover:bg-danger/5 transition-all w-full text-left font-medium"
               >
-                <LogOut className="w-3.5 h-3.5" /> Гарах
+                <LogOut className="w-4 h-4" /> 
+                Гарах
               </button>
             </div>
-          </footer>
+          </nav>
         </aside>
 
         {/* Backdrop for Mobile */}
