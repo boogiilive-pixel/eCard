@@ -64,36 +64,83 @@ export default function RegisterPage() {
   };
 
   const createProfile = async (userId: string, email: string, firstname: string, lastname: string, companyId?: string, isCompanyAdmin?: boolean) => {
-    // Ensure username is Latin-only
-    const combined = (firstname + lastname).toLowerCase();
-    const latinOnly = combined.split('').filter(char => /^[a-z0-9]$/.test(char)).join('');
-    const base = latinOnly || 'user';
-    const username = base + Math.floor(Math.random() * 1000);
-    
-    const profileData = {
-      lastname,
-      firstname,
-      username,
-      email,
-      category: formData.category,
-      skills: formData.skills,
-      card_color: regType === 'company' ? formData.brandColor : '#0f1729',
-      card_text_color: '#ffffff',
-      role: 'user',
-      plan: regType === 'company' ? 'business' : 'free',
-      verified: false,
-      is_active: true,
-      show_in_directory: true,
-      profile_public: true,
-      view_count: 0,
-      qr_scan_count: 0,
-      company_id: companyId || null,
-      is_company_admin: isCompanyAdmin || false,
-      company: regType === 'company' ? formData.companyName : '',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    await setDoc(doc(db, 'profiles', userId), profileData);
+    try {
+      // Ensure username is Latin-only
+      const combined = (firstname + lastname).toLowerCase();
+      const latinOnly = combined.split('').filter(char => /^[a-z0-9]$/.test(char)).join('');
+      const base = latinOnly || 'user';
+      const username = base + Math.floor(Math.random() * 1000);
+      
+      const profileData = {
+        lastname,
+        firstname,
+        username,
+        email,
+        category: formData.category,
+        skills: formData.skills,
+        card_color: regType === 'company' ? formData.brandColor : '#0f1729',
+        card_text_color: '#ffffff',
+        role: 'user',
+        plan: regType === 'company' ? 'business' : 'free',
+        verified: false,
+        is_active: true,
+        show_in_directory: true,
+        profile_public: true,
+        view_count: 0,
+        qr_scan_count: 0,
+        company_id: companyId || null,
+        is_company_admin: isCompanyAdmin || false,
+        company: regType === 'company' ? formData.companyName : '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      console.log("[DEBUG] Writing profile to Firestore:", userId);
+      await setDoc(doc(db, 'profiles', userId), profileData);
+      console.log("[DEBUG] Profile write success");
+    } catch (e) {
+      console.error("[DEBUG] Error creating profile:", e);
+      throw e;
+    }
+  };
+
+  const compressLogo = async (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 400;
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('Compression failed'));
+          }, 'image/jpeg', 0.7);
+        };
+      };
+      reader.onerror = reject;
+    });
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -101,21 +148,31 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
     try {
+      console.log("Starting registration for:", formData.email);
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const uid = userCredential.user.uid;
+      console.log("Auth success, UID:", uid);
 
       if (regType === 'company') {
         let logoUrl = '';
         if (logoFile) {
-          const logoRef = ref(firebaseStorage, `companies/${uid}/logo_${Date.now()}`);
-          await uploadBytes(logoRef, logoFile);
-          logoUrl = await getDownloadURL(logoRef);
+          try {
+            console.log("[DEBUG] Compressing and uploading logo...");
+            const compressedLogo = await compressLogo(logoFile);
+            const logoRef = ref(firebaseStorage, `companies/${uid}/logo_${Date.now()}.jpg`);
+            await uploadBytes(logoRef, compressedLogo);
+            logoUrl = await getDownloadURL(logoRef);
+            console.log("[DEBUG] Logo upload complete, URL:", logoUrl);
+          } catch (logoErr) {
+            console.error("[DEBUG] Logo upload failed (skipping):", logoErr);
+            // Non-critical failure, proceed without logo
+          }
         }
 
         // Create Company
         const companyRef = doc(collection(db, 'companies'));
         const companyId = companyRef.id;
-        console.log("Creating company document:", companyId);
+        console.log("[DEBUG] Creating company document:", companyId);
         await setDoc(companyRef, {
           id: companyId,
           name: formData.companyName,
@@ -124,19 +181,22 @@ export default function RegisterPage() {
           admin_uid: uid,
           created_at: new Date().toISOString()
         });
+        console.log("[DEBUG] Company document created");
 
         // Create Admin Profile
-        console.log("Creating admin profile for:", uid);
+        console.log("[DEBUG] Creating admin profile for:", uid);
         await createProfile(uid, formData.email, formData.firstname, formData.lastname, companyId, true);
+        console.log("[DEBUG] Admin profile created");
         
         // Add as member
-        console.log("Adding member record to company");
+        console.log("[DEBUG] Adding member record to company");
         await setDoc(doc(db, `companies/${companyId}/members`, uid), {
           company_id: companyId,
           user_id: uid,
           role: 'admin',
           joined_at: new Date().toISOString()
         });
+        console.log("[DEBUG] Member record added, navigating to /company");
 
         navigate('/company');
       } else {
@@ -161,6 +221,9 @@ export default function RegisterPage() {
       if (err.code === 'auth/email-already-in-use') msg = 'Энэ и-мэйл хаяг аль хэдийн бүртгэлтэй байна.';
       if (err.code === 'auth/invalid-email') msg = 'И-мэйл хаяг буруу байна.';
       if (err.code === 'auth/weak-password') msg = 'Нууц үг хэтэрхий сул байна.';
+      if (err.code === 'auth/operation-not-allowed') {
+        msg = 'Email/Password бүртгэл хаагдсан байна. Firebase Console -> Authentication -> Sign-in method хэсэгт Email/Password-ыг Enable хийнэ үү.';
+      }
       setError(msg);
     } finally {
       setLoading(false);

@@ -51,7 +51,7 @@ export default function DashboardPage() {
     if (!loading && user && !profile) {
       timer = setTimeout(() => {
         setShowMissingProfile(true);
-      }, 3000); // 3 second grace period
+      }, 6000); // Increased to 6 seconds to handle higher latency
     } else {
       setShowMissingProfile(false);
     }
