@@ -191,36 +191,49 @@
     66%       { transform: translate(-80px, 80px) scale(0.9); }
   }
 
-  /* Card Patterns */
-  .pattern-dots {
-    background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
+  /* Card Patterns - Using pseudo-elements to avoid overriding background colors/gradients */
+  .pattern-grid, .pattern-dots, .pattern-waves, .pattern-diagonal, .pattern-circuit {
+    position: relative;
+  }
+  
+  .pattern-grid::before, .pattern-dots::before, .pattern-waves::before, .pattern-diagonal::before, .pattern-circuit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.6;
   }
 
-  .pattern-grid {
+  .pattern-grid::before {
     background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
     background-size: 20px 20px;
   }
 
-  .pattern-waves {
+  .pattern-dots::before {
+    background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .pattern-waves::before {
     background: radial-gradient(circle at 100% 50%, transparent 20%, rgba(255,255,255,0.03) 21%, rgba(255,255,255,0.03) 34%, transparent 35%, transparent),
       radial-gradient(circle at 0% 50%, transparent 20%, rgba(255,255,255,0.03) 21%, rgba(255,255,255,0.03) 34%, transparent 35%, transparent);
     background-size: 40px 40px;
   }
 
-  .pattern-diagonal {
+  .pattern-diagonal::before {
     background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.02) 10px, rgba(255,255,255,0.02) 20px);
   }
 
-  .pattern-circuit {
+  .pattern-circuit::before {
     background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
       linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);
     background-size: 40px 40px, 10px 10px;
   }
 
-  .pattern-none {
-    background-image: none;
+  .pattern-none::before {
+    display: none;
   }
 }
 

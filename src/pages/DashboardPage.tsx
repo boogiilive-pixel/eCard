@@ -538,99 +538,114 @@ function MyECard({ profile }: any) {
               {/* Identity Content */}
               {activeTab === 'basic' && (
                 <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-8"
+                   initial={{ opacity: 0, y: 10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   className="space-y-6"
                 >
-                  <div className="flex flex-col md:flex-row gap-10">
-                    <div className="flex-shrink-0">
-                      <div className="relative group">
-                        <div className="w-32 h-32 rounded-2xl border border-[#f0f0f0] overflow-hidden bg-[#fafafa] flex items-center justify-center shadow-inner relative">
-                          {previewUrl ? (
-                            <img 
-                              src={previewUrl} 
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                              referrerPolicy="no-referrer" 
-                            />
-                          ) : (
-                            <div className="text-4xl font-bold text-[#bbb]">{formData.firstname?.[0]}</div>
-                          )}
-                          
-                          {loading && selectedFile && (
-                            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-20">
-                               <div className="w-8 h-8 border-2 border-[#6366f1]/20 border-t-[#6366f1] rounded-full animate-spin" />
-                            </div>
-                          )}
-
-                          <label className="absolute inset-0 cursor-pointer opacity-0 group-hover:opacity-100 bg-black/40 flex flex-col items-center justify-center transition-all duration-200 z-10">
-                            <Camera className="w-6 h-6 text-white mb-1.5" />
-                            <span className="text-[10px] text-white font-bold uppercase tracking-widest">Зураг солих</span>
-                            <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
-                          </label>
+                  {/* Avatar Upload Redesign */}
+                  <div className="flex items-start gap-8 px-2">
+                    <div className="w-32 h-32 rounded-2xl bg-[#6366f1] flex items-center justify-center text-white text-4xl font-bold relative overflow-hidden shadow-sm">
+                      {previewUrl ? (
+                         <img 
+                           src={previewUrl} 
+                           className="w-full h-full object-cover"
+                           referrerPolicy="no-referrer" 
+                         />
+                      ) : (
+                        formData.firstname?.[0] || 'Б'
+                      )}
+                      {loading && selectedFile && (
+                        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-20">
+                           <div className="w-8 h-8 border-2 border-[#6366f1]/20 border-t-[#6366f1] rounded-full animate-spin" />
                         </div>
-                        {selectedFile && (
-                          <div className="mt-2 text-center text-[10px] text-[#6366f1] font-bold uppercase tracking-wider">
-                            Шинэ зураг
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
-
-                    <div className="flex-1 space-y-6">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-[13px] font-semibold text-[#555]">Нэр</label>
-                          <input 
-                            name="firstname" 
-                            value={formData.firstname} 
-                            onChange={handleChange} 
-                            placeholder="Жишээ: Дорж"
-                            className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[13px] font-semibold text-[#555]">Овог</label>
-                          <input 
-                            name="lastname" 
-                            value={formData.lastname} 
-                            onChange={handleChange} 
-                            placeholder="Жишээ: Бат"
-                            className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                          />
-                        </div>
+                    
+                    <div className="pt-6">
+                      <div className="flex items-center gap-3 text-[14px] font-semibold">
+                        <label className="text-[#6366f1] hover:text-[#4f46e5] cursor-pointer transition-colors">
+                          Зураг солих
+                          <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
+                        </label>
+                        <span className="text-[#bbb]">·</span>
+                        <button 
+                          onClick={() => {
+                            setPreviewUrl(null);
+                            setSelectedFile(null);
+                            setFormData((prev: any) => ({ ...prev, avatar_url: '' }));
+                          }}
+                          className="text-[#888] hover:text-[#555] transition-colors"
+                        >
+                          Устгах
+                        </button>
                       </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-[13px] font-semibold text-[#555]">Албан тушаал</label>
-                          <input 
-                            name="job_title" 
-                            value={formData.job_title || ''} 
-                            onChange={handleChange} 
-                            placeholder="Жишээ: Ерөнхий захирал"
-                            className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[13px] font-semibold text-[#555]">Компани</label>
-                          <input 
-                            name="company" 
-                            value={formData.company || ''} 
-                            onChange={handleChange} 
-                            placeholder="Жишээ: Тесла Моторс"
-                            className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
-                          />
-                        </div>
-                      </div>
+                      <p className="text-[12px] text-[#bbb] mt-2 font-medium">JPG, PNG · хамгийн ихдээ 2MB</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                    <CategorySelector 
-                      value={formData.category || ''} 
-                      onChange={(val) => setFormData((prev: any) => ({ ...prev, category: val }))}
-                      required
-                    />
+                  {/* Name Fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[14px] font-semibold text-[#888]">Овог</label>
+                      <input 
+                        name="lastname" 
+                        value={formData.lastname} 
+                        onChange={handleChange} 
+                        placeholder="Жишээ: Лхагвасүрэн"
+                        className="w-full bg-white border border-[#f0f0f0] rounded-xl py-3 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[15px] transition-all placeholder:text-[#bbb] font-medium" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[14px] font-semibold text-[#888]">Нэр</label>
+                      <input 
+                        name="firstname" 
+                        value={formData.firstname} 
+                        onChange={handleChange} 
+                        placeholder="Жишээ: Болор-Эрдэнэ"
+                        className="w-full bg-white border border-[#6366f1]/20 ring-1 ring-[#6366f1]/5 rounded-xl py-3 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[15px] transition-all placeholder:text-[#bbb] font-medium" 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Work Info Section */}
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+                      <div className="space-y-2">
+                        <label className="text-[14px] font-semibold text-[#888]">Албан тушаал</label>
+                        <input 
+                          name="job_title" 
+                          value={formData.job_title || ''} 
+                          onChange={handleChange} 
+                          placeholder="Жишээ: Захирал"
+                          className="w-full bg-[#fafafa]/50 border border-[#f0f0f0] rounded-xl py-3 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[15px] transition-all placeholder:text-[#bbb] font-medium" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[14px] font-semibold text-[#888]">Компани</label>
+                        <input 
+                          name="company" 
+                          value={formData.company || ''} 
+                          onChange={handleChange} 
+                          placeholder="Жишээ: Cornerstone AI"
+                          className="w-full bg-[#fafafa]/50 border border-[#f0f0f0] rounded-xl py-3 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[15px] transition-all placeholder:text-[#bbb] font-medium" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <CategorySelector 
+                        value={formData.category || ''} 
+                        onChange={(val) => setFormData((prev: any) => ({ ...prev, category: val }))}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Skills Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-[#f0f0f0]/60 pb-2">
+                      <h3 className="text-[14px] font-bold text-[#111]">Ур чадвар / Үйлчилгээ</h3>
+                    </div>
                     <SkillsInput 
                       skills={formData.skills || []}
                       onChange={(val) => setFormData((prev: any) => ({ ...prev, skills: val }))}
@@ -638,14 +653,15 @@ function MyECard({ profile }: any) {
                     />
                   </div>
 
-                  <div className="space-y-1.5 pt-4">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[13px] font-semibold text-[#555]">Био / Танилцуулга</label>
+                  {/* Bio Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-[#f0f0f0]/60 pb-2">
+                      <h3 className="text-[14px] font-bold text-[#111]">Танилцуулга</h3>
                       <button 
                         onClick={handleAIImprove} 
-                        className="flex items-center gap-1.5 text-[11px] font-bold text-[#6366f1] hover:text-[#4f46e5] transition-colors py-1 px-2 bg-[#6366f1]/5 rounded-lg border border-[#6366f1]/10"
+                        className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-[#6366f1] hover:bg-[#4f46e5] transition-colors py-1.5 px-3 rounded-lg shadow-sm"
                       >
-                        <Sparkles className="w-3.5 h-3.5" /> ✦ AI Сайжруулах
+                        <Sparkles className="w-3.5 h-3.5" /> AI Сайжруулах
                       </button>
                     </div>
                     <textarea 
@@ -654,7 +670,7 @@ function MyECard({ profile }: any) {
                       onChange={handleChange} 
                       rows={4} 
                       placeholder="Өөрийн тухай товчхон..."
-                      className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-2xl py-3 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 resize-none text-[14px] transition-all placeholder:text-[#bbb]" 
+                      className="w-full bg-white border border-[#f0f0f0] rounded-2xl py-4 px-5 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 resize-none text-[15px] transition-all placeholder:text-[#bbb] font-medium leading-relaxed" 
                     />
                   </div>
                 </motion.div>
@@ -743,16 +759,7 @@ function MyECard({ profile }: any) {
 
         {/* Right Column: High Fidelity Preview & Design Controls */}
         <aside className="sticky top-24 space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-[13px] font-semibold text-[#111] flex items-center gap-2">
-                Урьдчилан харах
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] font-bold uppercase tracking-wider">
-                  Live
-                </div>
-              </h3>
-            </div>
-            
+          <div className="space-y-4 pt-1">
             <div className="relative group overflow-visible">
               <div 
                 className={cn(

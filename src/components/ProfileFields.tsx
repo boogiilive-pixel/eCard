@@ -31,8 +31,8 @@ export function CategorySelector({ value, onChange, error, required }: CategoryS
   }, []);
 
   return (
-    <div className="space-y-1.5 relative group" ref={containerRef}>
-      <label className="text-[13px] font-medium text-[#555555] flex justify-between">
+    <div className="space-y-4 relative group" ref={containerRef}>
+      <label className="text-[14px] font-semibold text-[#888]">
         Мэргэжлийн ангилал {required && <span className="text-red-500">*</span>}
       </label>
       
@@ -40,12 +40,12 @@ export function CategorySelector({ value, onChange, error, required }: CategoryS
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-full bg-[#fafafa] border rounded-lg py-2.5 px-4 text-left flex justify-between items-center transition-all duration-200",
+          "w-full bg-[#fafafa]/50 border rounded-xl py-3 px-4 text-left flex justify-between items-center transition-all duration-200",
           isOpen ? "border-[#6366f1] ring-2 ring-[#6366f1]/10 bg-white" : "border-[#f0f0f0] hover:border-[#ddd]",
           error && "border-red-500 ring-red-500/10"
         )}
       >
-        <span className={cn("text-[14px] font-medium", !value ? "text-[#bbb]" : "text-[#111]")}>
+        <span className={cn("text-[15px] font-medium", !value ? "text-[#bbb]" : "text-[#111]")}>
           {value || "Ангилал сонгох"}
         </span>
         <ChevronDown className={cn("w-4 h-4 text-[#888] transition-transform duration-200", isOpen && "rotate-180")} />
@@ -140,16 +140,9 @@ export function SkillsInput({ skills, onChange, suggestions = [] }: SkillsInputP
   };
 
   return (
-    <div className="space-y-1.5 relative group">
-      <label className="text-[13px] font-medium text-[#555555] flex justify-between">
-        <span>Ур чадвар / Үйлчилгээ</span>
-        <span className={cn("text-[11px] font-bold", skills.length >= 5 ? "text-red-500" : "text-[#bbb]")}>
-          {skills.length}/5
-        </span>
-      </label>
-
+    <div className="space-y-4 relative group">
       <div className={cn(
-        "flex flex-wrap gap-1.5 p-2 bg-[#fafafa] border border-[#f0f0f0] rounded-lg transition-all duration-200 focus-within:border-[#6366f1] focus-within:ring-2 focus-within:ring-[#6366f1]/10 focus-within:bg-white min-h-[44px]",
+        "flex flex-wrap gap-2.5 p-4 bg-white border border-[#f0f0f0] rounded-xl transition-all duration-200 focus-within:border-[#6366f1] focus-within:ring-2 focus-within:ring-[#6366f1]/10 min-h-[56px]",
         skills.length >= 5 && "cursor-not-allowed"
       )}>
         {skills.map((skill) => (
@@ -157,33 +150,40 @@ export function SkillsInput({ skills, onChange, suggestions = [] }: SkillsInputP
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             key={skill}
-            className="flex items-center gap-1 bg-[#6366f1] text-white px-2 py-1 rounded-md text-[12px] font-semibold"
+            className="flex items-center gap-2 bg-[#f0f2ff] text-[#6366f1] px-3 py-1.5 rounded-lg text-[13px] font-bold"
           >
             {skill}
             <button 
               type="button"
               onClick={() => removeSkill(skill)}
-              className="hover:scale-110 transition-transform opacity-80 hover:opacity-100"
+              className="hover:scale-110 transition-transform opacity-60 hover:opacity-100"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           </motion.span>
         ))}
         {skills.length < 5 && (
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              setShowSuggestions(true);
-            }}
-            onFocus={() => setShowSuggestions(true)}
-            onKeyDown={handleKeyDown}
-            placeholder={skills.length === 0 ? "Жишээ: React, Logo Design..." : ""}
-            className="flex-1 bg-transparent border-none outline-none text-[14px] min-w-[120px] py-1 placeholder:text-[#bbb]"
-          />
+          <div className="flex-1 flex items-center min-w-[140px]">
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onKeyDown={handleKeyDown}
+              placeholder={skills.length === 0 ? "Жишээ: Web Design, AI..." : "нэмэх..."}
+              className="w-full bg-transparent border-none outline-none text-[14px] font-medium py-1 placeholder:text-[#bbb]"
+            />
+          </div>
         )}
+      </div>
+
+      <div className="flex items-center justify-between text-[11px] font-medium text-[#bbb] px-1">
+        <span>Enter дарж нэмнэ</span>
+        <span className={cn(skills.length >= 5 ? "text-red-500" : "")}>{skills.length} / 5</span>
       </div>
 
       <AnimatePresence>
