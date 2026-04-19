@@ -81,8 +81,8 @@ export default function LandingPage() {
     <div className="min-h-screen selection:bg-aurora-blue selection:text-white relative">
       <NetworkNodes />
       {/* Hero Section */}
-      <section className="relative pt-48 pb-32 overflow-hidden min-h-screen flex items-center">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <section className="relative pt-32 pb-32 overflow-hidden min-h-screen flex items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 -mt-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div 
               variants={staggerChildren}
@@ -94,7 +94,7 @@ export default function LandingPage() {
                 МОНГОЛЫН АНХНЫ ДИЖИТАЛ ВИЗИТ КАРТ ПЛАТФОРМ
               </motion.p>
               
-              <motion.h1 variants={fadeUp} className="text-6xl md:text-8xl font-serif font-medium leading-[1.1] mb-8">
+              <motion.h1 variants={fadeUp} className="text-6xl md:text-8xl font-serif font-medium leading-[0.95] mb-8">
                 Таны мэргэжлийн<br />
                 <span className="aurora-text">дижитал карт</span><br />
                 нэг хуудсанд
