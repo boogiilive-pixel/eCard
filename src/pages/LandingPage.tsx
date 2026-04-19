@@ -4,6 +4,8 @@ import { Zap, Shield, Users, Globe, ArrowRight, QrCode } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { Logo } from '../components/Logo';
 import { NetworkNodes } from '../components/NetworkNodes';
+import { db } from '../lib/firebase';
+import { collection, getCountFromServer, query, where } from 'firebase/firestore';
 
 const fadeUp = {
   initial: { opacity: 0, y: 30 },
@@ -32,15 +34,47 @@ export default function LandingPage() {
   const springY = useSpring(textY, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
   useEffect(() => {
-    // Simple count up animation simulation
-    const interval = setInterval(() => {
-      setStats(prev => ({
-        users: Math.min(prev.users + 123, 10000),
-        time: Math.min(prev.time + 1, 30),
-        price: 0
-      }));
-    }, 20);
-    return () => clearInterval(interval);
+    const fetchStats = async () => {
+      try {
+        const q = query(collection(db, 'profiles'), where('is_active', '==', true));
+        const snapshot = await getCountFromServer(q);
+        const actualUserCount = snapshot.data().count;
+        
+        const targetStats = {
+          users: actualUserCount,
+          time: 30, // 30 seconds to register
+          price: 0
+        };
+
+        // Smooth count up animation
+        const duration = 2000; // 2 seconds
+        const startTime = Date.now();
+
+        const animate = () => {
+          const now = Date.now();
+          const progress = Math.min((now - startTime) / duration, 1);
+          
+          // Easing function: easeOutExpo
+          const easedProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+
+          setStats({
+            users: Math.floor(easedProgress * targetStats.users),
+            time: Math.floor(easedProgress * targetStats.time),
+            price: 0
+          });
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          }
+        };
+
+        requestAnimationFrame(animate);
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      }
+    };
+
+    fetchStats();
   }, []);
 
   return (
