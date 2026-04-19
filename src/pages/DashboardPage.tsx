@@ -467,8 +467,34 @@ function MyECard({ profile }: any) {
           </div>
         </div>
         
-        <div className="hidden lg:flex items-center gap-2 text-[11px] text-[#888] font-medium px-4">
-          <Sparkles className="w-3.5 h-3.5 text-[#6366f1]" /> AI Сайжруулалт идэвхтэй
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="hidden lg:flex items-center gap-2 text-[11px] text-[#888] font-medium px-2 border-r border-[#f0f0f0] mr-1">
+            <Sparkles className="w-3.5 h-3.5 text-[#6366f1]" /> AI Сайжруулалт
+          </div>
+          <button 
+            onClick={() => window.open(`/${formData.username}`, '_blank')}
+            className="flex-1 sm:flex-none py-2 px-4 rounded-lg bg-white border border-[#f0f0f0] text-[#555] font-semibold text-[13px] hover:bg-[#fafafa] hover:border-[#ddd] transition-all flex items-center justify-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Харах
+          </button>
+          <button 
+            onClick={handleSave} 
+            disabled={loading} 
+            className="flex-1 sm:flex-none py-2 px-6 rounded-lg bg-[#6366f1] text-white font-semibold text-[13px] hover:bg-[#4f46e5] transition-all flex items-center justify-center gap-2 shadow-[0_4px_12px_-4px_rgba(99,102,241,0.4)] disabled:opacity-50"
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Save className="w-4 h-4" />
+                <span>Хадгалах</span>
+              </div>
+            )}
+          </button>
         </div>
       </header>
 
@@ -717,29 +743,6 @@ function MyECard({ profile }: any) {
 
         {/* Right Column: High Fidelity Preview & Design Controls */}
         <aside className="sticky top-24 space-y-6">
-          {/* Action Box moved to sidebar to align with cards */}
-          <div className="bg-white border border-[#f0f0f0] p-4 rounded-2xl shadow-sm flex items-center gap-3">
-            <button 
-              onClick={() => window.open(`/${formData.username}`, '_blank')}
-              className="flex-1 py-2.5 px-4 rounded-xl bg-white border border-[#f0f0f0] text-[#555] font-semibold text-[13px] hover:bg-[#fafafa] hover:border-[#ddd] transition-all flex items-center justify-center gap-2"
-            >
-              <ExternalLink className="w-4 h-4" />
-              Харах
-            </button>
-            <button 
-              onClick={handleSave} 
-              disabled={loading} 
-              className="flex-1 py-2.5 px-6 rounded-xl bg-[#6366f1] text-white font-semibold text-[13px] hover:bg-[#4f46e5] transition-all flex items-center justify-center gap-2 shadow-[0_4px_12px_-4px_rgba(99,102,241,0.4)] disabled:opacity-50"
-            >
-              {loading ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              Хадгалах
-            </button>
-          </div>
-
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
               <h3 className="text-[13px] font-semibold text-[#111] flex items-center gap-2">
