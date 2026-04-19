@@ -186,16 +186,6 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-
-          {/* Sidebar Pro Card */}
-          <div className="p-6">
-            <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-3xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-aurora-blue/20 rounded-full -mr-16 -mt-16 blur-2xl" />
-              <p className="relative z-10 text-white font-black text-sm mb-1 tracking-tight">Pro Болох</p>
-              <p className="relative z-10 text-slate-400 text-[10px] mb-4 font-medium leading-relaxed">Дэлгэрэнгүй аналитик болон бүх хээг ашиглах.</p>
-              <button className="relative z-10 w-full py-2 bg-aurora-blue text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-aurora-indigo transition-colors shadow-lg shadow-aurora-blue/20">Шинэчлэх</button>
-            </div>
-          </div>
         </aside>
 
         {/* Backdrop for Mobile */}
@@ -1328,13 +1318,10 @@ function Analytics({ profile }: any) {
         <div className="w-14 h-14 bg-[#fafafa] border border-[#f0f0f0] rounded-xl flex items-center justify-center mx-auto mb-6">
           <BarChart3 className="w-6 h-6 text-[#bbb]" />
         </div>
-        <h3 className="text-[16px] font-semibold text-[#111] mb-2">Дэлгэрэнгүй аналитик</h3>
+        <h3 className="text-[16px] font-semibold text-[#111] mb-2">Хандалтын статистик</h3>
         <p className="text-[#888] text-[13px] max-w-sm mx-auto leading-relaxed">
-          Энэ хэсэг одоогоор туршилтын шатанд байна. Pro хэрэглэгчид удахгүй хандалтын нарийвчилсан статистик авах боломжтой болно.
+          Энэ хэсэг одоогоор туршилтын шатанд байна. Удахгүй таны нэрийн хуудасны хандалтын нарийвчилсан статистик энд харагдах болно.
         </p>
-        <button className="mt-8 bg-[#6366f1] text-white px-8 py-2.5 rounded-lg font-semibold text-[13px] hover:bg-[#4f46e5] transition-all shadow-[0_4px_12px_-4px_rgba(99,102,241,0.4)]">
-          Pro болох
-        </button>
       </div>
     </div>
   );

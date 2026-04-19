@@ -175,53 +175,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing */}
-      <section className="py-24 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6">Төлөвлөгөө сонгох</h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="p-10 glass-panel rounded-[32px] flex flex-col">
-              <h3 className="text-xl font-bold mb-2">Үнэгүй</h3>
-              <p className="text-3xl font-serif font-bold mb-8">0₮ <span className="text-sm font-sans font-normal text-ivory/40">/ насан туршдаа</span></p>
-              <ul className="space-y-5 mb-10 text-ivory/60 flex-grow">
-                <li className="flex items-center gap-3"><ArrowRight className="w-4 h-4 text-aurora-cyan" /> Үндсэн профайл</li>
-                <li className="flex items-center gap-3"><ArrowRight className="w-4 h-4 text-aurora-cyan" /> QR код</li>
-                <li className="flex items-center gap-3"><ArrowRight className="w-4 h-4 text-aurora-cyan" /> Лавлахад харагдах</li>
-              </ul>
-              <Link to="/register" className="w-full py-4 rounded-full glass-panel text-center hover:bg-glass-hover transition-all">Эхлэх</Link>
-            </div>
-
-            <div className="p-10 glass-panel rounded-[32px] border-aurora-violet/50 relative flex flex-col scale-105 shadow-[0_0_50px_rgba(124,58,237,0.2)]">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 btn-aurora px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Хамгийн их сонгосон</div>
-              <h3 className="text-xl font-bold mb-2">Pro</h3>
-              <p className="text-3xl font-serif font-bold mb-8 aurora-text">9,900₮ <span className="text-sm font-sans font-normal text-ivory/40">/ сар</span></p>
-              <ul className="space-y-5 mb-10 text-ivory/80 flex-grow">
-                <li className="flex items-center gap-3"><ArrowRight className="w-4 h-4 text-aurora-violet" /> Дэлгэрэнгүй мэдээлэл</li>
-                <li className="flex items-center gap-3"><ArrowRight className="w-4 h-4 text-aurora-violet" /> Портфолио</li>
-                <li className="flex items-center gap-3"><ArrowRight className="w-4 h-4 text-aurora-violet" /> Аналитик</li>
-                <li className="flex items-center gap-3"><ArrowRight className="w-4 h-4 text-aurora-violet" /> Verified тэмдэг</li>
-              </ul>
-              <Link to="/register" className="w-full py-4 rounded-full btn-aurora text-center font-bold transition-all shimmer-sweep">Сонгох</Link>
-            </div>
-
-            <div className="p-10 glass-panel rounded-[32px] flex flex-col">
-              <h3 className="text-xl font-bold mb-2">Бизнес</h3>
-              <p className="text-3xl font-serif font-bold mb-8">49,900₮ <span className="text-sm font-sans font-normal text-ivory/40">/ сар</span></p>
-              <ul className="space-y-5 mb-10 text-ivory/60 flex-grow">
-                <li className="flex items-center gap-3"><ArrowRight className="w-4 h-4 text-aurora-cyan" /> Байгууллагын хяналт</li>
-                <li className="flex items-center gap-3"><ArrowRight className="w-4 h-4 text-aurora-cyan" /> Олон ажилтан</li>
-                <li className="flex items-center gap-3"><ArrowRight className="w-4 h-4 text-aurora-cyan" /> Брэнд загвар</li>
-                <li className="flex items-center gap-3"><ArrowRight className="w-4 h-4 text-aurora-cyan" /> API хандалт</li>
-              </ul>
-              <Link to="/register" className="w-full py-4 rounded-full glass-panel text-center hover:bg-glass-hover transition-all">Холбогдох</Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer ref={footerRef} className="py-20 relative z-10 border-t border-slate-100 bg-white/50 backdrop-blur-xl overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

@@ -65,10 +65,9 @@ export default function AdminPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
           { label: 'Нийт хэрэглэгч', value: stats.total, icon: <Users /> },
-          { label: 'Pro хэрэглэгч', value: stats.pro, icon: <CreditCard /> },
           { label: 'Шинэ (7 хоног)', value: stats.new, icon: <TrendingUp /> },
           { label: 'Нийт үзэлт', value: stats.views.toLocaleString(), icon: <ShieldCheck /> },
         ].map((stat, i) => (
