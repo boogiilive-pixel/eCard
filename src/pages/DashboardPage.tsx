@@ -740,33 +740,6 @@ function MyECard({ profile }: any) {
         </div>
         
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="hidden lg:flex items-center gap-2 text-[11px] text-[#888] font-medium px-2 border-r border-[#f0f0f0] mr-1">
-            <Sparkles className="w-3.5 h-3.5 text-[#6366f1]" /> AI Сайжруулалт
-          </div>
-          <button 
-            onClick={() => window.open(`/${formData.username}`, '_blank')}
-            className="flex-1 sm:flex-none py-2 px-4 rounded-lg bg-white border border-[#f0f0f0] text-[#555] font-semibold text-[13px] hover:bg-[#fafafa] hover:border-[#ddd] transition-all flex items-center justify-center gap-2"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Харах
-          </button>
-          <button 
-            onClick={handleSave} 
-            disabled={loading} 
-            className="flex-1 sm:flex-none py-2 px-6 rounded-lg bg-[#6366f1] text-white font-semibold text-[13px] hover:bg-[#4f46e5] transition-all flex items-center justify-center gap-2 shadow-[0_4px_12px_-4px_rgba(99,102,241,0.4)] disabled:opacity-50"
-          >
-            {loading ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>...</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Save className="w-4 h-4" />
-                <span>Хадгалах</span>
-              </div>
-            )}
-          </button>
         </div>
       </header>
 
@@ -1204,6 +1177,33 @@ function MyECard({ profile }: any) {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className="pt-6 border-t border-[#f0f0f0] flex flex-col gap-3">
+                <button 
+                  onClick={handleSave} 
+                  disabled={loading} 
+                  className="w-full py-3.5 rounded-xl bg-[#6366f1] text-white font-bold text-[14px] hover:bg-[#4f46e5] transition-all flex items-center justify-center gap-2 shadow-[0_4px_12px_-4px_rgba(99,102,241,0.4)] disabled:opacity-50"
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Боловсруулж байна...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Save className="w-4 h-4" />
+                      <span>Мэдээлэл хадгалах</span>
+                    </div>
+                  )}
+                </button>
+                <button 
+                  onClick={() => window.open(`/${formData.username}`, '_blank')}
+                  className="w-full py-3 rounded-xl bg-white border border-[#f0f0f0] text-[#555] font-bold text-[13px] hover:bg-[#fafafa] hover:border-[#ddd] transition-all flex items-center justify-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Миний eCard харах
+                </button>
               </div>
             </div>
           </div>
