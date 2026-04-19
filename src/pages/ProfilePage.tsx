@@ -379,7 +379,7 @@ export default function ProfilePage() {
             <div className="space-y-6">
               {profile.category && (
                 <div>
-                  <h3 className="text-[10px] uppercase tracking-[0.2em] text-aurora-violet mb-3">Мэргэжлийн ангилал</h3>
+                  <h3 className="text-xs uppercase tracking-[0.25em] text-aurora-violet font-black mb-3">Мэргэжлийн ангилал</h3>
                   <span className="inline-block px-4 py-1.5 bg-aurora-violet/10 text-aurora-violet text-xs font-bold rounded-lg border border-aurora-violet/20">
                     {profile.category}
                   </span>
@@ -387,7 +387,7 @@ export default function ProfilePage() {
               )}
               {profile.skills && profile.skills.length > 0 && (
                 <div>
-                  <h3 className="text-[10px] uppercase tracking-[0.2em] text-aurora-violet mb-3">Ур чадвар / Үйлчилгээ</h3>
+                  <h3 className="text-xs uppercase tracking-[0.25em] text-aurora-violet font-black mb-3">Ур чадвар / Үйлчилгээ</h3>
                   <div className="flex flex-wrap gap-2">
                     {profile.skills.map((skill, i) => (
                       <span key={i} className="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full">
@@ -402,7 +402,7 @@ export default function ProfilePage() {
 
           {profile.bio && (
             <div>
-              <h3 className="text-[10px] uppercase tracking-[0.2em] text-aurora-violet mb-4">Танилцуулга</h3>
+              <h3 className="text-xs uppercase tracking-[0.25em] text-aurora-violet font-black mb-4">Танилцуулга</h3>
               <p className="text-ivory/60 leading-relaxed text-sm">{profile.bio}</p>
             </div>
           )}
@@ -424,8 +424,10 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="text-center">
-          <Link to="/" className="text-slate-300 hover:text-aurora-blue transition-colors text-xs tracking-widest uppercase font-bold">Өөрийн картыг үүсгэх үү? eCard.mn</Link>
+        <div className="text-center pt-8">
+          <Link to="/" className="text-white/60 hover:text-aurora-cyan transition-colors text-xs tracking-[0.2em] uppercase font-black">
+            Өөрийн картыг үүсгэх үү? eCard.mn
+          </Link>
         </div>
       </motion.div>
     </div>
