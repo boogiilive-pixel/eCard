@@ -1,4 +1,4 @@
-import { motion, useScroll, useTransform } from 'motion/react';
+import { motion, useScroll, useTransform, useSpring } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Zap, Shield, Users, Globe, ArrowRight, QrCode } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
@@ -22,10 +22,14 @@ export default function LandingPage() {
     offset: ["start end", "end start"]
   });
 
-  const textScale = useTransform(scrollYProgress, [0, 0.3], [0.8, 1]);
-  const textY = useTransform(scrollYProgress, [0, 0.3], [50, 0]);
-  const textBlur = useTransform(scrollYProgress, [0, 0.25, 0.3], ["blur(20px)", "blur(10px)", "blur(0px)"]);
-  const textOpacity = useTransform(scrollYProgress, [0, 0.2, 0.3], [0, 0.5, 1]);
+  const textScale = useTransform(scrollYProgress, [0, 0.4], [0.7, 1]);
+  const textY = useTransform(scrollYProgress, [0, 0.4], [100, 0]);
+  const textBlur = useTransform(scrollYProgress, [0, 0.3, 0.4], ["blur(30px)", "blur(15px)", "blur(0px)"]);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.25, 0.45], [0, 0.6, 1]);
+  const textTracking = useTransform(scrollYProgress, [0, 0.4], ["-0.05em", "0.02em"]);
+
+  const springScale = useSpring(textScale, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  const springY = useSpring(textY, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
   useEffect(() => {
     // Simple count up animation simulation
@@ -233,23 +237,24 @@ export default function LandingPage() {
             </div>
           </div>
           
-          <div className="relative flex justify-center py-20 pointer-events-none group/footer">
+          <div className="relative flex justify-center py-20 pointer-events-none group/footer overflow-hidden">
             <motion.h2 
               style={{ 
-                scale: textScale,
-                y: textY,
+                scale: springScale,
+                y: springY,
                 filter: textBlur,
-                opacity: textOpacity
+                opacity: textOpacity,
+                letterSpacing: textTracking
               }}
-              className="text-[20vw] font-serif font-black leading-none select-none tracking-tighter relative cursor-default pointer-events-auto"
+              className="text-[20vw] font-serif font-black leading-none select-none relative cursor-default pointer-events-auto"
             >
               {/* Background Outline Layer */}
-              <span className="absolute inset-0 text-transparent stroke-white/10" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.1)' }}>
+              <span className="absolute inset-0 text-transparent stroke-white/10" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.05)' }}>
                 eCARD
               </span>
               
               {/* Main Gradient Layer */}
-              <span className="relative bg-clip-text text-transparent bg-gradient-to-b from-white via-white/40 to-transparent opacity-80 group-hover/footer:opacity-100 transition-all duration-700 group-hover/footer:tracking-normal tracking-tighter">
+              <span className="relative bg-clip-text text-transparent bg-gradient-to-b from-slate-900 via-slate-900/40 to-transparent opacity-80 group-hover/footer:opacity-100 transition-all duration-700">
                 eCARD
               </span>
 

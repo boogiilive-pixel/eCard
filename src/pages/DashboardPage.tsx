@@ -6,7 +6,7 @@ import {
   LayoutDashboard, User, Palette, Share2, BarChart3, Settings, 
   LogOut, ExternalLink, Copy, Check, Camera, Save,
   Sparkles, Heart, Trash2, Search, Nfc, ShoppingCart, ZoomIn, ZoomOut,
-  Menu, X
+  Menu, X, ArrowRight, ChevronRight
 } from 'lucide-react';
 import { auth, db, storage } from '../lib/firebase';
 import { collection, doc, updateDoc, getDocs, query, where, deleteDoc, setDoc } from 'firebase/firestore';
@@ -440,268 +440,436 @@ function MyECard({ profile }: any) {
   ];
 
   return (
-    <div className="space-y-8 pb-32">
-      {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-0 z-[110] bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200/60 shadow-sm shadow-slate-100/50">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">Дижитал нэрийн хуудас</h2>
-          <p className="text-xs text-slate-500 uppercase tracking-widest font-medium">Мэдээллээ засаж шинэчлэх</p>
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 min-h-screen font-inter">
+      {/* SaaS Header Bar */}
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sticky top-4 z-[110] bg-white border border-[#f0f0f0] p-4 rounded-xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]">
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 text-[12px] text-[#888] font-medium mb-0.5">
+              <span>Дижитал нэрийн хуудас</span>
+              <ChevronRight className="w-3 h-3" />
+              <span className="text-[#111]">Засварлагч</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-[14px] font-semibold text-[#111]">Миний eCard</h1>
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success-bg border border-[#e0f0e0]">
+                <div className="w-1.5 h-1.5 rounded-full bg-success-text animate-pulse" />
+                <span className="text-[10px] font-bold text-success-text uppercase tracking-wider">Hадаглагдсан</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-4 w-full sm:w-auto">
-          {showSuccess && (
-            <motion.span 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-[10px] text-aurora-blue font-black uppercase tracking-widest bg-aurora-blue/10 px-3 py-1.5 rounded-lg hidden md:block"
-            >
-              Амжилттай хадгалагдлаа
-            </motion.span>
-          )}
+        
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button 
+            onClick={() => window.open(`/${formData.username}`, '_blank')}
+            className="flex-1 sm:flex-none py-2 px-4 rounded-lg bg-white border border-[#f0f0f0] text-[#555] font-semibold text-[13px] hover:bg-[#fafafa] hover:border-[#ddd] transition-all flex items-center justify-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Урьдчилан харах
+          </button>
           <button 
             onClick={handleSave} 
             disabled={loading} 
-            className="flex-1 sm:flex-none py-3 px-10 rounded-xl bg-slate-900 text-white font-bold text-sm tracking-widest uppercase hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200"
+            className="flex-1 sm:flex-none py-2 px-6 rounded-lg bg-[#6366f1] text-white font-semibold text-[13px] hover:bg-[#4f46e5] transition-all flex items-center justify-center gap-2 shadow-[0_4px_12px_-4px_rgba(99,102,241,0.4)] disabled:opacity-50"
           >
             {loading ? (
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Бэлдэж байна...</span>
+                <span>Хадгалж байна...</span>
               </div>
             ) : (
-              <><Save className="w-4 h-4" /> Шинэчлэх</>
+              <>Хадгалах</>
             )}
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12 pt-4">
-        {/* Left Column: Basic Info */}
-        <div className="lg:col-span-2 space-y-6 lg:space-y-12">
-          {/* Profile Section */}
-          <section className="glass-panel !bg-white/90 p-6 sm:p-10 rounded-[32px] space-y-8 shadow-sm border-slate-200/60">
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-10">
-              <div className="flex flex-col items-center gap-4">
-                <div className="relative w-40 h-40 group">
-                  <div className="w-full h-full rounded-3xl border-2 border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center shadow-inner">
-                    {previewUrl ? (
-                      <img 
-                        src={previewUrl} 
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer" 
-                      />
-                    ) : (
-                      <div className="text-5xl font-bold text-slate-300">{formData.firstname?.[0]}</div>
-                    )}
-                    {loading && selectedFile && (
-                      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex flex-col items-center justify-center rounded-3xl gap-2">
-                        <div className="relative w-12 h-12">
-                          <svg className="w-full h-full" viewBox="0 0 36 36">
-                            <circle cx="18" cy="18" r="16" fill="none" className="stroke-slate-200" strokeWidth="3" />
-                            <circle cx="18" cy="18" r="16" fill="none" className="stroke-slate-900 transition-all duration-300" strokeWidth="3" strokeDasharray="100" strokeDashoffset={100 - uploadProgress} strokeLinecap="round" />
-                          </svg>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-[10px] font-black">{uploadProgress}%</span>
-                          </div>
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-8 items-start">
+        {/* Main Editor Form */}
+        <div className="space-y-8">
+          {/* Identity Section */}
+          <div className="bg-white border border-[#f0f0f0] rounded-xl overflow-hidden editor-container">
+            <div className="p-6 border-b border-[#f0f0f0] bg-[#fafafa]/50">
+              <h3 className="text-[14px] font-semibold text-[#111]">Үндсэн мэдээлэл</h3>
+              <p className="text-[12px] text-[#888] mt-1">Таны нэрийн хуудсан дээр харагдах үндсэн мэдээллүүд.</p>
+            </div>
+            <div className="p-8 space-y-8">
+              <div className="flex flex-col md:flex-row gap-10">
+                <div className="flex-shrink-0">
+                  <div className="relative group">
+                    <div className="w-32 h-32 rounded-xl border border-[#f0f0f0] overflow-hidden bg-[#fafafa] flex items-center justify-center shadow-inner relative">
+                      {previewUrl ? (
+                        <img 
+                          src={previewUrl} 
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          referrerPolicy="no-referrer" 
+                        />
+                      ) : (
+                        <div className="text-4xl font-bold text-[#bbb]">{formData.firstname?.[0]}</div>
+                      )}
+                      
+                      {loading && selectedFile && (
+                        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-20">
+                           <div className="w-8 h-8 border-2 border-[#6366f1]/20 border-t-[#6366f1] rounded-full animate-spin" />
                         </div>
-                        <span className="text-[9px] font-black text-slate-900 uppercase tracking-[0.2em]">Илгээж байна...</span>
+                      )}
+
+                      <label className="absolute inset-0 cursor-pointer opacity-0 group-hover:opacity-100 bg-black/40 flex flex-col items-center justify-center transition-all duration-200 z-10">
+                        <Camera className="w-6 h-6 text-white mb-1.5" />
+                        <span className="text-[10px] text-white font-bold uppercase tracking-widest">Зураг солих</span>
+                        <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
+                      </label>
+                    </div>
+                    {selectedFile && (
+                      <div className="mt-2 text-center text-[10px] text-[#6366f1] font-bold uppercase tracking-wider">
+                        Шинэ зураг
                       </div>
                     )}
                   </div>
-                  <label className="absolute inset-0 cursor-pointer opacity-0 group-hover:opacity-100 bg-black/40 flex flex-col items-center justify-center transition-all rounded-3xl backdrop-blur-sm">
-                    <Camera className="w-8 h-8 text-white mb-2" />
-                    <span className="text-[10px] text-white font-bold uppercase tracking-widest">Зураг солих</span>
-                    <input type="file" className="hidden" onChange={handleAvatarUpload} accept="image/*" />
-                  </label>
-                </div>
-                {selectedFile && (
-                  <div className="text-[10px] text-aurora-blue font-bold uppercase tracking-widest animate-pulse">
-                    Шинэ зураг сонгогдлоо
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 w-full space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Овог</label>
-                    <input name="lastname" value={formData.lastname} onChange={handleChange} className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-slate-900/20 text-sm" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Нэр</label>
-                    <input name="firstname" value={formData.firstname} onChange={handleChange} className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-slate-900/20 text-sm" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Албан тушаал</label>
-                    <input name="job_title" value={formData.job_title || ''} onChange={handleChange} className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-slate-900/20 text-sm" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Компани</label>
-                    <input name="company" value={formData.company || ''} onChange={handleChange} className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-slate-900/20 text-sm" />
-                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <CategorySelector 
-                    value={formData.category || ''} 
-                    onChange={(val) => setFormData((prev: any) => ({ ...prev, category: val }))}
-                    required
-                  />
-                  <SkillsInput 
-                    skills={formData.skills || []}
-                    onChange={(val) => setFormData((prev: any) => ({ ...prev, skills: val }))}
-                    suggestions={SKILLS_SUGGESTIONS}
-                  />
+                <div className="flex-1 space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[13px] font-medium text-[#555]">Нэр</label>
+                      <input 
+                        name="firstname" 
+                        value={formData.firstname} 
+                        onChange={handleChange} 
+                        placeholder="Жишээ: Дорж"
+                        className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[13px] font-medium text-[#555]">Овог</label>
+                      <input 
+                        name="lastname" 
+                        value={formData.lastname} 
+                        onChange={handleChange} 
+                        placeholder="Жишээ: Бат"
+                        className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[13px] font-medium text-[#555]">Албан тушаал</label>
+                      <input 
+                        name="job_title" 
+                        value={formData.job_title || ''} 
+                        onChange={handleChange} 
+                        placeholder="Жишээ: Ерөнхий захирал"
+                        className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[13px] font-medium text-[#555]">Компани</label>
+                      <input 
+                        name="company" 
+                        value={formData.company || ''} 
+                        onChange={handleChange} 
+                        placeholder="Жишээ: Тесла Моторс"
+                        className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Танилцуулга</label>
-                <button onClick={handleAIImprove} className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors font-bold">
-                  <Sparkles className="w-3 h-3" /> AI Сайжруулах
-                </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                <CategorySelector 
+                  value={formData.category || ''} 
+                  onChange={(val) => setFormData((prev: any) => ({ ...prev, category: val }))}
+                  required
+                />
+                <SkillsInput 
+                  skills={formData.skills || []}
+                  onChange={(val) => setFormData((prev: any) => ({ ...prev, skills: val }))}
+                  suggestions={SKILLS_SUGGESTIONS}
+                />
               </div>
-              <textarea name="bio" value={formData.bio || ''} onChange={handleChange} rows={3} className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-slate-900/20 resize-none text-sm" />
+
+              <div className="space-y-1.5 pt-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-[13px] font-medium text-[#555]">Био / Танилцуулга</label>
+                  <button 
+                    onClick={handleAIImprove} 
+                    className="flex items-center gap-1.5 text-[11px] font-bold text-[#6366f1] hover:text-[#4f46e5] transition-colors py-1 px-2 bg-[#6366f1]/5 rounded-md border border-[#6366f1]/10"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" /> ✦ AI Сайжруулах
+                  </button>
+                </div>
+                <textarea 
+                  name="bio" 
+                  value={formData.bio || ''} 
+                  onChange={handleChange} 
+                  rows={4} 
+                  placeholder="Өөрийн тухай товчхон..."
+                  className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-xl py-3 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 resize-none text-[14px] transition-all placeholder:text-[#bbb]" 
+                />
+              </div>
             </div>
-          </section>
+          </div>
           
           {/* Contact Section */}
-          <section className="bg-white/90 border border-slate-200/60 p-6 sm:p-8 rounded-[32px] space-y-8 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900">Холбоо барих мэдээлэл</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Утас</label>
-                <input name="phone" value={formData.phone || ''} onChange={handleChange} placeholder="+976 ..." className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-slate-900/20 text-sm" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Имэйл</label>
-                <input name="email" value={formData.email || ''} onChange={handleChange} placeholder="example@mail.com" className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-slate-900/20 text-sm" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Хаяг</label>
-                <input name="address" value={formData.address || ''} onChange={handleChange} placeholder="Улаанбаатар, ..." className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-slate-900/20 text-sm" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Google Maps Link</label>
-                <input name="maps_url" value={formData.maps_url || ''} onChange={handleChange} placeholder="https://goo.gl/maps/..." className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-slate-900/20 text-sm" />
+          <div className="bg-white border border-[#f0f0f0] rounded-xl overflow-hidden editor-container">
+            <div className="p-6 border-b border-[#f0f0f0] bg-[#fafafa]/50">
+              <h3 className="text-[14px] font-semibold text-[#111]">Холбоо барих мэдээлэл</h3>
+              <p className="text-[12px] text-[#888] mt-1">Таныг олоход туслах холбоо барих мэдээллүүд.</p>
+            </div>
+            <div className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium text-[#555]">Гар утас</label>
+                  <input 
+                    name="phone" 
+                    value={formData.phone || ''} 
+                    onChange={handleChange} 
+                    placeholder="+976 0000 0000" 
+                    className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium text-[#555]">И-мэйл хаяг</label>
+                  <input 
+                    name="email" 
+                    value={formData.email || ''} 
+                    onChange={handleChange} 
+                    placeholder="example@ecard.mn" 
+                    className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium text-[#555]">Хаяг / Байршил</label>
+                  <input 
+                    name="address" 
+                    value={formData.address || ''} 
+                    onChange={handleChange} 
+                    placeholder="Улаанбаатар хот, Сүхбаатар дүүрэг..." 
+                    className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium text-[#555]">Google Maps Холбоос</label>
+                  <input 
+                    name="maps_url" 
+                    value={formData.maps_url || ''} 
+                    onChange={handleChange} 
+                    placeholder="https://maps.google.com/..." 
+                    className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 px-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                  />
+                </div>
               </div>
             </div>
-          </section>
+          </div>
 
           {/* Social Section */}
-          <section className="bg-white/90 border border-slate-200/60 p-6 sm:p-8 rounded-[32px] space-y-8 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900">Сошиал холбоосууд</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              {['linkedin', 'facebook', 'instagram', 'twitter', 'youtube'].map((key) => (
-                <div key={key} className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold capitalize">{key}</label>
-                  <input 
-                    name={key} 
-                    value={(formData as any)[key] || ''} 
-                    onChange={handleChange} 
-                    placeholder={`https://${key}.com/...`}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 outline-none focus:border-slate-900/20 text-sm" 
-                  />
-                </div>
-              ))}
+          <div className="bg-white border border-[#f0f0f0] rounded-xl overflow-hidden editor-container">
+            <div className="p-6 border-b border-[#f0f0f0] bg-[#fafafa]/50">
+              <h3 className="text-[14px] font-semibold text-[#111]">Олон нийтийн сүлжээ</h3>
+              <p className="text-[12px] text-[#888] mt-1">Өөрийн сошиал хаягуудыг холбож илүү үр дүнтэй харилцааг бий болго.</p>
             </div>
-          </section>
-        </div>
-
-        {/* Right Column: Design & Preview */}
-        <div className="space-y-12">
-          {/* Design Section */}
-          <section className="bg-white/90 border border-slate-200/60 p-8 rounded-[32px] space-y-8 shadow-sm">
-            <h3 className="text-lg font-bold text-slate-900">Загвар & Өнгө</h3>
-            
-            <div className="space-y-4">
-              <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Өнгө сонгох</label>
-              <div className="flex flex-wrap gap-3">
-                {presets.map(p => (
-                  <button 
-                    key={p.color} 
-                    onClick={() => setFormData(prev => ({ ...prev, card_color: p.color }))}
-                    className={cn(
-                      "w-8 h-8 rounded-full border-2 transition-all",
-                      formData.card_color === p.color ? "border-slate-900 scale-125 shadow-lg" : "border-transparent"
-                    )}
-                    style={{ backgroundColor: p.color }}
-                  />
+            <div className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                {['linkedin', 'facebook', 'instagram', 'twitter', 'youtube'].map((key) => (
+                  <div key={key} className="space-y-1.5">
+                    <label className="text-[13px] font-medium text-[#555] capitalize">{key}</label>
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#bbb] group-focus-within:text-[#6366f1]">
+                        <Share2 className="w-4 h-4" />
+                      </div>
+                      <input 
+                        name={key} 
+                        value={(formData as any)[key] || ''} 
+                        onChange={handleChange} 
+                        placeholder={`https://${key}.com/your-profile`}
+                        className="w-full bg-[#fafafa] border border-[#f0f0f0] rounded-lg py-2.5 pl-11 pr-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[14px] transition-all placeholder:text-[#bbb]" 
+                      />
+                    </div>
+                  </div>
                 ))}
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Картын өнгө</label>
-                <div className="relative w-full h-12 rounded-xl overflow-hidden border border-slate-100 flex items-center justify-center text-slate-300 text-xl cursor-pointer bg-slate-50">
-                  <input type="color" value={formData.card_color.startsWith('linear') ? '#0f172a' : formData.card_color} onChange={(e) => setFormData(prev => ({ ...prev, card_color: e.target.value }))} className="absolute inset-0 opacity-0 cursor-pointer" />
-                  +
-                </div>
-              </div>
-              <div className="space-y-4">
-                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Бичвэрийн өнгө</label>
-                <div className="relative w-full h-12 rounded-xl overflow-hidden border border-slate-100 flex items-center justify-center text-slate-300 text-xl cursor-pointer">
-                  <input type="color" value={formData.card_text_color || '#c9a84c'} onChange={(e) => setFormData(prev => ({ ...prev, card_text_color: e.target.value }))} className="absolute inset-0 opacity-0 cursor-pointer" />
-                  <div className="w-full h-full" style={{ backgroundColor: formData.card_text_color || '#c9a84c' }} />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Градиент сонгох</label>
-              <div className="flex flex-wrap gap-3">
-                {gradients.map(g => (
-                  <button 
-                    key={g.color} 
-                    onClick={() => setFormData(prev => ({ ...prev, card_color: g.color }))}
-                    className={cn(
-                      "w-10 h-6 rounded-md border-2 transition-all",
-                      formData.card_color === g.color ? "border-slate-900 scale-110 shadow-lg" : "border-transparent"
-                    )}
-                    style={{ background: g.color }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Хээ сонгох</label>
-              <div className="grid grid-cols-3 gap-3">
-                {patterns.map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => setFormData(prev => ({ ...prev, card_pattern: p.id }))}
-                    className={cn(
-                      "py-2 rounded-lg border transition-all text-[8px] uppercase tracking-widest font-bold",
-                      formData.card_pattern === p.id ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-slate-50 text-slate-400"
-                    )}
-                  >
-                    {p.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Minimal Preview */}
-          <div className="p-10 rounded-2xl bg-white border border-slate-100 relative overflow-hidden shadow-xl" style={{ 
-            background: formData.card_color.startsWith('linear') ? formData.card_color : undefined, 
-            backgroundColor: !formData.card_color.startsWith('linear') ? (formData.card_color || '#0d1530') : undefined,
-          }}>
-            <div className={cn("absolute inset-0 opacity-20 pointer-events-none", formData.card_pattern)} />
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
-            <div className="relative z-10">
-              <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/10 mb-6 overflow-hidden">
-                {formData.avatar_url && <img src={formData.avatar_url} className="w-full h-full object-cover" />}
-              </div>
-              <div className="h-6 w-40 rounded-lg mb-3" style={{ backgroundColor: formData.card_text_color || '#c9a84c' }} />
-              <div className="h-4 w-24 opacity-60 rounded-lg" style={{ backgroundColor: formData.card_text_color || '#c9a84c' }} />
             </div>
           </div>
         </div>
+
+        {/* Right Column: Design & Preview */}
+        <aside className="sticky top-24 space-y-8">
+          {/* Design Section */}
+          <div className="bg-white border border-[#f0f0f0] rounded-xl overflow-hidden editor-container">
+            <div className="p-5 border-b border-[#f0f0f0] bg-[#fafafa]/50">
+              <h3 className="text-[14px] font-semibold text-[#111]">Загвар & Өнгө</h3>
+            </div>
+            
+            <div className="p-6 space-y-8">
+              {/* Preset Colors */}
+              <div className="space-y-3">
+                <label className="text-[12px] font-medium text-[#888]">Үндсэн өнгөнүүд</label>
+                <div className="flex flex-wrap gap-2.5">
+                  {presets.map(p => (
+                    <button 
+                      key={p.color} 
+                      onClick={() => setFormData(prev => ({ ...prev, card_color: p.color }))}
+                      title={p.name}
+                      className={cn(
+                        "w-6 h-6 rounded-full border transition-all duration-200 hover:scale-110",
+                        formData.card_color === p.color ? "ring-2 ring-[#6366f1] ring-offset-2 border-transparent scale-110" : "border-[#f0f0f0]"
+                      )}
+                      style={{ backgroundColor: p.color }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom Colors */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[12px] font-medium text-[#888]">Фон өнгө</label>
+                  <div className="relative group">
+                    <input 
+                      type="color" 
+                      value={formData.card_color.startsWith('linear') ? '#0f172a' : (formData.card_color || '#0d1530')} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, card_color: e.target.value }))} 
+                      className="absolute inset-0 w-full h-10 opacity-0 cursor-pointer z-10" 
+                    />
+                    <div className="w-full h-10 rounded-lg border border-[#f0f0f0] flex items-center justify-between px-3 bg-[#fafafa] group-hover:bg-white transition-colors">
+                      <div className="w-4 h-4 rounded-sm border border-black/5" style={{ backgroundColor: formData.card_color.startsWith('linear') ? '#0f172a' : (formData.card_color || '#0d1530') }} />
+                      <span className="text-[11px] font-mono text-[#555]">{formData.card_color.startsWith('linear') ? '#LINEAR' : (formData.card_color || '#0D1530').toUpperCase()}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[12px] font-medium text-[#888]">Текст өнгө</label>
+                  <div className="relative group">
+                    <input 
+                      type="color" 
+                      value={formData.card_text_color || '#c9a84c'} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, card_text_color: e.target.value }))} 
+                      className="absolute inset-0 w-full h-10 opacity-0 cursor-pointer z-10" 
+                    />
+                    <div className="w-full h-10 rounded-lg border border-[#f0f0f0] flex items-center justify-between px-3 bg-[#fafafa] group-hover:bg-white transition-colors">
+                      <div className="w-4 h-4 rounded-sm border border-black/5" style={{ backgroundColor: formData.card_text_color || '#c9a84c' }} />
+                      <span className="text-[11px] font-mono text-[#555]">{(formData.card_text_color || '#C9A84C').toUpperCase()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Gradients */}
+              <div className="space-y-3">
+                <label className="text-[12px] font-medium text-[#888]">Градиент</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {gradients.map(g => (
+                    <button 
+                      key={g.color} 
+                      onClick={() => setFormData(prev => ({ ...prev, card_color: g.color }))}
+                      className={cn(
+                        "h-8 rounded-md border transition-all duration-200",
+                        formData.card_color === g.color ? "ring-2 ring-[#6366f1] ring-offset-2 border-transparent" : "border-[#f0f0f0]"
+                      )}
+                      style={{ background: g.color }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Patterns */}
+              <div className="space-y-3">
+                <label className="text-[12px] font-medium text-[#888]">Хээ (Patterns)</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {patterns.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => setFormData(prev => ({ ...prev, card_pattern: p.id }))}
+                      className={cn(
+                        "py-2 rounded-lg border text-[11px] font-medium transition-all",
+                        formData.card_pattern === p.id 
+                          ? "bg-[#6366f1] border-[#6366f1] text-white shadow-[0_4px_12px_-4px_rgba(99,102,241,0.4)]" 
+                          : "bg-[#fafafa] border-[#f0f0f0] text-[#555] hover:border-[#ddd]"
+                      )}
+                    >
+                      {p.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* SaaS Fidelity Live Preview */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-[13px] font-semibold text-[#111] flex items-center gap-2">
+                Урьдчилан харах
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] font-bold uppercase tracking-wider">
+                  Live
+                </div>
+              </h3>
+              <div className="flex bg-[#f0f0f0] p-0.5 rounded-lg border border-[#e0e0e0]">
+                <button className="px-3 py-1 text-[10px] font-bold bg-white rounded-md shadow-sm text-[#111]">FRONT</button>
+                <button className="px-3 py-1 text-[10px] font-bold text-[#888]">BACK</button>
+              </div>
+            </div>
+
+            <div className="relative group perspective-1000">
+              <div 
+                className={cn(
+                  "relative aspect-[1.6/1] w-full rounded-2xl p-8 overflow-hidden preview-card-shadow card-base transition-transform duration-500",
+                  formData.card_pattern
+                )}
+                style={{ 
+                  background: formData.card_color.startsWith('linear') ? formData.card_color : undefined, 
+                  backgroundColor: !formData.card_color.startsWith('linear') ? (formData.card_color || '#0d1530') : undefined,
+                  color: formData.card_text_color || '#c9a84c'
+                }}
+              >
+                {/* Subtle overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-black/20 pointer-events-none" />
+                
+                <div className="relative z-10 h-full flex flex-col justify-between">
+                  <div className="flex justify-between items-start">
+                    <div className="w-14 h-14 rounded-xl overflow-hidden border border-white/10 bg-white/5 shadow-2xl backdrop-blur-md">
+                      {previewUrl ? (
+                         <img src={previewUrl} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xl font-bold opacity-30">
+                          {formData.firstname?.[0] || 'E'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right">
+                       <Logo className="w-8 h-8 opacity-40 ml-auto" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <h4 className="text-[20px] font-bold tracking-tight leading-none truncate">
+                      {formData.lastname || ''} {formData.firstname || 'Нэр байхгүй'}
+                    </h4>
+                    <p className="text-[11px] font-medium opacity-80 uppercase tracking-[0.15em] truncate">
+                      {formData.job_title || 'Албан тушаал'} {formData.company ? `@ ${formData.company}` : ''}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Decorative element */}
+                <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white/10 blur-3xl rounded-full" />
+              </div>
+
+              {/* Interaction hints */}
+              <div className="mt-6 flex items-center justify-center gap-6 opacity-40 group-hover:opacity-100 transition-opacity">
+                 <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#888]">
+                    <ZoomIn className="w-3.5 h-3.5" /> Хэмжээ
+                 </div>
+                 <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#888]">
+                    <Share2 className="w-3.5 h-3.5" /> Хуваалцах
+                 </div>
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
 
     </div>
@@ -719,7 +887,6 @@ function SavedCards({ user }: any) {
         const snap = await getDocs(q);
         const savedData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
-        // Fetch profile details for each saved card
         const profiles = await Promise.all(
           savedData.map(async (s: any) => {
             const pSnap = await getDocs(query(
@@ -757,43 +924,48 @@ function SavedCards({ user }: any) {
 
   if (loading) return (
     <div className="py-20 flex justify-center">
-      <LoadingAnimation />
+      <div className="w-8 h-8 border-2 border-[#6366f1]/20 border-t-[#6366f1] rounded-full animate-spin" />
     </div>
   );
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-slate-900 px-1">Хадгалсан eCard</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-inter">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-[18px] font-semibold text-[#111]">Хадгалсан eCard</h1>
+          <p className="text-[13px] text-[#888] mt-1">Таны хадгалсан нэрийн хуудсууд.</p>
+        </div>
+      </div>
       
       {savedCards.length === 0 ? (
-        <div className="bg-white border border-slate-100 p-12 rounded-2xl text-center">
-          <Heart className="w-10 h-10 text-slate-100 mx-auto mb-4" />
-          <p className="text-slate-400 text-sm">Танд хадгалсан нэрийн хуудас байхгүй байна.</p>
+        <div className="bg-white border border-[#f0f0f0] p-16 rounded-xl text-center">
+          <Heart className="w-12 h-12 text-[#f0f0f0] mx-auto mb-4" />
+          <p className="text-[#bbb] text-[14px] font-medium">Танд хадгалсан нэрийн хуудас байхгүй байна.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {savedCards.map((card: any) => (
-            <div key={card.save_id} className="bg-white border border-slate-100 p-6 rounded-2xl group transition-all hover:border-slate-300">
+            <div key={card.save_id} className="bg-white border border-[#f0f0f0] p-6 rounded-xl group transition-all duration-300 hover:border-[#ddd] hover:shadow-xl hover:shadow-black/5">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-900 font-bold">
-                  {(card.firstname || 'U')[0]}
+                <div className="w-12 h-12 rounded-lg bg-[#fafafa] border border-[#f0f0f0] flex items-center justify-center text-[#111] font-bold overflow-hidden">
+                  {card.avatar_url ? <img src={card.avatar_url} className="w-full h-full object-cover" /> : (card.firstname || 'U')[0]}
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900">{card.firstname || 'Тодорхойгүй'} {card.lastname || ''}</h4>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-widest">{card.job_title || 'Мэргэжилгүй'}</p>
+                  <h4 className="font-semibold text-[#111] text-[14px]">{card.firstname || 'Тодорхойгүй'} {card.lastname || ''}</h4>
+                  <p className="text-[11px] text-[#888] font-medium truncate max-w-[150px]">{card.job_title || 'Мэргэжилгүй'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Link 
                   to={`/${card.username}`} 
                   target="_blank"
-                  className="flex-1 py-2.5 rounded-lg bg-slate-900 text-white text-center text-xs font-bold transition-all"
+                  className="flex-1 py-2 rounded-lg bg-[#111] text-white text-center text-[12px] font-semibold transition-all hover:bg-black"
                 >
-                  Харах
+                  Профайл харах
                 </Link>
                 <button 
                   onClick={() => removeSaved(card.save_id)}
-                  className="p-2.5 rounded-lg bg-slate-50 text-slate-400 hover:text-danger hover:bg-danger/5 transition-all"
+                  className="p-2 rounded-lg bg-[#fafafa] border border-[#f0f0f0] text-[#888] hover:text-red-500 hover:border-red-500/20 hover:bg-red-50 transition-all"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -808,15 +980,23 @@ function SavedCards({ user }: any) {
 
 function Analytics({ profile }: any) {
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-slate-900">Аналитик</h1>
-      <div className="bg-white border border-slate-100 p-12 sm:p-20 rounded-2xl text-center">
-        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-          <BarChart3 className="w-8 h-8 text-slate-300" />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-inter">
+      <div>
+        <h1 className="text-[18px] font-semibold text-[#111]">Аналитик</h1>
+        <p className="text-[13px] text-[#888] mt-1">Таны нэрийн хуудасны хандалтын мэдээлэл.</p>
+      </div>
+
+      <div className="bg-white border border-[#f0f0f0] p-16 rounded-xl text-center editor-container">
+        <div className="w-14 h-14 bg-[#fafafa] border border-[#f0f0f0] rounded-xl flex items-center justify-center mx-auto mb-6">
+          <BarChart3 className="w-6 h-6 text-[#bbb]" />
         </div>
-        <h3 className="text-xl font-bold text-slate-900 mb-4">Дэлгэрэнгүй аналитик</h3>
-        <p className="text-slate-400 text-sm max-w-sm mx-auto leading-relaxed">Энэ хэсэг зөвхөн Pro хэрэглэгчдэд нээлттэй. Та төлөвлөгөөгөө ахиулж илүү дэлгэрэнгүй мэдээлэл аваарай.</p>
-        <button className="mt-10 bg-slate-900 text-white px-10 py-3.5 rounded-xl font-bold text-sm hover:bg-slate-800 transition-all">Pro болох</button>
+        <h3 className="text-[16px] font-semibold text-[#111] mb-2">Дэлгэрэнгүй аналитик</h3>
+        <p className="text-[#888] text-[13px] max-w-sm mx-auto leading-relaxed">
+          Энэ хэсэг одоогоор туршилтын шатанд байна. Pro хэрэглэгчид удахгүй хандалтын нарийвчилсан статистик авах боломжтой болно.
+        </p>
+        <button className="mt-8 bg-[#6366f1] text-white px-8 py-2.5 rounded-lg font-semibold text-[13px] hover:bg-[#4f46e5] transition-all shadow-[0_4px_12px_-4px_rgba(99,102,241,0.4)]">
+          Pro болох
+        </button>
       </div>
     </div>
   );
@@ -841,7 +1021,6 @@ function DirectoryView() {
         );
         const snap = await getDocs(q);
         const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log(`Fetched ${data.length} profiles for directory`);
         setProfiles(data);
       } catch (err: any) {
         console.error("Directory Fetch Error:", err);
@@ -860,7 +1039,6 @@ function DirectoryView() {
       (p.job_title || '')
     ).toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Check both 'field' (legacy) and 'category' (current)
     const matchesField = selectedField === 'Бүгд' || 
                          p.category === selectedField || 
                          p.field === selectedField;
@@ -869,28 +1047,31 @@ function DirectoryView() {
   });
 
   return (
-    <div className="space-y-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-inter">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <h1 className="text-3xl font-bold text-slate-900">Лавлах</h1>
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 w-3.5 h-3.5" />
+        <div>
+          <h1 className="text-[18px] font-semibold text-[#111]">Лавлах</h1>
+          <p className="text-[13px] text-[#888] mt-1">Олон нийтэд нээлттэй нэрийн хуудсууд.</p>
+        </div>
+        <div className="relative w-full md:w-80 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#bbb] w-4 h-4 group-focus-within:text-[#6366f1]" />
           <input 
-            placeholder="Хайх..." 
+            placeholder="Хүн эсвэл компани хайх..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white border border-slate-100 rounded-xl py-3 pl-11 pr-6 outline-none focus:border-slate-900/20 text-sm transition-all focus:shadow-md" 
+            className="w-full bg-white border border-[#f0f0f0] rounded-lg py-2.5 pl-11 pr-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[13px] transition-all placeholder:text-[#bbb]" 
           />
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 py-2">
         {fields.map(f => (
           <button 
             key={f} 
             onClick={() => setSelectedField(f)}
             className={cn(
-              "px-4 py-2 rounded-lg text-xs font-semibold transition-all uppercase tracking-widest", 
-              selectedField === f ? "bg-slate-900 text-white" : "bg-white border border-slate-50 text-slate-400 hover:border-slate-200"
+              "px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all", 
+              selectedField === f ? "bg-[#111] text-white shadow-xl" : "bg-white border border-[#f0f0f0] text-[#555] hover:border-[#ddd]"
             )}
           >
             {f}
@@ -899,20 +1080,21 @@ function DirectoryView() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          {[1,2,3,4].map(i => <div key={i} className="h-40 bg-white border border-slate-50 rounded-2xl animate-pulse" />)}
+        <div className="flex justify-center py-20">
+           <div className="w-8 h-8 border-2 border-[#6366f1]/20 border-t-[#6366f1] rounded-full animate-spin" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(p => (
-            <Link key={p.id} to={`/${p.username}`} className="bg-white border border-slate-100 p-6 rounded-2xl hover:border-slate-300 transition-all flex items-center gap-6 group">
-              <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
-                {p.avatar_url ? <img src={p.avatar_url} className="w-full h-full object-cover" /> : <div className="text-xl font-bold text-slate-200">{p.firstname[0]}</div>}
+            <Link key={p.id} to={`/${p.username}`} className="bg-white border border-[#f0f0f0] p-5 rounded-xl transition-all duration-300 hover:border-[#ddd] hover:shadow-xl hover:shadow-black/5 flex items-center gap-4 group">
+              <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#fafafa] border border-[#f0f0f0] flex items-center justify-center shrink-0">
+                {p.avatar_url ? <img src={p.avatar_url} className="w-full h-full object-cover" /> : <div className="text-xl font-bold text-[#bbb]">{p.firstname[0]}</div>}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-slate-900 truncate transition-colors">{p.lastname} {p.firstname}</h3>
-                <p className="text-[10px] text-slate-400 uppercase tracking-widest truncate">{p.job_title}</p>
+                <h3 className="font-semibold text-[#111] text-[14px] truncate">{p.lastname} {p.firstname}</h3>
+                <p className="text-[11px] text-[#888] font-medium truncate">{p.job_title || 'Мэргэжилгүй'}</p>
               </div>
+              <ArrowRight className="w-4 h-4 text-[#bbb] group-hover:text-[#6366f1] transition-colors" />
             </Link>
           ))}
         </div>
@@ -947,53 +1129,51 @@ function NfcShop() {
   ];
 
   return (
-    <div className="space-y-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-inter">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">NFC Tag захиалах</h1>
+        <div>
+          <h1 className="text-[18px] font-semibold text-[#111]">NFC Tag захиалах</h1>
+          <p className="text-[13px] text-[#888] mt-1">Карт болон наалт захиалж илүү хялбараар мэдээллээ хуваалцаарай.</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {products.map((product) => (
-          <motion.div 
+          <div 
             key={product.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white border border-slate-100 rounded-2xl overflow-hidden group hover:border-slate-300 transition-all shadow-sm"
+            className="bg-white border border-[#f0f0f0] rounded-xl overflow-hidden group hover:border-[#ddd] hover:shadow-xl hover:shadow-black/5 transition-all duration-300"
           >
-            <div className="aspect-square overflow-hidden relative bg-slate-50">
+            <div className="aspect-square overflow-hidden relative bg-[#fafafa]">
               <img 
                 src={product.image} 
                 alt={product.name} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-slate-900/5 transition-opacity" />
-              <div className="absolute inset-x-0 bottom-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xl">
-                  <ShoppingCart className="w-3 h-3" /> Сагсанд нэмэх
+              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[12px] font-bold text-[#111] shadow-sm">
+                {product.price}
+              </div>
+              <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                <button className="w-full bg-[#111] text-white py-2.5 rounded-lg text-[13px] font-semibold flex items-center justify-center gap-2 shadow-xl">
+                  <ShoppingCart className="w-4 h-4" /> Сагсанд нэмэх
                 </button>
               </div>
             </div>
-            <div className="p-6 space-y-3">
-              <div className="flex justify-between items-start gap-4">
-                <h3 className="font-bold text-slate-900 text-base leading-tight">{product.name}</h3>
-                <span className="text-slate-900 font-bold text-sm whitespace-nowrap">{product.price}</span>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                {product.description}
-              </p>
+            <div className="p-6 space-y-2">
+              <h3 className="text-[15px] font-semibold text-[#111] truncate">{product.name}</h3>
+              <p className="text-[12px] text-[#888] leading-relaxed line-clamp-2">{product.description}</p>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
-      <div className="bg-slate-50 border border-slate-100 p-8 sm:p-10 rounded-2xl flex flex-col md:flex-row items-center gap-8">
-        <div className="w-16 h-16 rounded-xl bg-slate-900 flex items-center justify-center shrink-0">
-          <Nfc className="w-8 h-8 text-white" />
+      <div className="bg-[#fafafa] border border-[#f0f0f0] p-8 rounded-xl flex flex-col md:flex-row items-center gap-8 editor-container">
+        <div className="w-14 h-14 rounded-xl bg-[#6366f1] flex items-center justify-center shrink-0 shadow-[0_4px_12px_-4px_rgba(99,102,241,0.4)]">
+          <Nfc className="w-6 h-6 text-white" />
         </div>
-        <div className="flex-1 space-y-1.5 text-center md:text-left">
-          <h3 className="text-lg font-bold text-slate-900 uppercase tracking-wider">NFC гэж юу вэ?</h3>
-          <p className="text-slate-400 text-xs max-w-2xl leading-relaxed">
+        <div className="flex-1 space-y-1 text-center md:text-left">
+          <h3 className="text-[16px] font-semibold text-[#111]">NFC гэж юу вэ?</h3>
+          <p className="text-[#888] text-[13px] max-w-2xl leading-relaxed">
             NFC (Near Field Communication) технологи нь таны дижитал нэрийн хуудсыг бусдын утсанд ганц хүрэлтээр дамжуулах боломжийг олгоно. Ямар нэгэн апп суулгах шаардлагагүй.
           </p>
         </div>
@@ -1023,34 +1203,55 @@ function AccountSettings({ profile }: any) {
   };
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-slate-900">Тохиргоо</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-inter">
+      <div>
+        <h1 className="text-[18px] font-semibold text-[#111]">Тохиргоо</h1>
+        <p className="text-[13px] text-[#888] mt-1">Таны бүртгэлийн болон харагдах байдлын тохиргоо.</p>
+      </div>
       
-      <div className="bg-white border border-slate-100 p-8 sm:p-10 rounded-2xl space-y-10">
-        <div className="flex items-center justify-between">
+      <div className="bg-white border border-[#f0f0f0] rounded-xl overflow-hidden editor-container p-8 space-y-8">
+        <div className="flex items-center justify-between p-4 bg-[#fafafa] rounded-xl border border-[#f0f0f0]">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 mb-1">Лавлахад харагдах</h3>
-            <p className="text-xs text-slate-400">Таны профайл нийтийн лавлахад харагдах эсэх.</p>
+            <h3 className="text-[14px] font-semibold text-[#111] mb-1">Нийтийн лавлахад харагдах</h3>
+            <p className="text-[12px] text-[#888]">Таны профайл Директор хэсэгт бусад хэрэглэгчдэд харагдах болно.</p>
           </div>
           <button 
             onClick={() => handleToggle('show_in_directory')}
-            className={cn("w-12 h-6 rounded-full transition-all relative flex items-center px-1", settings.show_in_directory ? "bg-slate-900" : "bg-slate-100")}
+            className={cn(
+              "w-11 h-6 rounded-full transition-all relative flex items-center px-1", 
+              settings.show_in_directory ? "bg-[#6366f1]" : "bg-[#f0f0f0]"
+            )}
           >
-            <div className={cn("w-4 h-4 rounded-full bg-white transition-all shadow-sm", settings.show_in_directory ? "ml-auto" : "ml-0")} />
+            <div className={cn("w-4 h-4 rounded-full bg-white transition-all shadow-sm", settings.show_in_directory ? "translate-x-5" : "translate-x-0")} />
           </button>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between p-4 bg-[#fafafa] rounded-xl border border-[#f0f0f0]">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 mb-1">Профайл нийтийн</h3>
-            <p className="text-xs text-slate-400">Таны профайл холбоосоор хандах боломжтой эсэх.</p>
+            <h3 className="text-[14px] font-semibold text-[#111] mb-1">Профайл нээлттэй байх</h3>
+            <p className="text-[12px] text-[#888]">Таны нэрийн хуудсыг холбоосоор шууд харах боломжтой байна.</p>
           </div>
           <button 
             onClick={() => handleToggle('profile_public')}
-            className={cn("w-12 h-6 rounded-full transition-all relative flex items-center px-1", settings.profile_public ? "bg-slate-900" : "bg-slate-100")}
+            className={cn(
+              "w-11 h-6 rounded-full transition-all relative flex items-center px-1", 
+              settings.profile_public ? "bg-[#6366f1]" : "bg-[#f0f0f0]"
+            )}
           >
-            <div className={cn("w-4 h-4 rounded-full bg-white transition-all shadow-sm", settings.profile_public ? "ml-auto" : "ml-0")} />
+            <div className={cn("w-4 h-4 rounded-full bg-white transition-all shadow-sm", settings.profile_public ? "translate-x-5" : "translate-x-0")} />
           </button>
+        </div>
+
+        <div className="pt-8 border-t border-[#f0f0f0]">
+           <div className="bg-red-50/50 border border-red-100 p-6 rounded-xl flex items-center justify-between">
+              <div>
+                <h3 className="text-[14px] font-semibold text-red-600 mb-1">Бүртгэл устгах</h3>
+                <p className="text-[12px] text-red-500/70">Таны мэдээлэл бүрмөсөн устахыг анхаарна уу.</p>
+              </div>
+              <button disabled className="px-6 py-2 rounded-lg bg-red-100 text-red-600 text-[12px] font-bold opacity-50 cursor-not-allowed">
+                Устгах
+              </button>
+           </div>
         </div>
       </div>
     </div>

@@ -31,50 +31,50 @@ export function CategorySelector({ value, onChange, error, required }: CategoryS
   }, []);
 
   return (
-    <div className="space-y-2 relative" ref={containerRef}>
-      <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold flex justify-between">
-        Мэргэжлийн ангилал {required && <span className="text-danger">*</span>}
+    <div className="space-y-1.5 relative group" ref={containerRef}>
+      <label className="text-[13px] font-medium text-[#555555] flex justify-between">
+        Мэргэжлийн ангилал {required && <span className="text-red-500">*</span>}
       </label>
       
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-full bg-slate-50 border rounded-xl py-3 px-4 text-left flex justify-between items-center transition-all",
-          isOpen ? "border-aurora-blue ring-4 ring-aurora-blue/5" : "border-slate-200",
-          error && "border-danger ring-danger/5"
+          "w-full bg-[#fafafa] border rounded-lg py-2.5 px-4 text-left flex justify-between items-center transition-all duration-200",
+          isOpen ? "border-[#6366f1] ring-2 ring-[#6366f1]/10 bg-white" : "border-[#f0f0f0] hover:border-[#ddd]",
+          error && "border-red-500 ring-red-500/10"
         )}
       >
-        <span className={cn("text-sm", !value && "text-slate-400")}>
+        <span className={cn("text-[14px] font-medium", !value ? "text-[#bbb]" : "text-[#111]")}>
           {value || "Ангилал сонгох"}
         </span>
-        <ChevronDown className={cn("w-4 h-4 text-slate-400 transition-transform", isOpen && "rotate-180")} />
+        <ChevronDown className={cn("w-4 h-4 text-[#888] transition-transform duration-200", isOpen && "rotate-180")} />
       </button>
 
-      {error && <p className="text-[10px] text-danger mt-1">{error}</p>}
+      {error && <p className="text-[11px] text-red-500 mt-1 font-medium">{error}</p>}
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden"
+            initial={{ opacity: 0, y: 4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.98 }}
+            className="absolute z-50 w-full mt-2 bg-white border border-[#f0f0f0] rounded-xl shadow-xl overflow-hidden"
           >
-            <div className="p-3 border-b border-slate-100">
+            <div className="p-2 border-b border-[#f0f0f0]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#bbb]" />
                 <input
                   type="text"
                   placeholder="Хайх..."
-                  className="w-full bg-slate-50 border-none rounded-lg py-2 pl-9 pr-4 text-sm focus:ring-0 outline-none"
+                  className="w-full bg-[#fafafa] border-none rounded-lg py-1.5 pl-9 pr-4 text-[13px] focus:ring-0 outline-none placeholder:text-[#bbb]"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   autoFocus
                 />
               </div>
             </div>
-            <div className="max-h-60 overflow-y-auto">
+            <div className="max-h-60 overflow-y-auto p-1">
               {filteredCategories.length > 0 ? (
                 filteredCategories.map((cat) => (
                   <button
@@ -85,14 +85,14 @@ export function CategorySelector({ value, onChange, error, required }: CategoryS
                       setIsOpen(false);
                       setSearch('');
                     }}
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-slate-50 flex justify-between items-center transition-colors"
+                    className="w-full text-left px-3 py-2 text-[13px] hover:bg-[#f4f4f0] rounded-md flex justify-between items-center transition-colors font-medium text-[#555] hover:text-[#111]"
                   >
-                    <span className={cn(value === cat && "text-aurora-blue font-bold")}>{cat}</span>
-                    {value === cat && <Check className="w-4 h-4 text-aurora-blue" />}
+                    <span className={cn(value === cat && "text-[#6366f1] font-semibold")}>{cat}</span>
+                    {value === cat && <Check className="w-4 h-4 text-[#6366f1]" />}
                   </button>
                 ))
               ) : (
-                <div className="p-4 text-center text-sm text-slate-400">Илэрц олдсонгүй</div>
+                <div className="p-4 text-center text-[12px] text-[#bbb]">Илэрц олдсонгүй</div>
               )}
             </div>
           </motion.div>
@@ -140,30 +140,34 @@ export function SkillsInput({ skills, onChange, suggestions = [] }: SkillsInputP
   };
 
   return (
-    <div className="space-y-2 relative">
-      <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold flex justify-between">
-        Ур чадвар / Үйлчилгээ (Макс 5)
-        <span className="text-slate-300">{skills.length}/5</span>
+    <div className="space-y-1.5 relative group">
+      <label className="text-[13px] font-medium text-[#555555] flex justify-between">
+        <span>Ур чадвар / Үйлчилгээ</span>
+        <span className={cn("text-[11px] font-bold", skills.length >= 5 ? "text-red-500" : "text-[#bbb]")}>
+          {skills.length}/5
+        </span>
       </label>
 
       <div className={cn(
-        "flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl transition-all focus-within:border-aurora-blue focus-within:ring-4 focus-within:ring-aurora-blue/5",
-        skills.length >= 5 && "opacity-80"
+        "flex flex-wrap gap-1.5 p-2 bg-[#fafafa] border border-[#f0f0f0] rounded-lg transition-all duration-200 focus-within:border-[#6366f1] focus-within:ring-2 focus-within:ring-[#6366f1]/10 focus-within:bg-white min-h-[44px]",
+        skills.length >= 5 && "cursor-not-allowed"
       )}>
         {skills.map((skill) => (
-          <span 
+          <motion.span 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
             key={skill}
-            className="flex items-center gap-1.5 bg-aurora-blue/10 text-aurora-blue px-3 py-1.5 rounded-lg text-xs font-bold"
+            className="flex items-center gap-1 bg-[#6366f1] text-white px-2 py-1 rounded-md text-[12px] font-semibold"
           >
             {skill}
             <button 
               type="button"
               onClick={() => removeSkill(skill)}
-              className="hover:text-danger hover:scale-110 transition-all"
+              className="hover:scale-110 transition-transform opacity-80 hover:opacity-100"
             >
-              <XCircle className="w-3.5 h-3.5" />
+              <X className="w-3.5 h-3.5" />
             </button>
-          </span>
+          </motion.span>
         ))}
         {skills.length < 5 && (
           <input
@@ -177,7 +181,7 @@ export function SkillsInput({ skills, onChange, suggestions = [] }: SkillsInputP
             onFocus={() => setShowSuggestions(true)}
             onKeyDown={handleKeyDown}
             placeholder={skills.length === 0 ? "Жишээ: React, Logo Design..." : ""}
-            className="flex-1 bg-transparent border-none outline-none text-sm min-w-[120px] py-1"
+            className="flex-1 bg-transparent border-none outline-none text-[14px] min-w-[120px] py-1 placeholder:text-[#bbb]"
           />
         )}
       </div>
@@ -185,17 +189,17 @@ export function SkillsInput({ skills, onChange, suggestions = [] }: SkillsInputP
       <AnimatePresence>
         {showSuggestions && input && filteredSuggestions.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 5 }}
-            className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden"
+            initial={{ opacity: 0, y: 4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.98 }}
+            className="absolute z-50 w-full mt-2 bg-white border border-[#f0f0f0] rounded-xl shadow-xl overflow-hidden p-1"
           >
             {filteredSuggestions.map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => addSkill(s)}
-                className="w-full text-left px-4 py-2 text-xs hover:bg-slate-50 transition-colors"
+                className="w-full text-left px-3 py-2 text-[12px] hover:bg-[#f4f4f0] rounded-md transition-colors font-medium text-[#555]"
               >
                 {s}
               </button>
@@ -207,4 +211,4 @@ export function SkillsInput({ skills, onChange, suggestions = [] }: SkillsInputP
   );
 }
 
-import { XCircle } from 'lucide-react';
+import { X } from 'lucide-react';
