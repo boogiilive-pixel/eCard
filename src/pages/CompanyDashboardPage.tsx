@@ -9,7 +9,7 @@ import {
   Download, FileSpreadsheet, ChevronRight, Copy, Check,
   Camera, Palette, Building2
 } from 'lucide-react';
-import { db, storage } from '../lib/firebase';
+import { db, storage, auth } from '../lib/firebase';
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { cn } from '../lib/utils';
@@ -173,24 +173,32 @@ function Overview({ company }: { company: any }) {
   useEffect(() => {
     const fetchStats = async () => {
       if (!company?.id) {
-        console.log("No company ID available yet.");
+        console.log("No company ID available for stats fetch.");
         return;
       }
       
       try {
         setLocalError(null);
-        console.log("Starting stats fetch for:", company.id);
+        // Force refresh token or ensure auth is solid
+        if (!auth.currentUser) {
+          console.warn("Auth not ready during fetchStats");
+          return;
+        }
+
+        console.log("Fetching Dashboard Stats for:", company.id);
         
-        // 1. Fetch Members
-        const empSnap = await getDocs(query(collection(db, `companies/${company.id}/members`))).catch(e => {
-          console.error("Members Permission Error:", e);
-          throw new Error(`Members collection: ${e.message}`);
+        // 1. Members
+        const membersRef = collection(db, `companies/${company.id}/members`);
+        const empSnap = await getDocs(membersRef).catch(e => {
+          console.error("Members Permission Denied:", e.code, e.message);
+          throw new Error(`Members Access Denied. Check B2B Admin status for ID: ${company.id}`);
         });
         
-        // 2. Fetch Orders
-        const ordSnap = await getDocs(query(collection(db, 'orders'), where('company_id', '==', company.id))).catch(e => {
-          console.error("Orders Permission Error:", e);
-          throw new Error(`Orders collection: ${e.message}`);
+        // 2. Orders
+        const ordersQuery = query(collection(db, 'orders'), where('company_id', '==', company.id));
+        const ordSnap = await getDocs(ordersQuery).catch(e => {
+          console.error("Orders Permission Denied:", e.code, e.message);
+          throw new Error(`Orders Access Denied. Check B2B Admin status for ID: ${company.id}`);
         });
 
         setStats({
@@ -198,12 +206,12 @@ function Overview({ company }: { company: any }) {
           orders: ordSnap.size
         });
       } catch (err: any) {
-        console.error('Overview Stats Error:', err);
+        console.error('Stats Sync Error:', err);
         setLocalError(err.message);
       }
     };
     fetchStats();
-  }, [company.id]);
+  }, [company?.id]);
 
   return (
     <div className="space-y-8">
@@ -296,9 +304,10 @@ function EmployeeList({ company }: { company: any }) {
     fetchEmployees();
   }, [company.id]);
 
-  const filtered = employees.filter(e => 
-    (e.firstname + e.lastname + e.email + e.job_title).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = (employees || []).filter(e => {
+    const searchStr = `${e.firstname || ''} ${e.lastname || ''} ${e.email || ''} ${e.job_title || ''}`.toLowerCase();
+    return searchStr.includes(searchTerm.toLowerCase());
+  });
 
   return (
     <div className="space-y-6">
@@ -665,7 +674,9 @@ function OrdersList({ company }: { company: any }) {
                 <td className="px-8 py-5">
                   <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-tighter">{ord.status}</span>
                 </td>
-                <td className="px-8 py-5 text-xs text-slate-400">{new Date(ord.created_at).toLocaleDateString()}</td>
+                <td className="px-8 py-5 text-xs text-slate-400">
+                  {ord.created_at ? new Date(ord.created_at).toLocaleDateString() : '---'}
+                </td>
               </tr>
             ))}
           </tbody>

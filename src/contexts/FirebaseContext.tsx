@@ -37,34 +37,49 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) return;
 
+    let unsubscribeCompany: (() => void) | null = null;
+
     const unsubscribeProfile = onSnapshot(doc(db, 'profiles', user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const pData = { id: docSnap.id, ...docSnap.data() } as UserProfile;
         setProfile(pData);
 
+        // Cleanup old company subscription if it exists
+        if (unsubscribeCompany) {
+          unsubscribeCompany();
+          unsubscribeCompany = null;
+        }
+
         if (pData.company_id) {
-          const unsubscribeCompany = onSnapshot(doc(db, 'companies', pData.company_id), (compSnap) => {
+          unsubscribeCompany = onSnapshot(doc(db, 'companies', pData.company_id), (compSnap) => {
             if (compSnap.exists()) {
               setCompany({ id: compSnap.id, ...compSnap.data() } as Company);
             } else {
               setCompany(null);
             }
+            setLoading(false);
+          }, (err) => {
+            console.error("Company sync error:", err);
+            setLoading(false);
           });
-          return () => unsubscribeCompany();
         } else {
           setCompany(null);
+          setLoading(false);
         }
       } else {
         setProfile(null);
         setCompany(null);
+        setLoading(false);
       }
-      setLoading(false);
     }, (error) => {
       console.error("Profile fetch error:", error);
       setLoading(false);
     });
 
-    return () => unsubscribeProfile();
+    return () => {
+      unsubscribeProfile();
+      if (unsubscribeCompany) unsubscribeCompany();
+    };
   }, [user]);
 
   const isAdmin = profile?.role === 'admin' || user?.email === 'boogiilive@gmail.com';

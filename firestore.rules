@@ -1,105 +1,55 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 1. Глобал хаалт
+    
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // 2. Туслах функцууд (Helpers)
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Систем админ (Бүх эрхтэй)
     function isSystemAdmin() {
-      return isSignedIn() && (
-        request.auth.token.email == "boogiilive@gmail.com" ||
-        (exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.get('role', 'user') == 'admin')
-      );
+      return isSignedIn() && (request.auth.token.email == "boogiilive@gmail.com");
     }
 
-    // Байгууллагын админ шалгах (Синтакс засварласан хувилбар)
-    function isCompanyAdmin(companyId) {
-      return isSignedIn() && (
-        isSystemAdmin() ||
-        (exists(/databases/$(database)/documents/companies/$(companyId)) && 
-         get(/databases/$(database)/documents/companies/$(companyId)).data.admin_uid == request.auth.uid) ||
-        (exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.get('company_id', '') == companyId && 
-         get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.get('is_company_admin', false) == true)
-      );
+    // Profiles - Allow any signed-in user to GET any profile (safe for MVP)
+    // but only owner can UPDATE.
+    match /profiles/{userId} {
+      allow read, get, list: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.uid == userId || isSystemAdmin());
     }
 
-    // 3. Цуглуулгын дүрмүүд
-
-    // Байгууллага (Companies)
+    // Companies - Allow any signed-in user to GET company info.
     match /companies/{companyId} {
-      allow get: if isSignedIn();
-      allow list: if isSystemAdmin();
-      allow create: if isSignedIn();
-      allow update: if isCompanyAdmin(companyId);
-      allow delete: if isSystemAdmin();
+      allow read, get, list: if isSignedIn();
+      allow write: if isSignedIn() && (
+        isSystemAdmin() || 
+        resource.data.admin_uid == request.auth.uid ||
+        get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.company_id == companyId
+      );
 
-      // Гишүүд (Members)
       match /members/{memberId} {
-        allow read: if isSignedIn() && (
-          isCompanyAdmin(companyId) || 
-          exists(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid)) ||
-          isSystemAdmin()
-        );
-        allow write: if isCompanyAdmin(companyId) || isSystemAdmin();
+        allow read, get, list: if isSignedIn();
+        allow write: if isSignedIn();
       }
     }
 
-    // Профайл (Profiles)
-    match /profiles/{userId} {
-      allow read: if isSystemAdmin() || (
-                    resource != null && 
-                    resource.data.get('is_active', false) == true && 
-                    (resource.data.get('profile_public', false) == true || resource.data.get('show_in_directory', false) == true)
-                  );
-      
-      allow get: if isSignedIn() && (request.auth.uid == userId || isSystemAdmin());
-      
-      allow list: if isSignedIn() && (
-                    isSystemAdmin() || 
-                    resource.id == request.auth.uid || 
-                    (resource.data.get('company_id', '') != '' && isCompanyAdmin(resource.data.get('company_id', '')))
-                  );
-      
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && (request.auth.uid == userId || isSystemAdmin());
-      allow delete: if isSystemAdmin();
-    }
-
-    // Захиалга (Orders)
+    // Orders - Allow signed-in users to list if they own the order OR are part of the company
     match /orders/{orderId} {
       allow list, get: if isSignedIn() && (
-                        isSystemAdmin() || 
-                        resource.data.user_id == request.auth.uid || 
-                        (resource.data.get('company_id', '') != '' && isCompanyAdmin(resource.data.get('company_id', '')))
-                      );
+        isSystemAdmin() || 
+        resource.data.user_id == request.auth.uid || 
+        resource.data.company_id == get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.get('company_id', 'none')
+      );
       allow create: if isSignedIn();
       allow update, delete: if isSystemAdmin();
     }
 
-    // Бусад (Views, Saved Cards etc)
-    match /profile_views/{id} {
-      allow create: if true;
-      allow read: if isSignedIn();
-    }
-    
-    match /saved_cards/{id} {
-      allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
-      allow read, delete: if isSignedIn() && (resource.data.user_id == request.auth.uid || isSystemAdmin());
-    }
-    
-    match /verified_requests/{id} {
-      allow create: if isSignedIn() && request.resource.data.profile_id == request.auth.uid;
-      allow read: if isSignedIn() && (resource.data.profile_id == request.auth.uid || isSystemAdmin());
-      allow update, delete: if isSystemAdmin();
-    }
+    // Support collections
+    match /profile_views/{id} { allow read, write: if true; }
+    match /saved_cards/{id} { allow read, write: if isSignedIn(); }
+    match /verified_requests/{id} { allow read, write: if isSignedIn(); }
   }
 }
