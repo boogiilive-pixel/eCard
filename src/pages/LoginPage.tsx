@@ -54,13 +54,9 @@ export default function LoginPage() {
       {/* Left side - Brand Visual */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden items-center justify-center">
         <div className="relative z-10 text-center p-12">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex justify-center mb-6"
-          >
+          <div className="flex justify-center mb-6">
             <Logo size="xl" />
-          </motion.div>
+          </div>
           <p className="text-slate-500 text-xl max-w-md mx-auto leading-relaxed italic font-serif">
             "Your network is Your net worth"
           </p>
@@ -68,7 +64,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Form */}
-      <div className="flex-1 flex items-start sm:items-center justify-center p-6 sm:p-8 relative z-10 overflow-y-auto py-12 sm:py-8">
+      <div className="flex-1 flex items-start sm:items-center justify-center p-6 sm:p-8 relative z-10 overflow-y-auto pt-32 pb-12 sm:pt-40 sm:pb-20">
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
