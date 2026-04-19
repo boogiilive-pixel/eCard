@@ -534,6 +534,7 @@ function Overview({ profile, handleCopy, handleShare, copied }: any) {
 function MyECard({ profile }: any) {
   const [formData, setFormData] = useState({ ...profile });
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(profile.avatar_url || null);
@@ -558,13 +559,16 @@ function MyECard({ profile }: any) {
   };
 
   const handleAIImprove = async () => {
-    if (!formData.bio) return;
-    setLoading(true);
+    setAiLoading(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const prompt = formData.bio 
+        ? `Та мэргэжлийн дижитал нэрийн хуудасны танилцуулга бичигч байна. Дараах танилцуулгыг илүү мэргэжлийн, товч бөгөөд утга төгөлдөр болгож засаж өгнө үү. Зөвхөн зассан текстийг буцаана уу: "${formData.bio}"`
+        : `Та мэргэжлийн дижитал нэрийн хуудасны танилцуулга бичигч байна. Миний нэр ${formData.firstname}, би ${formData.company || 'өөрийн салбарт'} ${formData.job_title || 'мэргэжилтнээр'} ажилладаг. Надад зориулж 2-3 өгүүлбэртэй маш мэргэжлийн, сонирхолтой танилцуулга (bio) бичиж өгнө үү. Зөвхөн текстийг буцаана уу.`;
+
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: `Та мэргэжлийн дижитал нэрийн хуудасны танилцуулга бичигч байна. Дараах танилцуулгыг илүү мэргэжлийн, товч бөгөөд утга төгөлдөр болгож засаж өгнө үү. Зөвхөн зассан текстийг буцаана уу: "${formData.bio}"`
+        contents: prompt
       });
       
       const improvedText = response.text;
@@ -575,7 +579,7 @@ function MyECard({ profile }: any) {
       console.error("AI Improvement Error:", err);
       alert('AI текст засахад алдаа гарлаа. Дахин оролдоно уу.');
     } finally {
-      setLoading(false);
+      setAiLoading(false);
     }
   };
 
@@ -882,9 +886,20 @@ function MyECard({ profile }: any) {
                       <h3 className="text-[14px] font-bold text-[#111]">Танилцуулга</h3>
                       <button 
                         onClick={handleAIImprove} 
-                        className="flex items-center gap-1.5 text-[11px] font-bold text-white bg-[#6366f1] hover:bg-[#4f46e5] transition-colors py-1.5 px-3 rounded-lg shadow-sm"
+                        disabled={loading || aiLoading}
+                        className={cn(
+                          "flex items-center gap-1.5 text-[11px] font-bold py-1.5 px-3 rounded-lg shadow-sm transition-all",
+                          aiLoading 
+                            ? "bg-slate-100 text-slate-400 cursor-not-allowed" 
+                            : "text-white bg-[#6366f1] hover:bg-[#4f46e5] active:scale-95"
+                        )}
                       >
-                        <Sparkles className="w-3.5 h-3.5" /> AI Сайжруулах
+                        {aiLoading ? (
+                          <div className="w-3.5 h-3.5 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin" />
+                        ) : (
+                          <Sparkles className="w-3.5 h-3.5" />
+                        )}
+                        {aiLoading ? 'Бодож байна...' : formData.bio ? 'AI Сайжруулах' : 'AI-аар үүсгэх'}
                       </button>
                     </div>
                     <textarea 
