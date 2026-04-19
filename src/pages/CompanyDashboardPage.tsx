@@ -168,21 +168,55 @@ export default function CompanyDashboardPage() {
 
 function Overview({ company }: { company: any }) {
   const [stats, setStats] = useState({ employees: 0, orders: 0 });
+  const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
-      const empSnap = await getDocs(query(collection(db, `companies/${company.id}/members`)));
-      const ordSnap = await getDocs(query(collection(db, 'orders'), where('company_id', '==', company.id)));
-      setStats({
-        employees: empSnap.size,
-        orders: ordSnap.size
-      });
+      if (!company?.id) {
+        console.log("No company ID available yet.");
+        return;
+      }
+      
+      try {
+        setLocalError(null);
+        console.log("Starting stats fetch for:", company.id);
+        
+        // 1. Fetch Members
+        const empSnap = await getDocs(query(collection(db, `companies/${company.id}/members`))).catch(e => {
+          console.error("Members Permission Error:", e);
+          throw new Error(`Members collection: ${e.message}`);
+        });
+        
+        // 2. Fetch Orders
+        const ordSnap = await getDocs(query(collection(db, 'orders'), where('company_id', '==', company.id))).catch(e => {
+          console.error("Orders Permission Error:", e);
+          throw new Error(`Orders collection: ${e.message}`);
+        });
+
+        setStats({
+          employees: empSnap.size,
+          orders: ordSnap.size
+        });
+      } catch (err: any) {
+        console.error('Overview Stats Error:', err);
+        setLocalError(err.message);
+      }
     };
     fetchStats();
   }, [company.id]);
 
   return (
     <div className="space-y-8">
+      {localError && (
+        <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-2xl flex items-center gap-3">
+          <XCircle className="w-5 h-5 shrink-0" />
+          <div className="text-sm">
+            <p className="font-bold">Мэдээлэл авахад алдаа гарлаа:</p>
+            <p className="opacity-80">{localError}</p>
+            <p className="mt-1 text-[10px] italic">Энэ нь Firestore-ийн эрхийн тохиргоотой холбоотой байж магадгүй (Rules propagation delay).</p>
+          </div>
+        </div>
+      )}
       {/* Welcome Card */}
       <div className="p-10 rounded-[40px] bg-white border border-slate-200 relative overflow-hidden shadow-sm">
         <div 
@@ -244,11 +278,15 @@ function EmployeeList({ company }: { company: any }) {
   const fetchEmployees = async () => {
     setLoading(true);
     try {
+      console.log("Fetching employee profiles for company:", company.id);
       const q = query(collection(db, 'profiles'), where('company_id', '==', company.id));
-      const snap = await getDocs(q);
+      const snap = await getDocs(q).catch(e => {
+        console.error("Permission denied on employee profiles query:", e);
+        throw e;
+      });
       setEmployees(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("Final fetchEmployees Error:", error);
     } finally {
       setLoading(false);
     }

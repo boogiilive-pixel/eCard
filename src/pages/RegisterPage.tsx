@@ -346,11 +346,14 @@ export default function RegisterPage() {
                 onChange={(val) => setFormData(prev => ({ ...prev, category: val }))}
                 required
               />
-              <SkillsInput 
-                skills={formData.skills}
-                onChange={(val) => setFormData(prev => ({ ...prev, skills: val }))}
-                suggestions={SKILLS_SUGGESTIONS}
-              />
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Чадвар</label>
+                <SkillsInput 
+                  skills={formData.skills}
+                  onChange={(val) => setFormData(prev => ({ ...prev, skills: val }))}
+                  suggestions={SKILLS_SUGGESTIONS}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
