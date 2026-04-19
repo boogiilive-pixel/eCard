@@ -1322,21 +1322,21 @@ function NfcShop() {
       name: 'eCard Classic Card',
       description: 'Матт хар өнгөтэй, минималист загвартай NFC карт.',
       price: '45,000₮',
-      image: 'https://picsum.photos/seed/nfc1/400/400'
+      image: 'https://lh3.googleusercontent.com/d/1zYOfCnfuWUtiovikBRUV9ZaL0mjpnQ9Q'
     },
     {
       id: 2,
       name: 'eCard Metal Edition',
       description: 'Дээд зэрэглэлийн металл хийцтэй, лазер сийлбэртэй карт.',
       price: '120,000₮',
-      image: 'https://picsum.photos/seed/nfc2/400/400'
+      image: 'https://lh3.googleusercontent.com/d/1m5V67Tb3_JJ0vkP4kyMV5YcDKo8Mv8AQ'
     },
     {
       id: 3,
-      name: 'eCard Sticker (Mini)',
+      name: 'eCard Tag',
       description: 'Утасны ард наадаг жижиг хэмжээтэй NFC наалт.',
       price: '25,000₮',
-      image: 'https://picsum.photos/seed/nfc3/400/400'
+      image: 'https://lh3.googleusercontent.com/d/12-FLHCg0-nzgJbbhhP-DIRZdz9B1v3HC'
     }
   ];
 
@@ -1362,12 +1362,15 @@ function NfcShop() {
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[12px] font-bold text-[#111] shadow-sm">
+              <div className="absolute top-4 left-4 bg-aurora-magenta text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg z-10 animate-pulse">
+                Удахгүй
+              </div>
+              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[12px] font-bold text-[#111] shadow-sm z-10">
                 {product.price}
               </div>
-              <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                <button className="w-full bg-[#111] text-white py-2.5 rounded-lg text-[13px] font-semibold flex items-center justify-center gap-2 shadow-xl">
-                  <ShoppingCart className="w-4 h-4" /> Сагсанд нэмэх
+              <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-10">
+                <button disabled className="w-full bg-slate-200 text-slate-400 py-2.5 rounded-lg text-[13px] font-semibold flex items-center justify-center gap-2 cursor-not-allowed">
+                  <ShoppingCart className="w-4 h-4" /> Удахгүй
                 </button>
               </div>
             </div>
@@ -1389,9 +1392,6 @@ function NfcShop() {
             NFC (Near Field Communication) технологи нь таны дижитал нэрийн хуудсыг бусдын утсанд ганц хүрэлтээр дамжуулах боломжийг олгоно. Ямар нэгэн апп суулгах шаардлагагүй.
           </p>
         </div>
-        <button className="bg-white border border-slate-900 text-slate-900 px-8 py-3 rounded-xl font-bold text-xs hover:bg-slate-900 hover:text-white transition-all whitespace-nowrap">
-          Дэлгэрэнгүй үзэх
-        </button>
       </div>
     </div>
   );
