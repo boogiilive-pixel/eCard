@@ -271,6 +271,7 @@ function MyECard({ profile }: any) {
     { id: 'basic', label: 'Үндсэн мэдээлэл', icon: <User className="w-4 h-4" /> },
     { id: 'contact', label: 'Холбоо барих', icon: <Phone className="w-4 h-4" /> },
     { id: 'social', label: 'Олон нийтийн сүлжээ', icon: <Share2 className="w-4 h-4" /> },
+    { id: 'design', label: 'Загвар & Өнгө', icon: <Palette className="w-4 h-4" /> },
   ];
 
   useEffect(() => {
@@ -462,7 +463,7 @@ function MyECard({ profile }: any) {
               <h1 className="text-[14px] font-semibold text-[#111]">Миний eCard</h1>
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success-bg border border-[#e0f0e0]">
                 <div className="w-1.5 h-1.5 rounded-full bg-success-text animate-pulse" />
-                <span className="text-[10px] font-bold text-success-text uppercase tracking-wider">Hадаглагдсан</span>
+                <span className="text-[10px] font-bold text-success-text uppercase tracking-wider">Хадгалагдсан</span>
               </div>
             </div>
           </div>
@@ -735,114 +736,117 @@ function MyECard({ profile }: any) {
                   </div>
                 </motion.div>
               )}
+
+              {/* Design & Color Content */}
+              {activeTab === 'design' && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-10"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <label className="text-[13px] font-semibold text-[#555] flex items-center gap-2">
+                          <Palette className="w-4 h-4 text-[#6366f1]" /> Үндсэн өнгөнүүд
+                        </label>
+                        <div className="flex flex-wrap gap-2.5 bg-[#fafafa] p-4 rounded-xl border border-[#f0f0f0]">
+                          {presets.map(p => (
+                            <button 
+                              key={p.color} 
+                              onClick={() => setFormData((prev: any) => ({ ...prev, card_color: p.color }))}
+                              title={p.name}
+                              className={cn(
+                                "w-7 h-7 rounded-full border transition-all duration-200 hover:scale-110",
+                                formData.card_color === p.color ? "ring-2 ring-[#6366f1] ring-offset-2 border-transparent scale-110" : "border-[#f0f0f0]"
+                              )}
+                              style={{ backgroundColor: p.color }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                          <label className="text-[13px] font-semibold text-[#555]">Фон өнгө</label>
+                          <div className="relative group">
+                            <input 
+                              type="color" 
+                              value={formData.card_color.startsWith('linear') ? '#0f172a' : (formData.card_color || '#0d1530')} 
+                              onChange={(e) => setFormData((prev: any) => ({ ...prev, card_color: e.target.value }))} 
+                              className="absolute inset-0 w-full h-11 opacity-0 cursor-pointer z-10" 
+                            />
+                            <div className="w-full h-11 rounded-xl border border-[#f0f0f0] flex items-center justify-between px-3 bg-[#fafafa] group-hover:bg-white transition-colors">
+                              <div className="w-5 h-5 rounded-md border border-black/5 shadow-sm" style={{ backgroundColor: formData.card_color.startsWith('linear') ? '#0f172a' : (formData.card_color || '#0d1530') }} />
+                              <span className="text-[11px] font-mono font-bold text-[#555]">{formData.card_color.startsWith('linear') ? '#LINEAR' : (formData.card_color || '#0D1530').toUpperCase()}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <label className="text-[13px] font-semibold text-[#555]">Текст өнгө</label>
+                          <div className="relative group">
+                            <input 
+                              type="color" 
+                              value={formData.card_text_color || '#c9a84c'} 
+                              onChange={(e) => setFormData((prev: any) => ({ ...prev, card_text_color: e.target.value }))} 
+                              className="absolute inset-0 w-full h-11 opacity-0 cursor-pointer z-10" 
+                            />
+                            <div className="w-full h-11 rounded-xl border border-[#f0f0f0] flex items-center justify-between px-3 bg-[#fafafa] group-hover:bg-white transition-colors">
+                              <div className="w-5 h-5 rounded-md border border-black/5 shadow-sm" style={{ backgroundColor: formData.card_text_color || '#c9a84c' }} />
+                              <span className="text-[11px] font-mono font-bold text-[#555]">{(formData.card_text_color || '#C9A84C').toUpperCase()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <label className="text-[13px] font-semibold text-[#555]">Градиент загварууд</label>
+                        <div className="grid grid-cols-3 gap-2 bg-[#fafafa] p-4 rounded-xl border border-[#f0f0f0]">
+                          {gradients.map(g => (
+                            <button 
+                              key={g.color} 
+                              onClick={() => setFormData((prev: any) => ({ ...prev, card_color: g.color }))}
+                              className={cn(
+                                "h-9 rounded-lg border transition-all duration-200",
+                                formData.card_color === g.color ? "ring-2 ring-[#6366f1] ring-offset-2 border-transparent" : "border-[#f0f0f0]"
+                              )}
+                              style={{ background: g.color }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="text-[13px] font-semibold text-[#555]">Хээ (Patterns)</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {patterns.map(p => (
+                            <button
+                              key={p.id}
+                              onClick={() => setFormData((prev: any) => ({ ...prev, card_pattern: p.id }))}
+                              className={cn(
+                                "py-2.5 rounded-xl border text-[11px] font-bold transition-all",
+                                formData.card_pattern === p.id 
+                                  ? "bg-[#111] border-[#111] text-white shadow-xl shadow-black/10" 
+                                  : "bg-[#fafafa] border-[#f0f0f0] text-[#555] hover:border-[#ddd]"
+                              )}
+                            >
+                              {p.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Right Column: Design & Preview */}
+        {/* Right Column: High Fidelity Preview */}
         <aside className="sticky top-24 space-y-8">
-          {/* Design Section */}
-          <div className="bg-white border border-[#f0f0f0] rounded-xl overflow-hidden editor-container">
-            <div className="p-5 border-b border-[#f0f0f0] bg-[#fafafa]/50">
-              <h3 className="text-[14px] font-semibold text-[#111]">Загвар & Өнгө</h3>
-            </div>
-            
-            <div className="p-6 space-y-8">
-              {/* Preset Colors */}
-              <div className="space-y-3">
-                <label className="text-[12px] font-medium text-[#888]">Үндсэн өнгөнүүд</label>
-                <div className="flex flex-wrap gap-2.5">
-                  {presets.map(p => (
-                    <button 
-                      key={p.color} 
-                      onClick={() => setFormData(prev => ({ ...prev, card_color: p.color }))}
-                      title={p.name}
-                      className={cn(
-                        "w-6 h-6 rounded-full border transition-all duration-200 hover:scale-110",
-                        formData.card_color === p.color ? "ring-2 ring-[#6366f1] ring-offset-2 border-transparent scale-110" : "border-[#f0f0f0]"
-                      )}
-                      style={{ backgroundColor: p.color }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Custom Colors */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[12px] font-medium text-[#888]">Фон өнгө</label>
-                  <div className="relative group">
-                    <input 
-                      type="color" 
-                      value={formData.card_color.startsWith('linear') ? '#0f172a' : (formData.card_color || '#0d1530')} 
-                      onChange={(e) => setFormData(prev => ({ ...prev, card_color: e.target.value }))} 
-                      className="absolute inset-0 w-full h-10 opacity-0 cursor-pointer z-10" 
-                    />
-                    <div className="w-full h-10 rounded-lg border border-[#f0f0f0] flex items-center justify-between px-3 bg-[#fafafa] group-hover:bg-white transition-colors">
-                      <div className="w-4 h-4 rounded-sm border border-black/5" style={{ backgroundColor: formData.card_color.startsWith('linear') ? '#0f172a' : (formData.card_color || '#0d1530') }} />
-                      <span className="text-[11px] font-mono text-[#555]">{formData.card_color.startsWith('linear') ? '#LINEAR' : (formData.card_color || '#0D1530').toUpperCase()}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[12px] font-medium text-[#888]">Текст өнгө</label>
-                  <div className="relative group">
-                    <input 
-                      type="color" 
-                      value={formData.card_text_color || '#c9a84c'} 
-                      onChange={(e) => setFormData(prev => ({ ...prev, card_text_color: e.target.value }))} 
-                      className="absolute inset-0 w-full h-10 opacity-0 cursor-pointer z-10" 
-                    />
-                    <div className="w-full h-10 rounded-lg border border-[#f0f0f0] flex items-center justify-between px-3 bg-[#fafafa] group-hover:bg-white transition-colors">
-                      <div className="w-4 h-4 rounded-sm border border-black/5" style={{ backgroundColor: formData.card_text_color || '#c9a84c' }} />
-                      <span className="text-[11px] font-mono text-[#555]">{(formData.card_text_color || '#C9A84C').toUpperCase()}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Gradients */}
-              <div className="space-y-3">
-                <label className="text-[12px] font-medium text-[#888]">Градиент</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {gradients.map(g => (
-                    <button 
-                      key={g.color} 
-                      onClick={() => setFormData(prev => ({ ...prev, card_color: g.color }))}
-                      className={cn(
-                        "h-8 rounded-md border transition-all duration-200",
-                        formData.card_color === g.color ? "ring-2 ring-[#6366f1] ring-offset-2 border-transparent" : "border-[#f0f0f0]"
-                      )}
-                      style={{ background: g.color }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Patterns */}
-              <div className="space-y-3">
-                <label className="text-[12px] font-medium text-[#888]">Хээ (Patterns)</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {patterns.map(p => (
-                    <button
-                      key={p.id}
-                      onClick={() => setFormData(prev => ({ ...prev, card_pattern: p.id }))}
-                      className={cn(
-                        "py-2 rounded-lg border text-[11px] font-medium transition-all",
-                        formData.card_pattern === p.id 
-                          ? "bg-[#6366f1] border-[#6366f1] text-white shadow-[0_4px_12px_-4px_rgba(99,102,241,0.4)]" 
-                          : "bg-[#fafafa] border-[#f0f0f0] text-[#555] hover:border-[#ddd]"
-                      )}
-                    >
-                      {p.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* High Fidelity Live Preview */}
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
               <h3 className="text-[13px] font-semibold text-[#111] flex items-center gap-2">
@@ -852,11 +856,11 @@ function MyECard({ profile }: any) {
                 </div>
               </h3>
             </div>
-
+            
             <div className="relative group overflow-visible">
               <div 
                 className={cn(
-                  "relative w-full min-h-[260px] h-auto rounded-[32px] p-8 overflow-hidden shadow-2xl transition-all duration-500 flex flex-col justify-between",
+                  "relative w-full min-h-[260px] h-auto rounded-[32px] p-8 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] transition-all duration-500 flex flex-col justify-between hover:translate-y-[-4px]",
                   formData.card_pattern || 'pattern-none'
                 )}
                 style={{ 
@@ -864,6 +868,7 @@ function MyECard({ profile }: any) {
                   backgroundColor: !formData.card_color?.startsWith('linear') ? (formData.card_color || '#0d1530') : undefined 
                 }}
               >
+
                 {/* Pattern Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
                 
