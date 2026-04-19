@@ -319,8 +319,10 @@ function MyECard({ profile }: any) {
     setSelectedFile(file);
   };
 
-  // NEW: Professional Image Compressor
-  const compressImage = (file: File): Promise<Blob> => {
+  // Removed old compressor in favor of Base64 strategy
+
+  // THE NUCLEAR OPTION: Direct Base64 storage in Firestore (Bypasses Storage entirely)
+  const compressToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -329,36 +331,30 @@ function MyECard({ profile }: any) {
         img.src = event.target?.result as string;
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
+          const SIZE = 500; // Optimal for digital cards
+          canvas.width = SIZE;
+          canvas.height = SIZE;
           const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
           
-          canvas.toBlob((blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Зураг шахахад алдаа гарлаа.'));
-          }, 'image/jpeg', 0.85); // 85% quality is perfect balance
+          if (!ctx) return reject(new Error('Canvas ctx null'));
+
+          // Square crop center
+          const minDim = Math.min(img.width, img.height);
+          const sx = (img.width - minDim) / 2;
+          const sy = (img.height - minDim) / 2;
+          
+          // Draw high-quality but small
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, SIZE, SIZE);
+          
+          // 60% quality is perfect balance (~40KB-60KB)
+          const base64 = canvas.toDataURL('image/jpeg', 0.6);
+          resolve(base64);
         };
-        img.onerror = reject;
+        img.onerror = () => reject(new Error('Зургийг уншихад алдаа гарлаа.'));
       };
-      reader.onerror = reject;
+      reader.onerror = () => reject(new Error('Файлыг уншихад алдаа гарлаа.'));
     });
   };
 
@@ -366,42 +362,25 @@ function MyECard({ profile }: any) {
     if (loading) return;
     
     setLoading(true);
-    setUploadProgress(5); 
+    setUploadProgress(10); 
     
     const safetyTimer = setTimeout(() => {
       setLoading(false);
       setUploadProgress(0);
-      alert('Хүсэлт илгээх хугацаа дууслаа. Дахин оролдоно уу.');
+      alert('Интернет холболт удаан байна. Дахин оролдоно уу.');
     }, 60000);
 
     try {
       let finalAvatarUrl = formData.avatar_url;
 
       if (selectedFile) {
-        setUploadProgress(15);
-        
-        // Step 1: Compress the image locally
-        const compressedBlob = await compressImage(selectedFile);
         setUploadProgress(40);
-        
-        const fileExt = 'jpg';
-        const uniqueFileName = `av_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const storageRef = ref(storage, `profiles/${profile.id}/${uniqueFileName}`);
-        
-        // Step 2: Upload the small, optimized file
-        setUploadProgress(60);
-        await uploadBytes(storageRef, compressedBlob);
-        
-        setUploadProgress(85);
-        finalAvatarUrl = await getDownloadURL(storageRef);
-        setUploadProgress(95);
-        
-        if (previewUrl?.startsWith('blob:')) {
-          URL.revokeObjectURL(previewUrl);
-        }
+        // Instant local transformation to string
+        finalAvatarUrl = await compressToBase64(selectedFile);
+        setUploadProgress(80);
       }
 
-      // Step 3: Fast Firestore update
+      // Step 2: Direct Firestore update (This will definitely work if text works)
       const profileRef = doc(db, 'profiles', profile.id);
       const sanitizedData = { ...formData };
       if ('id' in sanitizedData) delete (sanitizedData as any).id;
@@ -420,7 +399,7 @@ function MyECard({ profile }: any) {
 
     } catch (err: any) {
       console.error("SAVE ERROR:", err);
-      alert(`Алдаа гарлаа: ${err.message || 'Интернетээ шалгаад дахин оролдоно уу.'}`);
+      alert(`Мэдээлэл хадгалахад алдаа гарлаа: ${err.message || 'Сүлжээгээ шалгана уу'}`);
     } finally {
       clearTimeout(safetyTimer);
       setLoading(false);
