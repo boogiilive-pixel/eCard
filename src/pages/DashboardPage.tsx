@@ -18,6 +18,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { QRCodeCanvas } from 'qrcode.react';
 import LoadingAnimation from '../components/LoadingAnimation';
 import { Logo } from '../components/Logo';
+import DirectoryView from '../components/DirectoryView';
 import { CategorySelector, SkillsInput } from '../components/ProfileFields';
 import { SKILLS_SUGGESTIONS, CATEGORIES } from '../constants';
 
@@ -205,7 +206,7 @@ export default function DashboardPage() {
                   <Route path="/" element={<Overview profile={profile} handleCopy={handleCopy} handleShare={handleShare} copied={copied} />} />
                   <Route path="my-ecard" element={<MyECard profile={profile} />} />
                   <Route path="saved" element={<SavedCards user={user} />} />
-                  <Route path="directory" element={<DirectoryView />} />
+                  <Route path="directory" element={<DirectoryView showTitle={false} />} />
                   <Route path="nfc" element={<NfcShop />} />
                   <Route path="analytics" element={<Analytics profile={profile} />} />
                   <Route path="settings" element={<AccountSettings profile={profile} />} />
@@ -1297,107 +1298,6 @@ function Analytics({ profile }: any) {
           Энэ хэсэг одоогоор туршилтын шатанд байна. Удахгүй таны нэрийн хуудасны хандалтын нарийвчилсан статистик энд харагдах болно.
         </p>
       </div>
-    </div>
-  );
-}
-
-function DirectoryView() {
-  const [profiles, setProfiles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedField, setSelectedField] = useState('Бүгд');
-
-  const fields = ['Бүгд', ...CATEGORIES];
-
-  useEffect(() => {
-    const fetchProfiles = async () => {
-      setLoading(true);
-      try {
-        const q = query(
-          collection(db, 'profiles'), 
-          where('show_in_directory', '==', true),
-          where('is_active', '==', true)
-        );
-        const snap = await getDocs(q);
-        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setProfiles(data);
-      } catch (err: any) {
-        console.error("Directory Fetch Error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfiles();
-  }, []);
-
-  const filtered = profiles.filter(p => {
-    const matchesSearch = (
-      (p.firstname || '') + 
-      (p.lastname || '') + 
-      (p.company || '') + 
-      (p.job_title || '')
-    ).toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesField = selectedField === 'Бүгд' || 
-                         p.category === selectedField || 
-                         p.field === selectedField;
-                         
-    return matchesSearch && matchesField;
-  });
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-inter">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-[18px] font-semibold text-[#111]">Лавлах</h1>
-          <p className="text-[13px] text-[#888] mt-1">Олон нийтэд нээлттэй нэрийн хуудсууд.</p>
-        </div>
-        <div className="relative w-full md:w-80 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#bbb] w-4 h-4 group-focus-within:text-[#6366f1]" />
-          <input 
-            placeholder="Хүн эсвэл компани хайх..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white border border-[#f0f0f0] rounded-lg py-2.5 pl-11 pr-4 outline-none focus:border-[#6366f1] focus:ring-2 focus:ring-[#6366f1]/10 text-[13px] transition-all placeholder:text-[#bbb]" 
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2 py-2">
-        {fields.map(f => (
-          <button 
-            key={f} 
-            onClick={() => setSelectedField(f)}
-            className={cn(
-              "px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all", 
-              selectedField === f ? "bg-[#111] text-white shadow-xl" : "bg-white border border-[#f0f0f0] text-[#555] hover:border-[#ddd]"
-            )}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center py-20">
-           <div className="w-8 h-8 border-2 border-[#6366f1]/20 border-t-[#6366f1] rounded-full animate-spin" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map(p => (
-            <Link key={p.id} to={`/${p.username}`} className="bg-white border border-[#f0f0f0] p-5 rounded-xl transition-all duration-300 hover:border-[#ddd] hover:shadow-xl hover:shadow-black/5 flex items-center gap-4 group">
-              <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#fafafa] border border-[#f0f0f0] flex items-center justify-center shrink-0">
-                {p.avatar_url ? <img src={p.avatar_url} className="w-full h-full object-cover" /> : <div className="text-xl font-bold text-[#bbb]">{p.firstname[0]}</div>}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-[#111] text-[14px] truncate">{p.lastname} {p.firstname}</h3>
-                <p className="text-[11px] text-[#888] font-medium truncate">{p.job_title || 'Мэргэжилгүй'}</p>
-              </div>
-              <ArrowRight className="w-4 h-4 text-[#bbb] group-hover:text-[#6366f1] transition-colors" />
-            </Link>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
