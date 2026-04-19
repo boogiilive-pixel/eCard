@@ -6,7 +6,8 @@ import {
   LayoutDashboard, User, Palette, Share2, BarChart3, Settings, 
   LogOut, ExternalLink, Copy, Check, Camera, Save,
   Sparkles, Heart, Trash2, Search, Nfc, ShoppingCart, ZoomIn, ZoomOut,
-  Menu, X, ArrowRight, ChevronRight, Phone, Mail, ShieldCheck, Building2, MapPin
+  Menu, X, ArrowRight, ChevronRight, Phone, Mail, ShieldCheck, Building2, MapPin,
+  Edit2, AlertCircle
 } from 'lucide-react';
 import { auth, db, storage } from '../lib/firebase';
 import { collection, doc, updateDoc, getDocs, query, where, deleteDoc, setDoc } from 'firebase/firestore';
@@ -215,6 +216,64 @@ export default function DashboardPage() {
 }
 
 function Overview({ profile, handleCopy, copied }: any) {
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [newUsername, setNewUsername] = useState(profile?.username || '');
+  const [isChecking, setIsChecking] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+
+  const validateUsername = (val: string) => {
+    const latinRegex = /^[a-z0-9-]+$/;
+    if (!val) return 'Нэр хоосон байж болохгүй';
+    if (!latinRegex.test(val)) return 'Зөвхөн латин жижиг үсэг, тоо болон зураас ашиглана уу';
+    if (val.length < 3) return 'Хамгийн багадаа 3 тэмдэгт';
+    return '';
+  };
+
+  const handleUsernameSave = async () => {
+    const error = validateUsername(newUsername);
+    if (error) {
+      setUsernameError(error);
+      return;
+    }
+
+    if (newUsername === profile.username) {
+      setIsEditingUsername(false);
+      return;
+    }
+
+    setIsChecking(true);
+    setUsernameError('');
+
+    try {
+      // Check for uniqueness
+      const q = query(collection(db, 'profiles'), where('username', '==', newUsername));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        setUsernameError('Энэ нэр аль хэдийн авсан байна. Өөр нэр сонгоно уу.');
+        setIsChecking(false);
+        return;
+      }
+
+      // Update profile
+      const profileRef = doc(db, 'profiles', profile.id);
+      await updateDoc(profileRef, {
+        username: newUsername,
+        updated_at: new Date().toISOString()
+      });
+
+      setUpdateSuccess(true);
+      setIsEditingUsername(false);
+      setTimeout(() => setUpdateSuccess(false), 3000);
+    } catch (err) {
+      console.error("Username update error:", err);
+      setUsernameError('Алдаа гарлаа. Дахин оролдоно уу.');
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
   const chartData = [
     { name: 'Да', views: 42, scans: 12 },
     { name: 'Мя', views: 35, scans: 8 },
@@ -263,11 +322,71 @@ function Overview({ profile, handleCopy, copied }: any) {
                 Сайн байна уу, <span className="text-aurora-blue">{profile?.firstname}</span>! 👋
               </h1>
               <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-100 shrink-0">
-                  <span className="text-[10px] text-slate-400 font-mono tracking-wider font-bold">ecard.mn/{profile?.username}</span>
-                  <button onClick={handleCopy} className="text-slate-300 hover:text-aurora-blue transition-colors">
-                    {copied ? <Check className="w-3 h-3 text-success-text" /> : <Copy className="w-3 h-3" />}
-                  </button>
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-100 shrink-0 relative">
+                  {isEditingUsername ? (
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="text"
+                        value={newUsername}
+                        onChange={(e) => {
+                          setNewUsername(e.target.value.toLowerCase());
+                          setUsernameError('');
+                        }}
+                        className={cn(
+                          "bg-white border text-[10px] font-mono px-2 py-0.5 rounded outline-none w-32",
+                          usernameError ? "border-danger-custom" : "border-slate-200 focus:border-aurora-blue"
+                        )}
+                        placeholder="шинэ-нэр"
+                        autoFocus
+                      />
+                      <button 
+                        onClick={handleUsernameSave}
+                        disabled={isChecking}
+                        className="text-success-text hover:text-success-text/80 disabled:opacity-50"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setIsEditingUsername(false);
+                          setNewUsername(profile.username);
+                          setUsernameError('');
+                        }}
+                        className="text-slate-400 hover:text-slate-600"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                      {usernameError && (
+                        <div className="absolute top-full left-0 mt-1 bg-white border border-danger-custom p-2 rounded-lg shadow-xl z-50 flex items-center gap-2 min-w-[200px]">
+                          <AlertCircle className="w-3 h-3 text-danger-custom" />
+                          <p className="text-[9px] text-danger-custom font-bold">{usernameError}</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <span className="text-[10px] text-slate-400 font-mono tracking-wider font-bold">
+                        ecard.mn/<span className="text-slate-900">{profile?.username}</span>
+                      </span>
+                      <div className="flex items-center gap-1 border-l border-slate-200 ml-1 pl-1.5">
+                        <button onClick={handleCopy} className="text-slate-300 hover:text-aurora-blue transition-colors p-0.5">
+                          {copied ? <Check className="w-3 h-3 text-success-text" /> : <Copy className="w-3 h-3" />}
+                        </button>
+                        <button onClick={() => setIsEditingUsername(true)} className="text-slate-300 hover:text-aurora-blue transition-colors p-0.5">
+                          <Edit2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                  {updateSuccess && (
+                    <motion.span 
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute -top-6 left-0 text-[9px] font-black text-success-text uppercase"
+                    >
+                      Амжилттай шинэчлэгдлээ
+                    </motion.span>
+                  )}
                 </div>
                 <div className="px-3 py-1 rounded-full bg-aurora-blue text-white text-[9px] font-black uppercase tracking-widest shadow-lg shadow-aurora-blue/20">
                   {profile?.plan || 'PRO'} PLAN

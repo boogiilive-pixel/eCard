@@ -237,7 +237,7 @@ export default function LandingPage() {
             </div>
           </div>
           
-          <div className="relative flex justify-center py-20 pointer-events-none group/footer overflow-hidden">
+          <div className="relative flex justify-center py-20 group/footer overflow-hidden cursor-pointer">
             <motion.div 
               style={{ 
                 scale: springScale,
@@ -245,25 +245,29 @@ export default function LandingPage() {
                 filter: textBlur,
                 opacity: textOpacity,
               }}
-              className="relative cursor-default pointer-events-auto flex items-center justify-center transition-all duration-700 h-[30vw]"
+              className="relative flex items-center justify-center transition-all duration-700 h-[30vw] w-full"
             >
-              {/* Normal State: The Text */}
-              <h2 className="text-[20vw] font-serif font-black leading-none select-none relative bg-clip-text text-transparent bg-gradient-to-b from-aurora-blue via-aurora-blue/40 to-transparent transition-all duration-700 group-hover/footer:opacity-0 group-hover/footer:scale-95 group-hover/footer:blur-xl">
+              {/* Normal State: The Dynamic Text */}
+              <h2 className="text-[20vw] font-serif font-black leading-none select-none relative bg-clip-text text-transparent bg-gradient-to-b from-aurora-blue via-aurora-blue/60 to-transparent transition-all duration-1000 group-hover/footer:opacity-0 group-hover/footer:scale-110 group-hover/footer:blur-3xl">
                 eCARD
               </h2>
 
-              {/* Hover State: The 'PNG' Logo */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/footer:opacity-100 transition-all duration-700 pointer-events-none translate-y-10 group-hover/footer:translate-y-0 scale-75 group-hover/footer:scale-110">
-                <img 
-                  src="https://lh3.googleusercontent.com/d/1Jm2Xbyd-6Xi1mqhE7foilH7L8S5xe1te" 
-                  alt="eCARD Logo" 
-                  className="w-[45vw] md:w-[35vw] h-auto object-contain drop-shadow-[0_20px_60px_rgba(255,0,255,0.4)]"
-                  referrerPolicy="no-referrer"
-                />
+              {/* Hover State: The Pure PNG Logo */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/footer:opacity-100 transition-all duration-700 pointer-events-none scale-75 group-hover/footer:scale-100">
+                <div className="relative">
+                  {/* Magenta Glow for the PNG */}
+                  <div className="absolute inset-0 bg-aurora-magenta/40 blur-[100px] rounded-full opacity-0 group-hover/footer:opacity-100 transition-opacity duration-1000" />
+                  <img 
+                    src="https://lh3.googleusercontent.com/d/1Jm2Xbyd-6Xi1mqhE7foilH7L8S5xe1te" 
+                    alt="eCARD Logo" 
+                    className="w-[45vw] md:w-[30vw] h-auto object-contain relative z-10 brightness-110 contrast-110 filter drop-shadow-[0_0_50px_rgba(217,70,239,0.5)]"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
               </div>
 
-              {/* Minimal Magenta Base Line */}
-              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-0 group-hover/footer:w-1/3 h-1 bg-gradient-to-r from-transparent via-aurora-magenta to-transparent transition-all duration-1000 opacity-40 blur-[1px]" />
+              {/* Enhanced Magenta Base Line */}
+              <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-0 group-hover/footer:w-1/2 h-0.5 bg-gradient-to-r from-transparent via-aurora-magenta to-transparent transition-all duration-1000 opacity-60 blur-[1px]" />
             </motion.div>
           </div>
 

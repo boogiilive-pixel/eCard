@@ -30,7 +30,12 @@ export default function RegisterPage() {
   };
 
   const createProfile = async (userId: string, email: string, firstname: string, lastname: string) => {
-    const username = (firstname + lastname).toLowerCase().replace(/\s/g, '') + Math.floor(Math.random() * 1000);
+    // Ensure username is Latin-only
+    const combined = (firstname + lastname).toLowerCase();
+    const latinOnly = combined.split('').filter(char => /^[a-z0-9]$/.test(char)).join('');
+    const base = latinOnly || 'user';
+    const username = base + Math.floor(Math.random() * 1000);
+    
     const profileData = {
       lastname,
       firstname,
