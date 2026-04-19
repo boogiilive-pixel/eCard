@@ -424,8 +424,8 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="text-center pt-8">
-          <Link to="/" className="text-white/60 hover:text-aurora-cyan transition-colors text-xs tracking-[0.2em] uppercase font-black">
+        <div className="text-center pt-12 pb-8">
+          <Link to="/" className="text-slate-400 hover:text-aurora-blue transition-colors text-sm font-medium">
             Өөрийн картыг үүсгэх үү? eCard.mn
           </Link>
         </div>
